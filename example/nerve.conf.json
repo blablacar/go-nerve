@@ -1,15 +1,17 @@
 {
   "instance_id": "mymachine",
-  "services": {
-    "your_http_service": {
+  "log-level": "DEBUG",
+  "services": [
+    {
+      "name": "your_http_service",
+      "host": "1.2.3.4",
+      "port": 3000,
       "reporter": {
         "type": "zookeeper",
         "hosts": ["localhost:2181"],
         "path": "/nerve/services/your_http_service/services"
       },
       "watcher": {
-        "host": "1.2.3.4",
-        "port": 3000,
         "check_interval": 2,
         "checks": [
           {
@@ -22,15 +24,16 @@
         ]
       }
     },
-    "your_tcp_service": {
+    {
+      "name": "your_tcp_service",
+      "host": "1.2.3.4",
+      "port": 6379,
       "reporter": {
-        "reporter_type": "zookeeper",
+        "type": "zookeeper",
         "hosts": ["localhost:2181"],
         "path": "/nerve/services/your_tcp_service/services"
       },
       "watcher": {
-        "host": "1.2.3.4",
-        "port": 6379,
         "check_interval": 2,
         "checks": [
           {
@@ -42,15 +45,16 @@
         ]
       }
     },
-    "rabbitmq_service": {
+    {
+      "name": "your_rabbit_service",
+      "host": "1.2.3.4",
+      "port": 5672,
       "reporter": {
-        "reporter_type": "zookeeper",
+        "type": "zookeeper",
         "hosts": ["localhost:2181"],
         "path": "/nerve/services/your_rabbitmq_service/services"
       },
       "watcher": {
-        "host": "1.2.3.4",
-        "port": 5672,
         "check_interval": 2,
         "checks": [
           {
@@ -61,5 +65,5 @@
         ]
       }
     }
-  }
+  ]
 }

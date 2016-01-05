@@ -1,4 +1,4 @@
-package reporters
+package nerve
 
 const REPORTER_ZOOKEEPER_TYPE string = "ZOOKEEPER"
 

@@ -1,48 +1,49 @@
 package nerve
 
 import (
-	"fmt"
-	"nerve/watchers"
-	"nerve/reporters"
-	"nerve/configuration"
+	log "github.com/Sirupsen/logrus"
 	"time"
 	"sync"
+)
+
+const (
+	StatusOK int = 0
+	StatusKO int = 1
+	StatusUnknown int = 2
 )
 
 var closeNerveChan chan bool
 var waitGroup sync.WaitGroup
 
-func Initialize() (watcher watchers.WatcherI, reporter reporters.ReporterI) {
+func Initialize() (watcher WatcherI, reporter ReporterI) {
 	var err error
-	var configChecks []configuration.NerveCheckConfiguration
-	var configWatcher configuration.NerveWatcherConfiguration
-	configWatcher.Host = "127.0.0.1"
-        configWatcher.Port = 8080
+	var configChecks []NerveCheckConfiguration
+	var configWatcher NerveWatcherConfiguration
         configWatcher.CheckInterval = 2
 	configWatcher.Checks = configChecks
-	watcher, err = watchers.CreateWatcher(configWatcher)
+	watcher, err = CreateWatcher(configWatcher)
 	if err != nil {
-		fmt.Println("CreateWatcher Error")
+		log.Warn("Nerve: CreateWatcher Error")
 	}
-	reporter, err = reporters.CreateReporter("console",nil)
+	reporter, err = CreateReporter("console",nil)
 	return watcher, reporter
 }
 
-func Run(work <-chan bool,finished chan<-bool) {
-	fmt.Println("Nerve started")
+func Run(work <-chan bool,finished chan<-bool, nerveConfig NerveConfiguration) {
+	log.Debug("Nerve: Run function started")
 	toBreak := true
 	for i := 0; toBreak; i=i+1 {
-		fmt.Println("Watcher ", i)
+		log.Debug("Nerve: Watcher Run [",i,"]")
 		watcher, reporter := Initialize()
 		status, err := watcher.Check()
 		if err != nil {
-			fmt.Println("Watcher Error")
+			log.Warn("Nerve: Watcher Error")
 		}else {
 			reporter.Report("127.0.0.1","8080","la",status)
 		}
 		select {
 		case workNonBlocking := <-work:
-			fmt.Println("Close Signal Received")
+			log.Debug("Nerve: Run function Close Signal Received")
 			toBreak = workNonBlocking
 		default:
 			toBreak = true
@@ -50,5 +51,5 @@ func Run(work <-chan bool,finished chan<-bool) {
 		time.Sleep(time.Second * 1)
 	}
 	finished <- true
-	fmt.Println("Nerve closed")
+	log.Debug("Nerve: Run function termination")
 }

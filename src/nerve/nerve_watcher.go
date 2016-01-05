@@ -1,0 +1,41 @@
+package nerve
+
+import "nerve/checks"
+
+type Watcher struct {
+	Host string
+	Port int
+	Status int
+	Error error
+	Checks []checks.CheckI
+}
+
+type WatcherI interface {
+	Initialize(config NerveWatcherConfiguration) error
+	Check() (status int, err error)
+}
+
+func(w Watcher) Initialize(config NerveWatcherConfiguration) (err error) {
+	return nil
+}
+
+func(w Watcher) Check() (int, error) {
+	var status int
+	var err error
+	if w.Checks == nil {
+		return StatusOK, nil
+	}
+	for i:=0; i < len(w.Checks); i++ {
+		status, err = w.Checks[i].DoCheck()
+		if err != nil || status != StatusOK {
+			return status, err
+		}
+	}
+	return StatusOK , nil
+}
+
+func CreateWatcher(config NerveWatcherConfiguration) (WatcherI, error) {
+	var watcher Watcher
+	watcher.Initialize(config)
+	return watcher, nil
+}

@@ -1,7 +1,8 @@
-package reporters
+package nerve
 
-import "fmt"
-import log "github.com/Sirupsen/logrus"
+import (
+	"fmt"
+)
 
 const REPORTER_CONSOLE_TYPE = "CONSOLE"
 
@@ -15,7 +16,6 @@ func(x consoleReporter) Initialize() error {
 }
 
 func(x consoleReporter) Report(IP string, Port string, Host string, Status int) error {
-	log.Info("{\"report\":{\"IP\":\"", IP, "\",\"Port\":", Port, ",\"Host\":", Host, ",\"Status\":", Status, "}}")
 	fmt.Println("{\"report\":{\"IP\":\"", IP, "\",\"Port\":", Port, ",\"Host\":", Host, ",\"Status\":", Status, "}}")
 	return nil
 }

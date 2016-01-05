@@ -1,4 +1,4 @@
-package reporters
+package nerve
 
 const REPORTER_FILE_TYPE = "FILE"
 

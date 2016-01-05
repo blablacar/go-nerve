@@ -1,12 +1,6 @@
-package reporters
+package nerve
 
 import "strings"
-
-const (
-	StatusOK int = 0
-	StatusKO int = 1
-	StatusUnknown int = 2
-)
 
 type Reporter struct {
 	Error error
