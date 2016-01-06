@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"time"
 	"strconv"
+	"net"
 )
 
 type NerveService struct {
@@ -11,6 +12,7 @@ type NerveService struct {
 	Reporter ReporterI
 	Name string
 	Host string
+	IP string
 	Port int
 }
 
@@ -20,6 +22,17 @@ func(ns *NerveService) Initialize(config NerveServiceConfiguration) error {
 	ns.Name = config.Name
 	ns.Host = config.Host
 	ns.Port = config.Port
+	addrs, err := net.LookupIP(ns.Host)
+	if err != nil {
+		log.Warn("Error getting IP for the Host[",ns.Host,"]")
+		ns.IP = "127.0.0.1"
+	}else {
+		for i := 0; i<len(addrs); i++ {
+		    if addrs[i] != nil {
+			ns.IP = addrs[i].String()
+		    }
+		}
+	}
 	log.Debug("Service [",ns.Name,"] for Host [",ns.Host,"] Port [",ns.Port,"] initialisation")
 	ns.Watcher , err = CreateWatcher(config.Watcher)
 	if err != nil {
@@ -44,7 +57,7 @@ func(ns *NerveService) Run(stop <-chan bool) {
 		if err != nil  {
 			log.Warn("Check error for Service [", ns.Name, "] [",err,"]")
 		}
-		ns.Reporter.Report("127.0.0.1",strconv.Itoa(ns.Port),ns.Host,status);
+		ns.Reporter.Report(ns.IP,strconv.Itoa(ns.Port),ns.Host,status);
 
 		// Wait for the stop signal
 		select {
