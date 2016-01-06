@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"time"
 	"sync"
+	"errors"
 )
 
 const (
@@ -13,43 +14,64 @@ const (
 )
 
 var closeNerveChan chan bool
-var waitGroup sync.WaitGroup
+var servicesWaitGroup sync.WaitGroup
 
-func Initialize() (watcher WatcherI, reporter ReporterI) {
-	var err error
-	var configChecks []NerveCheckConfiguration
-	var configWatcher NerveWatcherConfiguration
-        configWatcher.CheckInterval = 2
-	configWatcher.Checks = configChecks
-	watcher, err = CreateWatcher(configWatcher)
-	if err != nil {
-		log.Warn("Nerve: CreateWatcher Error")
+func createServices(config NerveConfiguration) ([]NerveService, error) {
+	var services []NerveService
+	if len(config.Services) > 0 {
+		for i:=0; i < len(config.Services); i++ {
+			service, err := CreateService(config.Services[i])
+			if err != nil {
+				log.Warn("Error when creating a service (",err,")")
+				return services, err
+			}
+			services = append(services,service)
+		}
+	}else {
+		err := errors.New("no service found in configuration")
+		return services, err
 	}
-	reporter, err = CreateReporter("console",nil)
-	return watcher, reporter
+	return services, nil
 }
 
-func Run(work <-chan bool,finished chan<-bool, nerveConfig NerveConfiguration) {
+func Run(stop <-chan bool,finished chan<-bool, nerveConfig NerveConfiguration) {
 	log.Debug("Nerve: Run function started")
-	toBreak := true
-	for i := 0; toBreak; i=i+1 {
-		log.Debug("Nerve: Watcher Run [",i,"]")
-		watcher, reporter := Initialize()
-		status, err := watcher.Check()
-		if err != nil {
-			log.Warn("Nerve: Watcher Error")
-		}else {
-			reporter.Report("127.0.0.1","8080","la",status)
+	services , err := createServices(nerveConfig)
+	if err != nil {
+		finished <- false
+	}else {
+		servicesWaitGroup.Add(len(services))
+		stopper := make(chan bool, len(services))
+		//Start Services
+		for i := 0; i < len(services); i++ {
+			go services[i].Run(stopper)
 		}
-		select {
-		case workNonBlocking := <-work:
-			log.Debug("Nerve: Run function Close Signal Received")
-			toBreak = workNonBlocking
-		default:
-			toBreak = true
+
+		// Wait for the stop signal
+		Loop:
+		for {
+			select {
+			case hasToStop := <-stop:
+				if hasToStop {
+					log.Debug("Nerve: Run function Close Signal Received")
+				}else {
+					log.Debug("Nerve: Run function Close Signal Received (but a strange false one)")
+				}
+				break Loop
+			default:
+				time.Sleep(time.Second * 1)
+			}
 		}
-		time.Sleep(time.Second * 1)
+
+		//Inform all services to stop
+		for i := 0; i < len(services); i++ {
+			stopper <- true
+		}
+
+		log.Debug("Nerve: Wait for all services to stop")
+		//Wait for all services to shutdown
+		servicesWaitGroup.Wait()
+		finished <- true
 	}
-	finished <- true
 	log.Debug("Nerve: Run function termination")
 }
