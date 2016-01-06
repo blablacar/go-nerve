@@ -7,19 +7,26 @@ type Watcher struct {
 	Port int
 	Status int
 	Error error
+	CheckInterval int
 	Checks []checks.CheckI
 }
 
 type WatcherI interface {
 	Initialize(config NerveWatcherConfiguration) error
-	Check() (status int, err error)
+	Check() (int, error)
+	GetCheckInterval() int
 }
 
-func(w Watcher) Initialize(config NerveWatcherConfiguration) (err error) {
+func(w *Watcher) GetCheckInterval() int {
+	return w.CheckInterval
+}
+
+func(w *Watcher) Initialize(config NerveWatcherConfiguration) (err error) {
+	w.CheckInterval = config.CheckInterval
 	return nil
 }
 
-func(w Watcher) Check() (int, error) {
+func(w *Watcher) Check() (int, error) {
 	var status int
 	var err error
 	if w.Checks == nil {
@@ -37,5 +44,5 @@ func(w Watcher) Check() (int, error) {
 func CreateWatcher(config NerveWatcherConfiguration) (WatcherI, error) {
 	var watcher Watcher
 	watcher.Initialize(config)
-	return watcher, nil
+	return &watcher, nil
 }
