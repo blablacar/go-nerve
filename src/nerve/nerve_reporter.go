@@ -1,11 +1,9 @@
 package nerve
 
-import "strings"
-
-type Reporter struct {
-	Error error
-	_type string
-}
+import (
+	"strings"
+	"nerve/reporters"
+)
 
 type ReporterI interface {
 	Initialize() error
@@ -13,14 +11,14 @@ type ReporterI interface {
 	GetType() string
 }
 
-func CreateReporter(_type string, config []string) (reporter ReporterI, err error) {
-	switch (strings.ToUpper(_type)) {
-		case REPORTER_ZOOKEEPER_TYPE:
-			reporter = new(zookeeperReporter)
-		case REPORTER_FILE_TYPE:
-			reporter = new(fileReporter)
+func CreateReporter(config NerveReporterConfiguration) (reporter ReporterI, err error) {
+	switch (strings.ToUpper(config.Type)) {
+		case reporters.REPORTER_ZOOKEEPER_TYPE:
+			reporter = new(reporters.ZookeeperReporter)
+		case reporters.REPORTER_FILE_TYPE:
+			reporter = new(reporters.FileReporter)
 		default:
-			reporter = new(consoleReporter)
+			reporter = new(reporters.ConsoleReporter)
 			reporter.Initialize()
 	}
 	return reporter, nil

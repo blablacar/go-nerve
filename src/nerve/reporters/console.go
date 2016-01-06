@@ -1,4 +1,4 @@
-package nerve
+package reporters
 
 import (
 	"fmt"
@@ -6,20 +6,20 @@ import (
 
 const REPORTER_CONSOLE_TYPE = "CONSOLE"
 
-type consoleReporter struct {
+type ConsoleReporter struct {
 	Reporter
 }
 
-func(x consoleReporter) Initialize() error {
+func(x *ConsoleReporter) Initialize() error {
 	x._type = REPORTER_CONSOLE_TYPE
 	return nil
 }
 
-func(x consoleReporter) Report(IP string, Port string, Host string, Status int) error {
+func(x *ConsoleReporter) Report(IP string, Port string, Host string, Status int) error {
 	fmt.Println("{\"report\":{\"IP\":\"", IP, "\",\"Port\":", Port, ",\"Host\":", Host, ",\"Status\":", Status, "}}")
 	return nil
 }
 
-func(x consoleReporter) GetType() string {
+func(x *ConsoleReporter) GetType() string {
 	return x._type
 }
