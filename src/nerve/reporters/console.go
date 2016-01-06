@@ -16,7 +16,7 @@ func(x *ConsoleReporter) Initialize() error {
 }
 
 func(x *ConsoleReporter) Report(IP string, Port string, Host string, Status int) error {
-	fmt.Println("{\"report\":{\"IP\":\"", IP, "\",\"Port\":", Port, ",\"Host\":", Host, ",\"Status\":", Status, "}}")
+	fmt.Printf("{\"report\":{\"IP\":\"%s\",\"Port\":%s,\"Host\":\"%s\",\"Status\":%d}}\n",IP,Port,Host,Status)
 	return nil
 }
 
