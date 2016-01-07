@@ -12,15 +12,12 @@ type ZookeeperReporter struct {
 
 
 func(x *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int) error {
-	x.IP = IP
-	x.Port = Port
-	x.Rise = Rise
-	x.Fall = Fall
 	x.ZKHost = "localhost"
 	x.ZKPort = "443"
 	x.ZKPath = "nerve"
 	x.ZKKey = "reporter"
 	x._type = REPORTER_ZOOKEEPER_TYPE
+	x.SetBaseConfiguration(IP,Port,Rise,Fall)
 	return nil
 }
 

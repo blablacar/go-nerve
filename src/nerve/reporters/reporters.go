@@ -48,6 +48,21 @@ func(r *Reporter) CanReport(status int) bool {
 	return true
 }
 
+func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int) {
+	r.IP = IP
+	r.Port = Port
+	if Rise > 0 {
+		r.Rise = Rise
+	}else {
+		r.Rise = 1
+	}
+	if Fall > 0 {
+		r.Fall = Fall
+	}else {
+		r.Fall = 1
+	}
+}
+
 func max(val1 int, val2 int) int {
 	if val1 > val2 {
 		return val1

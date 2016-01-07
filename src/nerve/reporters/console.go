@@ -12,10 +12,7 @@ type ConsoleReporter struct {
 
 func(x *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int) error {
 	x._type = REPORTER_CONSOLE_TYPE
-	x.IP = IP
-	x.Port = Port
-	x.Rise = Rise
-	x.Fall = Fall
+	x.SetBaseConfiguration(IP,Port,Rise,Fall)
 	return nil
 }
 
