@@ -35,7 +35,9 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 				Host,
 				Port,
 				config.Checks[i].ConnectTimeout,
-				ipv6)
+				ipv6,
+				config.Checks[i].Uri,
+			)
                         if err != nil {
                                 log.Warn("Error when creating a check (",err,")")
                                 return _checks, err

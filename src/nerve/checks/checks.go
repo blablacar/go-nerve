@@ -29,15 +29,17 @@ type CheckI interface {
 	SetBaseConfiguration(IP string, Host string, Port int, ConnectTimeout int, IPv6 bool)
 }
 
-func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout int, ipv6 bool) (CheckI, error) {
+func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout int, ipv6 bool, param1 string) (CheckI, error) {
 	var check CheckI
         switch (strings.ToUpper(_type)) {
                 case CHECK_TCP_TYPE:
-                        check = new(tcpCheck)
+			check = new(tcpCheck)
 			check.Initialize()
                 case CHECK_HTTP_TYPE:
-                        check = new(httpCheck)
-			check.Initialize()
+			http_check := new(httpCheck)
+			http_check.Initialize()
+			http_check.SetURI(param1)
+                        check = http_check
                 case CHECK_RABBITMQ_TYPE:
                         check = new(rabbitmqCheck)
 			check.Initialize()
