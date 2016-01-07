@@ -10,7 +10,9 @@
       "reporter": {
         "type": "zookeeper",
         "hosts": ["localhost:2181"],
-        "path": "/nerve/services/your_http_service/services"
+        "path": "/nerve/services/your_http_service/services",
+        "rise": 3,
+        "fall": 2
       },
       "watcher": {
         "check_interval": 2,
@@ -18,9 +20,7 @@
           {
             "type": "http",
             "uri": "/health",
-            "timeout": 200,
-            "rise": 3,
-            "fall": 2
+            "timeout": 200
           }
         ]
       }
@@ -32,16 +32,16 @@
       "reporter": {
         "type": "console",
         "hosts": ["localhost:2181"],
-        "path": "/nerve/services/your_tcp_service/services"
+        "path": "/nerve/services/your_tcp_service/services",
+        "rise": 3,
+        "fall": 2
       },
       "watcher": {
         "check_interval": 2,
         "checks": [
           {
             "type": "tcp",
-            "timeout": 200,
-            "rise": 3,
-            "fall": 2
+            "timeout": 200
           }
         ]
       }
