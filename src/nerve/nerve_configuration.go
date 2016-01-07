@@ -19,6 +19,7 @@ type NerveCheckConfiguration struct {
 	Uri string `json:"uri"`
 	User string `json:"user"`
 	Password string `json:"password"`
+	ConnectTimeout int `json:"timeout"`
 }
 
 type NerveWatcherConfiguration struct {
@@ -37,6 +38,7 @@ type NerveServiceConfiguration struct {
 type NerveConfiguration struct {
 	InstanceID string `json:"instance_id"`
 	LogLevel string `json:"log-level"`
+	IPv6 bool `json:"ipv6"`
 	Services []NerveServiceConfiguration `json:"services"`
 }
 

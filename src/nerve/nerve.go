@@ -20,7 +20,7 @@ func createServices(config NerveConfiguration) ([]NerveService, error) {
 	var services []NerveService
 	if len(config.Services) > 0 {
 		for i:=0; i < len(config.Services); i++ {
-			service, err := CreateService(config.Services[i])
+			service, err := CreateService(config.Services[i],config.IPv6)
 			if err != nil {
 				log.Warn("Error when creating a service (",err,")")
 				return services, err

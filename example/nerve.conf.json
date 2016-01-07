@@ -1,13 +1,14 @@
 {
   "instance_id": "mymachine",
   "log-level": "DEBUG",
+  "ipv6":false,
   "services": [
     {
       "name": "your_http_service",
       "host": "1.2.3.4",
       "port": 3000,
       "reporter": {
-        "type": "console",
+        "type": "zookeeper",
         "hosts": ["localhost:2181"],
         "path": "/nerve/services/your_http_service/services"
       },
@@ -17,7 +18,7 @@
           {
             "type": "http",
             "uri": "/health",
-            "timeout": 0.2,
+            "timeout": 200,
             "rise": 3,
             "fall": 2
           }
@@ -25,11 +26,11 @@
       }
     },
     {
-      "name": "your_tcp_service",
-      "host": "1.2.3.4",
-      "port": 6379,
+      "name": "local_smtp",
+      "host": "localhost",
+      "port": 25,
       "reporter": {
-        "type": "zookeeper",
+        "type": "console",
         "hosts": ["localhost:2181"],
         "path": "/nerve/services/your_tcp_service/services"
       },
@@ -38,7 +39,7 @@
         "checks": [
           {
             "type": "tcp",
-            "timeout": 0.2,
+            "timeout": 200,
             "rise": 3,
             "fall": 2
           }

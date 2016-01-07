@@ -11,7 +11,7 @@ type ReporterI interface {
 	GetType() string
 }
 
-func CreateReporter(config NerveReporterConfiguration) (reporter ReporterI, err error) {
+func CreateReporter(config NerveReporterConfiguration, ipv6 bool) (reporter ReporterI, err error) {
 	switch (strings.ToUpper(config.Type)) {
 		case reporters.REPORTER_ZOOKEEPER_TYPE:
 			reporter = new(reporters.ZookeeperReporter)

@@ -4,22 +4,17 @@ const CHECK_RABBITMQ_TYPE string = "RABBITMQ"
 
 type rabbitmqCheck struct {
 	Check
-	Host string
-	Port string
-	Ip string
 	VHost string
 	Queue string
-	ConnectTimeout int
-	DisconnectTimeout int
 }
 
 //Initialize 
-func(x rabbitmqCheck) Initialize() error {
+func(x *rabbitmqCheck) Initialize() error {
 	//Default value pushed here
 	x.Status = StatusUnknown
 	x.Host = "localhost"
-	x.Port = "5672"
-	x.Ip = "127.0.0.1"
+	x.Port = 5672
+	x.IP = "127.0.0.1"
 	x.VHost = "/"
 	x.Queue = "test"
 	x.ConnectTimeout = 10
@@ -29,10 +24,18 @@ func(x rabbitmqCheck) Initialize() error {
 }
 
 //Verify that the given host or ip / port is healthy
-func(x rabbitmqCheck) DoCheck() (status int, err error) {
+func(x *rabbitmqCheck) DoCheck() (status int, err error) {
 	return StatusOK, nil
 }
 
-func(x rabbitmqCheck) GetType() string {
+func(x *rabbitmqCheck) GetType() string {
 	return x._type
+}
+
+func (x *rabbitmqCheck) SetBaseConfiguration(IP string, Host string, Port int, ConnectTimeout int, ipv6 bool) {
+	x.IP = IP
+	x.Host = Host
+	x.Port = Port
+	x.ConnectTimeout = ConnectTimeout
+	x.IPv6 = ipv6
 }
