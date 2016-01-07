@@ -3,7 +3,6 @@ package nerve
 import (
 	log "github.com/Sirupsen/logrus"
 	"time"
-	"strconv"
 	"net"
 )
 
@@ -45,7 +44,7 @@ func(ns *NerveService) Initialize(config NerveServiceConfiguration, ipv6 bool) e
 		log.Warn("Error creating Watcher in Service [",ns.Name,"]")
 		return err
 	}
-	ns.Reporter, err = CreateReporter(config.Reporter,ipv6)
+	ns.Reporter, err = CreateReporter(ns.IP,ns.Port,config.Reporter,ipv6)
 	if err != nil {
 		log.Warn("Error creating Reporter in Service [",ns.Name,"]")
 		return err
@@ -63,7 +62,7 @@ func(ns *NerveService) Run(stop <-chan bool) {
 		if err != nil  {
 			log.Warn("Check error for Service [", ns.Name, "] [",err,"]")
 		}
-		ns.Reporter.Report(ns.IP,strconv.Itoa(ns.Port),ns.Host,status);
+		ns.Reporter.Report(status);
 
 		// Wait for the stop signal
 		select {

@@ -9,13 +9,13 @@ type NerveReporterConfiguration struct {
 	Type string `json:"type"`
 	Hosts []string `json:"hosts"`
 	Path string `json:"path"`
+	Rise int `json:"rise"`
+	Fall int `json:"fall"`
 }
 
 type NerveCheckConfiguration struct {
 	Type string `json:"type"`
         Timeout float32 `json:"timeout"`
-	Rise int `json:"rise"`
-	Fall int `json:"fall"`
 	Uri string `json:"uri"`
 	User string `json:"user"`
 	Password string `json:"password"`

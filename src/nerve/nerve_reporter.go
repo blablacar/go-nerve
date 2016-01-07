@@ -6,12 +6,12 @@ import (
 )
 
 type ReporterI interface {
-	Initialize() error
-	Report(IP string, Port string, Host string, Status int) error
+	Initialize(IP string, Port int, Rise int, Fall int) error
+	Report(Status int) error
 	GetType() string
 }
 
-func CreateReporter(config NerveReporterConfiguration, ipv6 bool) (reporter ReporterI, err error) {
+func CreateReporter(IP string, Port int, config NerveReporterConfiguration, ipv6 bool) (reporter ReporterI, err error) {
 	switch (strings.ToUpper(config.Type)) {
 		case reporters.REPORTER_ZOOKEEPER_TYPE:
 			reporter = new(reporters.ZookeeperReporter)
@@ -19,7 +19,7 @@ func CreateReporter(config NerveReporterConfiguration, ipv6 bool) (reporter Repo
 			reporter = new(reporters.FileReporter)
 		default:
 			reporter = new(reporters.ConsoleReporter)
-			reporter.Initialize()
 	}
+	reporter.Initialize(IP,Port,config.Rise,config.Fall)
 	return reporter, nil
 }

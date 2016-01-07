@@ -10,7 +10,12 @@ type ZookeeperReporter struct {
 	ZKKey string
 }
 
-func(x ZookeeperReporter) Initialize() error {
+
+func(x *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int) error {
+	x.IP = IP
+	x.Port = Port
+	x.Rise = Rise
+	x.Fall = Fall
 	x.ZKHost = "localhost"
 	x.ZKPort = "443"
 	x.ZKPath = "nerve"
@@ -19,7 +24,7 @@ func(x ZookeeperReporter) Initialize() error {
 	return nil
 }
 
-func(x ZookeeperReporter) Report(IP string, Port string, Host string, Status int) error {
+func(x ZookeeperReporter) Report(Status int) error {
 	return nil
 }
 
