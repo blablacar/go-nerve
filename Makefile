@@ -11,7 +11,7 @@ dep-install:
 	$(GOMCMD) install
 
 build:
-	GOM_VENDOR_NAME=. $(GOMCMD) build nerve/nerve
+	$(GOMCMD) build nerve/nerve
 	mv nerve bin/.
 
 clean:
