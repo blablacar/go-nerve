@@ -11,6 +11,7 @@ type NerveReporterConfiguration struct {
 	Path string `json:"path"`
 	Rise int `json:"rise"`
 	Fall int `json:"fall"`
+	Weight int `json:"weight"`
 }
 
 type NerveCheckConfiguration struct {
