@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/samuel/go-zookeeper/zk"
 	"time"
+	"strings"
 )
 
 const REPORTER_ZOOKEEPER_TYPE string = "ZOOKEEPER"
@@ -13,6 +14,7 @@ type ZookeeperReporter struct {
 	ZKHosts []string
 	ZKPath string
 	ZKConnection *zk.Conn
+	CurrentNode string
 }
 
 
@@ -20,6 +22,7 @@ func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, 
 	zr._type = REPORTER_ZOOKEEPER_TYPE
 	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,InstanceID)
 	zr.ZKConnection = nil
+	zr.CurrentNode = zr.ZKPath + "/" + zr.IP + "_" + zr.InstanceID
 	return nil
 }
 
@@ -65,21 +68,44 @@ func(zr *ZookeeperReporter) Report(Status int) error {
 		return err
 	}
 	if state == zk.StateHasSession && zr.CanReport(Status) {
+
+		paths := strings.Split(zr.ZKPath, "/")
+		full := ""
+		acl := zk.WorldACL(zk.PermAll)
+		for i, path := range paths {
+			if i > 0 {
+				full +=  "/"
+			}
+			full += path
+			if exists, _, _ := zr.ZKConnection.Exists(full); exists {
+				continue
+			}
+
+			log.WithField("full", full).Debug("Creating zk path")
+
+			_, err := zr.ZKConnection.Create(full, []byte(""), int32(0), acl)
+			if err != nil {
+				log.WithError(err).WithField("path", full).Debug("Cannot create path")
+			}
+		}
+
+
 		realPath := zr.ZKPath + "/" + zr.IP + "_" + zr.InstanceID
-		exists, _, err := zr.ZKConnection.Exists(realPath)
+		exists, _, _ := zr.ZKConnection.Exists(zr.CurrentNode)
 		if Status == 0 {
 			if !exists {
-				acl := zk.WorldACL(zk.PermAll)
 				//Don't use Create, as it's an ephemeral zk node, and there's some race condition to avoid
-				_, err = zr.ZKConnection.CreateProtectedEphemeralSequential(realPath, []byte(zr.GetJsonReporterData()), acl)
+				zr.CurrentNode, err = zr.ZKConnection.CreateProtectedEphemeralSequential(realPath, []byte(zr.GetJsonReporterData()), acl)
 				if err != nil {
-					log.Warn("Unable to Create [",realPath,"] into ZooKeeper")
+					log.WithError(err).Warn("Unable to Create [",realPath,"] into ZooKeeper")
 					return err
 				}
+			} else {
+				zr.ZKConnection.Set(zr.CurrentNode, []byte(zr.GetJsonReporterData()), int32(0)	)
 			}
 		}else {
 			if exists {
-				err = zr.ZKConnection.Delete(realPath, -1)
+				err = zr.ZKConnection.Delete(zr.CurrentNode, -1)
 				if err != nil {
 					log.Warn("Unable to Delete [",realPath,"] into ZooKeeper")
 					return err
