@@ -31,8 +31,6 @@
       "port": 25,
       "reporter": {
         "type": "console",
-        "hosts": ["localhost:2181"],
-        "path": "/nerve/services/your_tcp_service/services",
         "rise": 3,
         "fall": 2
       },
