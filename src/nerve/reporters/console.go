@@ -10,9 +10,9 @@ type ConsoleReporter struct {
 	Reporter
 }
 
-func(x *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int) error {
+func(x *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int) error {
 	x._type = REPORTER_CONSOLE_TYPE
-	x.SetBaseConfiguration(IP,Port,Rise,Fall)
+	x.SetBaseConfiguration(IP,Port,Rise,Fall,Weight)
 	return nil
 }
 
@@ -20,6 +20,10 @@ func(x *ConsoleReporter) Report(Status int) error {
 	if x.CanReport(Status) {
 		fmt.Printf("{\"report\":{\"IP\":\"%s\",\"Port\":%d,\"Status\":%d}}\n",x.IP,x.Port,Status)
 	}
+	return nil
+}
+
+func(cr *ConsoleReporter) Destroy() error {
 	return nil
 }
 

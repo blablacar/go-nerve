@@ -44,7 +44,7 @@ func(ns *NerveService) Initialize(config NerveServiceConfiguration, ipv6 bool) e
 		log.Warn("Error creating Watcher in Service [",ns.Name,"]")
 		return err
 	}
-	ns.Reporter, err = CreateReporter(ns.IP,ns.Port,config.Reporter,ipv6)
+	ns.Reporter, err = CreateReporter(ns.IP,ns.Port,ns.Name,config.Reporter,ipv6)
 	if err != nil {
 		log.Warn("Error creating Reporter in Service [",ns.Name,"]")
 		return err
@@ -76,6 +76,10 @@ func(ns *NerveService) Run(stop <-chan bool) {
 		default:
 			time.Sleep(time.Second * time.Duration(ns.Watcher.GetCheckInterval()))
 		}
+	}
+	err := ns.Reporter.Destroy()
+	if err != nil {
+		log.Warn("Service [",ns.Name,"] has detected an error when destroying Reporter (",err,")")
 	}
 	log.Debug("Service [",ns.Name,"] stopped")
 }

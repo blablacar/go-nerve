@@ -12,50 +12,91 @@ type ZookeeperReporter struct {
 	Reporter
 	ZKHosts []string
 	ZKPath string
-	ZKKey string
+	ZKConnection *zk.Conn
 }
 
 
-func(x *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int) error {
-	x.ZKHosts = append(x.ZKHosts,"localhost:443")
-	x.ZKPath = "/nerve"
-	x.ZKKey = "reporter"
-	x._type = REPORTER_ZOOKEEPER_TYPE
-	x.SetBaseConfiguration(IP,Port,Rise,Fall)
+func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int) error {
+	zr._type = REPORTER_ZOOKEEPER_TYPE
+	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight)
+	zr.ZKConnection = nil
 	return nil
 }
 
-func(x ZookeeperReporter) Report(Status int) error {
-	if x.CanReport(Status) {
-		//Connect to ZooKeeper
-		conn, _, err := zk.Connect(x.ZKHosts, time.Second)
-		if err != nil {
-			log.Warn("Unable to Connect to ZooKeeper (",err,")")
-			return err
+func(zr *ZookeeperReporter) SetZKConfiguration(ZKHosts []string, ZKPath string) {
+	zr.ZKHosts = ZKHosts
+	zr.ZKPath = ZKPath
+}
+
+func(zr *ZookeeperReporter) Connect() (zk.State, error) {
+	if zr.ZKConnection != nil {
+		state := zr.ZKConnection.State()
+		switch state {
+			case zk.StateUnknown,zk.StateConnectedReadOnly,zk.StateExpired,zk.StateAuthFailed,zk.StateConnecting: {
+				//Disconnect, and let Reconnection happen
+				log.Warn("Zookeeper Connection is in BAD State [",state,"] Reconnect")
+				zr.ZKConnection.Close()
+			}
+			case zk.StateConnected, zk.StateHasSession: {
+				log.Debug("Zookeeper Connection of [",zr.ServiceName,"] connected(",state,"), nothing to do.")
+				return state, nil
+			}
+			case zk.StateDisconnected: {
+				log.Info("Reporter Connection is Disconnected -> Reconnection")
+			}
 		}
-		realPath := x.ZKPath + "/" + x.IP
+	}
+	conn, _, err := zk.Connect(zr.ZKHosts, time.Second)
+	if err != nil {
+		zr.ZKConnection = nil
+		log.Warn("Unable to Connect to ZooKeeper (",err,")")
+		return zk.StateDisconnected, err
+	}
+	zr.ZKConnection = conn
+	state := zr.ZKConnection.State()
+	return state, nil
+}
+
+func(zr *ZookeeperReporter) Report(Status int) error {
+	//Test Connection to ZooKeeper
+	state, err := zr.Connect() //internally the connection is maintained
+	if err != nil {
+		log.Warn("Unable to Report... Connection to Zookeeper Fail")
+		return err
+	}
+	if state == zk.StateHasSession && zr.CanReport(Status) {
+		realPath := zr.ZKPath + "/" + zr.IP + "_" + zr.ServiceName
+		exists, _, err := zr.ZKConnection.Exists(realPath)
 		if Status == 0 {
-			flags := int32(0)
-			acl := zk.WorldACL(zk.PermAll)
-			_, err := conn.Create(realPath, []byte(x.ZKKey), flags, acl)
-			if err != nil {
-				log.Warn("Unable to Create [",realPath,"] into ZooKeeper")
-				conn.Close()
-				return err
+			if !exists {
+				acl := zk.WorldACL(zk.PermAll)
+				//Don't use Create, as it's an ephemeral zk node, and there's some race condition to avoid
+				_, err = zr.ZKConnection.CreateProtectedEphemeralSequential(realPath, []byte(zr.GetJsonReporterData()), acl)
+				if err != nil {
+					log.Warn("Unable to Create [",realPath,"] into ZooKeeper")
+					return err
+				}
 			}
 		}else {
-			err := conn.Delete(realPath, -1)
-			if err != nil {
-				log.Warn("Unable to Delete [",realPath,"] into ZooKeeper")
-				conn.Close()
-				return err
+			if exists {
+				err = zr.ZKConnection.Delete(realPath, -1)
+				if err != nil {
+					log.Warn("Unable to Delete [",realPath,"] into ZooKeeper")
+					return err
+				}
 			}
 		}
-		conn.Close()
 	}
 	return nil
 }
 
-func(x ZookeeperReporter) GetType() string {
-	return x._type
+func(zr * ZookeeperReporter) Destroy() error {
+	if zr.ZKConnection != nil {
+		zr.ZKConnection.Close()
+	}
+	return nil
+}
+
+func(zr *ZookeeperReporter) GetType() string {
+	return zr._type
 }

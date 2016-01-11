@@ -8,15 +8,19 @@ type FileReporter struct {
 	Filename string
 }
 
-func(x *FileReporter) Initialize(IP string, Port int, Rise int, Fall int) error {
+func(x *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int) error {
 	x.Path = "/tmp/"
 	x.Filename = "nerve_reporter.txt"
 	x._type = REPORTER_FILE_TYPE
-	x.SetBaseConfiguration(IP,Port,Rise,Fall)
+	x.SetBaseConfiguration(IP,Port,Rise,Fall,Weight)
 	return nil
 }
 
 func(x *FileReporter) Report(Status int) error {
+	return nil
+}
+
+func(fr *FileReporter) Destroy() error {
 	return nil
 }
 

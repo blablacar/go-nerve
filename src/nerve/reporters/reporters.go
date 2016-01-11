@@ -2,6 +2,7 @@ package reporters
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"strconv"
 )
 
 type Reporter struct {
@@ -9,6 +10,8 @@ type Reporter struct {
 	Port int
 	Rise int
 	Fall int
+	Weight int
+	ServiceName string
 	lastStatuses []int
 	_type string
 }
@@ -48,7 +51,7 @@ func(r *Reporter) CanReport(status int) bool {
 	return true
 }
 
-func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int) {
+func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, Weight int) {
 	r.IP = IP
 	r.Port = Port
 	if Rise > 0 {
@@ -61,6 +64,22 @@ func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int) 
 	}else {
 		r.Fall = 1
 	}
+	r.Weight = Weight
+}
+
+func(r *Reporter) SetServiceName(serviceName string) {
+	r.ServiceName = serviceName
+}
+
+func(r *Reporter) GetJsonReporterData() string {
+	var jsonReporterData string
+	jsonReporterData = "{\"host\":" + r.IP + "\",\"port\":" + strconv.Itoa(r.Port) + ","
+	jsonReporterData += "\"name\":\"" + r.ServiceName + "\""
+	if r.Weight > 0 {
+		jsonReporterData += ",\"weight\":" + strconv.Itoa(r.Weight)
+	}
+	jsonReporterData += "}"
+	return jsonReporterData
 }
 
 func max(val1 int, val2 int) int {
