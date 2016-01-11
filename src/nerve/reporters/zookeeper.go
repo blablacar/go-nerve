@@ -16,9 +16,9 @@ type ZookeeperReporter struct {
 }
 
 
-func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int) error {
+func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, InstanceID string) error {
 	zr._type = REPORTER_ZOOKEEPER_TYPE
-	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight)
+	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,InstanceID)
 	zr.ZKConnection = nil
 	return nil
 }
@@ -38,7 +38,7 @@ func(zr *ZookeeperReporter) Connect() (zk.State, error) {
 				zr.ZKConnection.Close()
 			}
 			case zk.StateConnected, zk.StateHasSession: {
-				log.Debug("Zookeeper Connection of [",zr.ServiceName,"] connected(",state,"), nothing to do.")
+				log.Debug("Zookeeper Connection of [",zr.ServiceName,"][",zr.InstanceID,"] connected(",state,"), nothing to do.")
 				return state, nil
 			}
 			case zk.StateDisconnected: {
@@ -65,7 +65,7 @@ func(zr *ZookeeperReporter) Report(Status int) error {
 		return err
 	}
 	if state == zk.StateHasSession && zr.CanReport(Status) {
-		realPath := zr.ZKPath + "/" + zr.IP + "_" + zr.ServiceName
+		realPath := zr.ZKPath + "/" + zr.IP + "_" + zr.InstanceID
 		exists, _, err := zr.ZKConnection.Exists(realPath)
 		if Status == 0 {
 			if !exists {

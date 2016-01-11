@@ -15,7 +15,7 @@ type NerveService struct {
 	Port int
 }
 
-func(ns *NerveService) Initialize(config NerveServiceConfiguration, ipv6 bool) error {
+func(ns *NerveService) Initialize(config NerveServiceConfiguration,InstanceID string, ipv6 bool) error {
 	var err error
 
 	ns.Name = config.Name
@@ -44,7 +44,7 @@ func(ns *NerveService) Initialize(config NerveServiceConfiguration, ipv6 bool) e
 		log.Warn("Error creating Watcher in Service [",ns.Name,"]")
 		return err
 	}
-	ns.Reporter, err = CreateReporter(ns.IP,ns.Port,ns.Name,config.Reporter,ipv6)
+	ns.Reporter, err = CreateReporter(ns.IP,ns.Port,ns.Name,InstanceID,config.Reporter,ipv6)
 	if err != nil {
 		log.Warn("Error creating Reporter in Service [",ns.Name,"]")
 		return err
@@ -84,9 +84,9 @@ func(ns *NerveService) Run(stop <-chan bool) {
 	log.Debug("Service [",ns.Name,"] stopped")
 }
 
-func CreateService(config NerveServiceConfiguration, ipv6 bool) (NerveService, error) {
+func CreateService(config NerveServiceConfiguration,InstanceID string, ipv6 bool) (NerveService, error) {
 	var service NerveService
-	err := service.Initialize(config,ipv6)
+	err := service.Initialize(config,InstanceID,ipv6)
 	if err != nil {
 		log.Debug("Error Initializing Service [",service.Name,"]")
 	}

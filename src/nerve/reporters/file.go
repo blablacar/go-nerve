@@ -8,11 +8,11 @@ type FileReporter struct {
 	Filename string
 }
 
-func(x *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int) error {
+func(x *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, InstanceID string) error {
 	x.Path = "/tmp/"
 	x.Filename = "nerve_reporter.txt"
 	x._type = REPORTER_FILE_TYPE
-	x.SetBaseConfiguration(IP,Port,Rise,Fall,Weight)
+	x.SetBaseConfiguration(IP,Port,Rise,Fall,Weight, InstanceID)
 	return nil
 }
 

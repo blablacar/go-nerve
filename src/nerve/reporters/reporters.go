@@ -12,6 +12,7 @@ type Reporter struct {
 	Fall int
 	Weight int
 	ServiceName string
+	InstanceID string
 	lastStatuses []int
 	_type string
 }
@@ -51,7 +52,7 @@ func(r *Reporter) CanReport(status int) bool {
 	return true
 }
 
-func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, Weight int) {
+func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, Weight int, InstanceID string) {
 	r.IP = IP
 	r.Port = Port
 	if Rise > 0 {
@@ -65,6 +66,7 @@ func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, 
 		r.Fall = 1
 	}
 	r.Weight = Weight
+	r.InstanceID = InstanceID
 }
 
 func(r *Reporter) SetServiceName(serviceName string) {

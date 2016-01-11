@@ -10,9 +10,9 @@ type ConsoleReporter struct {
 	Reporter
 }
 
-func(x *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int) error {
+func(x *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, InstanceID string) error {
 	x._type = REPORTER_CONSOLE_TYPE
-	x.SetBaseConfiguration(IP,Port,Rise,Fall,Weight)
+	x.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,InstanceID)
 	return nil
 }
 
