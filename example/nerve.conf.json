@@ -49,9 +49,10 @@
       "host": "1.2.3.4",
       "port": 5672,
       "reporter": {
-        "type": "zookeeper",
-        "hosts": ["localhost:2181"],
-        "path": "/nerve/services/your_rabbitmq_service/services"
+        "type": "file",
+        "filename": "nerve_report.txt",
+        "path": "/tmp",
+	"mode": "write"
       },
       "watcher": {
         "check_interval": 2000,

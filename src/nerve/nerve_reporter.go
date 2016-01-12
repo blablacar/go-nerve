@@ -20,6 +20,7 @@ func CreateReporter(IP string, Port int, ServiceName string, InstanceID string, 
 			reporter = _reporter
 		case reporters.REPORTER_FILE_TYPE:
 			_reporter := new(reporters.FileReporter)
+			_reporter.SetFileConfiguration(config.Path,config.Filename,config.Mode)
 			reporter = _reporter
 		default:
 			reporter = new(reporters.ConsoleReporter)

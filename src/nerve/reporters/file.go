@@ -16,6 +16,12 @@ func(fr *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weigh
 	return nil
 }
 
+func(fr *FileReporter) SetFileConfiguration(Path string, Filename string, Mode string) {
+	fr.Path = Path
+	fr.Filename = Filename
+	fr.Mode = mode
+}
+
 func(fr *FileReporter) Report(Status int) error {
 	return nil
 }

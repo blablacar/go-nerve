@@ -9,6 +9,9 @@ type NerveReporterConfiguration struct {
 	Type string `json:"type"`
 	Hosts []string `json:"hosts"`
 	Path string `json:"path"`
+	Filename string `json:"filename"`
+	Mode string `json:"mode"`
+	Path string `json:"path"`
 	Rise int `json:"rise"`
 	Fall int `json:"fall"`
 	Weight int `json:"weight"`

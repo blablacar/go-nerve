@@ -110,7 +110,9 @@ All data will be reported as JSON and printed directly on the std output.
 
 If you set your reporter `type` to `"file"` you should also set these parameters:
 
-* `path`: the full path of the file to report to
+* `path`: the full path where stand the file to report to
+* `filename`: the filename
+* `mode`: whether to open the file in 'write' mode (override the whole content), or in 'append' mode.
 
 ### Watcher Config ###
 
