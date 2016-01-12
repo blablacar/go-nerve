@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/blablacar/go-nerve.png?branch=master)](https://travis-ci.org/blablacar/go-nerve)
 
-___/!\ This Software is in Alpha Stage! Don't use it in production, until it's considered as Stable /!\___
+___/!\ This Software is in Alpha Stage! Don't use it in production, until it's considered Stable /!\___
 
 # Go-Nerve
 
