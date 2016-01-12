@@ -12,6 +12,7 @@ type NerveReporterConfiguration struct {
 	Rise int `json:"rise"`
 	Fall int `json:"fall"`
 	Weight int `json:"weight"`
+	HAProxyServerOptions string `json:"haproxy_server_options"`
 }
 
 type NerveCheckConfiguration struct {
@@ -21,6 +22,10 @@ type NerveCheckConfiguration struct {
 	User string `json:"user"`
 	Password string `json:"password"`
 	ConnectTimeout int `json:"timeout"`
+	VHost string `json:"vhost"`
+	Exchange string `json:"exchange"`
+	BindName string `json:"bind_name"`
+	Queue string `json:"queue"`
 }
 
 type NerveWatcherConfiguration struct {

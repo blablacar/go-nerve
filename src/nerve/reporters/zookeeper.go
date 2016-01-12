@@ -18,9 +18,9 @@ type ZookeeperReporter struct {
 }
 
 
-func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, InstanceID string) error {
+func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
 	zr._type = REPORTER_ZOOKEEPER_TYPE
-	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,InstanceID)
+	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions)
 	zr.ZKConnection = nil
 	zr.CurrentNode = zr.ZKPath + "/" + zr.IP + "_" + zr.InstanceID
 	return nil
@@ -60,6 +60,29 @@ func(zr *ZookeeperReporter) Connect() (zk.State, error) {
 	return state, nil
 }
 
+func(zr *ZookeeperReporter) mkdirStaticPath(acl []zk.ACL) error {
+	paths := strings.Split(zr.ZKPath, "/")
+	full := ""
+	for i, path := range paths {
+		if i > 0 {
+			full +=  "/"
+		}
+		full += path
+		if exists, _, _ := zr.ZKConnection.Exists(full); exists {
+			continue
+		}
+
+		log.WithField("full", full).Debug("Creating zk path")
+
+		_, err := zr.ZKConnection.Create(full, []byte(""), int32(0), acl)
+		if err != nil {
+			log.WithError(err).WithField("path", full).Warn("Cannot create path")
+			return err
+		}
+	}
+	return nil
+}
+
 func(zr *ZookeeperReporter) Report(Status int) error {
 	//Test Connection to ZooKeeper
 	state, err := zr.Connect() //internally the connection is maintained
@@ -68,32 +91,17 @@ func(zr *ZookeeperReporter) Report(Status int) error {
 		return err
 	}
 	if state == zk.StateHasSession && zr.CanReport(Status) {
-
-		paths := strings.Split(zr.ZKPath, "/")
-		full := ""
-		acl := zk.WorldACL(zk.PermAll)
-		for i, path := range paths {
-			if i > 0 {
-				full +=  "/"
-			}
-			full += path
-			if exists, _, _ := zr.ZKConnection.Exists(full); exists {
-				continue
-			}
-
-			log.WithField("full", full).Debug("Creating zk path")
-
-			_, err := zr.ZKConnection.Create(full, []byte(""), int32(0), acl)
-			if err != nil {
-				log.WithError(err).WithField("path", full).Debug("Cannot create path")
-			}
-		}
-
-
 		realPath := zr.ZKPath + "/" + zr.IP + "_" + zr.InstanceID
 		exists, _, _ := zr.ZKConnection.Exists(zr.CurrentNode)
 		if Status == 0 {
 			if !exists {
+				acl := zk.WorldACL(zk.PermAll)
+				//Create Full Static Path if not exists
+				err = zr.mkdirStaticPath(acl)
+				if err != nil {
+					log.WithError(err).Warn("Unable to Create Static Path into ZooKeeper")
+					return err
+				}
 				//Don't use Create, as it's an ephemeral zk node, and there's some race condition to avoid
 				zr.CurrentNode, err = zr.ZKConnection.CreateProtectedEphemeralSequential(realPath, []byte(zr.GetJsonReporterData()), acl)
 				if err != nil {

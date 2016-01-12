@@ -8,15 +8,15 @@ type FileReporter struct {
 	Filename string
 }
 
-func(x *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, InstanceID string) error {
-	x.Path = "/tmp/"
-	x.Filename = "nerve_reporter.txt"
-	x._type = REPORTER_FILE_TYPE
-	x.SetBaseConfiguration(IP,Port,Rise,Fall,Weight, InstanceID)
+func(fr *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
+	fr.Path = "/tmp/"
+	fr.Filename = "nerve_reporter.txt"
+	fr._type = REPORTER_FILE_TYPE
+	fr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions)
 	return nil
 }
 
-func(x *FileReporter) Report(Status int) error {
+func(fr *FileReporter) Report(Status int) error {
 	return nil
 }
 
@@ -24,6 +24,6 @@ func(fr *FileReporter) Destroy() error {
 	return nil
 }
 
-func(x *FileReporter) GetType() string {
-	return x._type
+func(fr *FileReporter) GetType() string {
+	return fr._type
 }
