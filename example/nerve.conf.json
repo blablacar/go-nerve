@@ -15,7 +15,7 @@
         "fall": 2
       },
       "watcher": {
-        "check_interval": 2,
+        "check_interval": 2000,
         "checks": [
           {
             "type": "http",
@@ -35,7 +35,7 @@
         "fall": 2
       },
       "watcher": {
-        "check_interval": 2,
+        "check_interval": 2000,
         "checks": [
           {
             "type": "tcp",
@@ -54,7 +54,7 @@
         "path": "/nerve/services/your_rabbitmq_service/services"
       },
       "watcher": {
-        "check_interval": 2,
+        "check_interval": 2000,
         "checks": [
           {
             "type": "rabbitmq",

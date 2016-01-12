@@ -74,7 +74,7 @@ func(ns *NerveService) Run(stop <-chan bool) {
 			}
 			break Loop
 		default:
-			time.Sleep(time.Second * time.Duration(ns.Watcher.GetCheckInterval()))
+			time.Sleep(time.Millisecond * time.Duration(ns.Watcher.GetCheckInterval()))
 		}
 	}
 	err := ns.Reporter.Destroy()
