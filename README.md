@@ -145,14 +145,22 @@ If you set your check `type` to `"http"` you should also set these parameters:
 
 If you set your check `type` to `"rabbitmq"` you should also set these parameters:
 
-* `username`: the username to connect to rabbitmq
+* `user`: the user to connect to rabbitmq
 * `password`: the password to connect to rabbitmq
 * `vhost`: the vhost to check (default to /)
 * `exchange`: the temp exchange name to publish message into (default to 'nerve')
 * `bind_name`: the key used to route message from exchange to queue (default to 'nerve')
 * `queue`: the queue in which get test message (default to 'nerve') 
 
-## Contributing
+#### Mysql Check ####
+
+If you set your check `type` to `"rabbitmq"` you should also set these parameters:
+
+* `user`: the user to connect to mysql
+* `password`: the password to connect to msql
+* `sql_request`: the SQL Request used to check the Mysql availability (default to "select 1 where 1")
+
+## Contributing ##
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
