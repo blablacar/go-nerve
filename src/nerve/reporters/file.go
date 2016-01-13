@@ -6,6 +6,7 @@ type FileReporter struct {
 	Reporter
 	Path string
 	Filename string
+	Mode string
 }
 
 func(fr *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
@@ -19,7 +20,7 @@ func(fr *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weigh
 func(fr *FileReporter) SetFileConfiguration(Path string, Filename string, Mode string) {
 	fr.Path = Path
 	fr.Filename = Filename
-	fr.Mode = mode
+	fr.Mode = Mode
 }
 
 func(fr *FileReporter) Report(Status int) error {

@@ -11,7 +11,6 @@ type NerveReporterConfiguration struct {
 	Path string `json:"path"`
 	Filename string `json:"filename"`
 	Mode string `json:"mode"`
-	Path string `json:"path"`
 	Rise int `json:"rise"`
 	Fall int `json:"fall"`
 	Weight int `json:"weight"`
@@ -29,6 +28,7 @@ type NerveCheckConfiguration struct {
 	Exchange string `json:"exchange"`
 	BindName string `json:"bind_name"`
 	Queue string `json:"queue"`
+	SQLRequest string `json:"sql_request"`
 }
 
 type NerveWatcherConfiguration struct {

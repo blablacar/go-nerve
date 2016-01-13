@@ -29,6 +29,27 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
         var _checks []checks.CheckI
         if len(config.Checks) > 0 {
                 for i:=0; i < len(config.Checks); i++ {
+			var param1 string
+			var param2 string
+			var param3 string
+			switch config.Checks[i].Type {
+			case "http"    :
+				param1 = config.Checks[i].Uri
+				param2 = ""
+				param3 = ""
+			case "mysql"   :
+				param1 = config.Checks[i].User
+				param2 = config.Checks[i].Password
+				param3 = config.Checks[i].SQLRequest
+			case "rabitmq" :
+				param1 = config.Checks[i].User
+				param2 = config.Checks[i].Password
+				param3 = config.Checks[i].Queue
+			default:
+				param1 = ""
+				param2 = ""
+				param3 = ""
+			}
                         check, err := checks.CreateCheck(
 				config.Checks[i].Type,
 				IP,
@@ -36,7 +57,9 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 				Port,
 				config.Checks[i].ConnectTimeout,
 				ipv6,
-				config.Checks[i].Uri,
+				param1,
+				param2,
+				param3,
 			)
                         if err != nil {
                                 log.Warn("Error when creating a check (",err,")")
