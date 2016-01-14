@@ -70,10 +70,10 @@ It is usually called `nerve.conf.json`.
 An example config file is available in `example/nerve.conf.json`.
 The config file is composed of four main sections:
 
-* `instance_id`: the name nerve will submit when registering services; makes debugging easier
-* `log-level`: The log level (any valid value from DEBUG, INFO, WARN, FATAL)
-* `ipv6`: Whether to enable ipv6 management.
-* `services`: the hash (from service name to config) of the services nerve will be monitoring
+* `instance_id` (required): the name nerve will submit when registering services; makes debugging easier
+* `log-level` (optional): The log level (any valid value from DEBUG, INFO, WARN, FATAL) (default to 'WARN')
+* `ipv6` (optional): Whether to enable ipv6 management (if you pass a host instead of an IP, the resolution can be an ipv6 address or not)
+* `services` (required): the hash (from service name to config) of the services nerve will be monitoring
 
 ### Services Config ###
 
@@ -81,14 +81,14 @@ Each service that nerve will be monitoring is specified in the `services` hash.
 This is a configuration hash telling nerve how to monitor the service.
 The configuration contains the following options:
 
-* `host`: the default host on which to make service checks; you should make this your *public* ip to ensure your service is publically accessible
-* `port`: the default port for service checks; nerve will report the `ip`:`port` combo via your chosen reporter (if you give a real hostname, it will be translated into an IP)
-* `reporter`: a hash containing all information to report if the service is up or down
-* `watcher`: a hash containing the configuration to check if the service is up or down
+* `host` (required): the default host on which to make service checks; you should make this your *public* ip to ensure your service is publically accessible
+* `port` (required): the default port for service checks; nerve will report the `ip`:`port` combo via your chosen reporter (if you give a real hostname, it will be translated into an IP)
+* `reporter` (required): a hash containing all information to report if the service is up or down
+* `watcher` (required): a hash containing the configuration to check if the service is up or down
 
 ### Reporter Config ###
 
-* `type`: the mechanism used to report up/down information; depending on the reporter you choose, additional parameters may be required. Defaults to `console`
+* `type` (required): the mechanism used to report up/down information; depending on the reporter you choose, additional parameters may be required. Defaults to `console`
 * `weight` (optional): a positive integer weight value which can be used to affect the haproxy backend weighting in synapse.
 * `haproxy_server_options` (optional): a string containing any special haproxy server options for this service instance. For example if you wanted to set a service instance as a backup.
 * `rise`: (optional) how many consecutive checks must pass before the check is reported; defaults to 1
@@ -98,8 +98,8 @@ The configuration contains the following options:
 
 If you set your reporter `type` to `"zookeeper"` you should also set these parameters:
 
-* `hosts`: a list of the zookeeper hosts comprising the [ensemble](https://zookeeper.apache.org/doc/r3.1.2/zookeeperAdmin.html#sc_zkMulitServerSetup) that nerve will submit registration to
-* `path`: the path (or [znode](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#sc_zkDataModel_znodes)) where the registration will be created; nerve will create the [ephemeral node](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#Ephemeral+Nodes) that is the registration as a child of this path, and the name of this ephemeral node is created with the function CreateProtectedEphemeralSequential from the libray Golang Zookeeper [github.com/samuel/go-zookeeper/zk](https://github.com/samuel/go-zookeeper/)
+* `hosts` (required): a list of the zookeeper hosts comprising the [ensemble](https://zookeeper.apache.org/doc/r3.1.2/zookeeperAdmin.html#sc_zkMulitServerSetup) that nerve will submit registration to
+* `path` (required): the path (or [znode](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#sc_zkDataModel_znodes)) where the registration will be created; nerve will create the [ephemeral node](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#Ephemeral+Nodes) that is the registration as a child of this path, and the name of this ephemeral node is created with the function CreateProtectedEphemeralSequential from the libray Golang Zookeeper [github.com/samuel/go-zookeeper/zk](https://github.com/samuel/go-zookeeper/)
 
 #### Console Reporter ####
 
@@ -110,14 +110,14 @@ All data will be reported as JSON and printed directly on the std output.
 
 If you set your reporter `type` to `"file"` you should also set these parameters:
 
-* `path`: the full path where stand the file to report to
-* `filename`: the filename
-* `mode`: whether to open the file in 'write' mode (override the whole content), or in 'append' mode.
+* `path` (optional): the full path where stand the file to report to (default to '/tmp')
+* `filename` (optional): the filename (default to 'nerve.report')
+* `mode` (optional): whether to open the file in 'write' mode (override the whole content), or in 'append' mode (default to 'write' mode).
 
 ### Watcher Config ###
 
-* `checks`: an array of checks that nerve will perform; if all of the pass, the service will be registered; otherwise, it will be un-registered
-* `check_interval`: the frequency with which service checks will be initiated in milliseconds; defaults to `500`
+* `checks` (required): an array of checks that nerve will perform; if all of the pass, the service will be registered; otherwise, it will be un-registered
+* `check_interval` (required): the frequency with which service checks will be initiated in milliseconds; defaults to `500`
 
 ### Checks ###
 
@@ -139,7 +139,7 @@ If you set your check `type` to `"tcp"`, no more parameters are available.
 
 If you set your check `type` to `"http"` you should also set these parameters:
 
-* `uri`: the URI to check
+* `uri` (required): the URI to check
 
 #### RabbitMQ Check ####
 
@@ -156,9 +156,9 @@ If you set your check `type` to `"rabbitmq"` you should also set these parameter
 
 If you set your check `type` to `"rabbitmq"` you should also set these parameters:
 
-* `user`: the user to connect to mysql
-* `password`: the password to connect to msql
-* `sql_request`: the SQL Request used to check the Mysql availability (default to "select 1 where 1")
+* `user` (optional): the user to connect to mysql (default to 'nerve')
+* `password` (optional): the password to connect to msqla (default to 'nerve')
+* `sql_request` (optional): the SQL Request used to check the Mysql availability (default to "select 1 where 1")
 
 ## Contributing ##
 

@@ -17,16 +17,23 @@ type FileReporter struct {
 
 func(fr *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
 	fr.Path = "/tmp/"
-	fr.Filename = "nerve_reporter.txt"
+	fr.Filename = "nerve.report"
 	fr._type = REPORTER_FILE_TYPE
+	fr.Mode = "write"
 	fr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions)
 	return nil
 }
 
 func(fr *FileReporter) SetFileConfiguration(Path string, Filename string, Mode string) {
-	fr.Path = Path
-	fr.Filename = Filename
-	fr.Mode = Mode
+	if Path != "" {
+		fr.Path = Path
+	}
+	if Filename != "" {
+		fr.Filename = Filename
+	}
+	if Mode != "" {
+		fr.Mode = Mode
+	}
 }
 
 func(fr *FileReporter) Report(Status int) error {
