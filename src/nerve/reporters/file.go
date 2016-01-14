@@ -1,5 +1,11 @@
 package reporters
 
+import (
+	log "github.com/Sirupsen/logrus"
+	"io/ioutil"
+	"os"
+)
+
 const REPORTER_FILE_TYPE = "FILE"
 
 type FileReporter struct {
@@ -24,6 +30,24 @@ func(fr *FileReporter) SetFileConfiguration(Path string, Filename string, Mode s
 }
 
 func(fr *FileReporter) Report(Status int) error {
+	if fr.Mode == "append" {
+		file, err := os.OpenFile(fr.Path+"/"+fr.Filename,os.O_APPEND|os.O_CREATE|os.O_WRONLY,0644)
+		if err != nil {
+			log.WithField("Filename",fr.Path+"/"+fr.Filename).WithError(err).Warn("Unable to open File to Report to")
+			return err
+		}
+		if _, err = file.WriteString(fr.GetJsonReporterData()); err != nil {
+			log.WithField("Filename",fr.Path+"/"+fr.Filename).WithError(err).Warn("Unable to Append to File to Report to")
+			return err
+		}
+		file.Close()
+	} else {
+		err := ioutil.WriteFile(fr.Path+"/"+fr.Filename,[]byte(fr.GetJsonReporterData()),0644)
+		if err != nil {
+			log.WithField("Filename",fr.Path+"/"+fr.Filename).WithError(err).Warn("Unable to Write File to Report to")
+			return err
+		}
+	}
 	return nil
 }
 
