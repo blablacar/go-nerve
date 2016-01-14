@@ -7,8 +7,13 @@ import (
 	"time"
 	"os"
 	"flag"
+	"fmt"
 )
 
+var (
+	Version = "No Version Defined"
+	BuildTime = "1970-01-01_00:00:00_UTC"
+)
 // Manage OS Signal, only for shutdown purpose
 // When termination signal is received, we send a message to a chan
 func manageSignal(c <-chan os.Signal, stop chan<-bool) {
@@ -46,14 +51,26 @@ func setLogLevel(logLevel string) {
 	}
 }
 
+func printVersion() {
+	fmt.Println("Nerve")
+	fmt.Println("Version :",Version)
+	fmt.Println("Build Time :",BuildTime)
+}
+
 // All the command line arguments are managed inside this function
 func initFlags() (string, string) {
 	// The Log Level, from the Sirupsen/logrus level
 	var logLevel = flag.String("log-level", "WARN", "A value to choose between [DEBUG INFO WARN FATAL], can be overriden by config file")
 	// The configuration filename
 	var configurationFileName = flag.String("config", "./nerve.json.conf", "the complete filename of the configuration file")
+	// The version flag
+	var version = flag.Bool("version", false, "Display version and exit")
 	// Parse all command line options
 	flag.Parse()
+	if *version {
+		printVersion()
+		os.Exit(0)
+	}
 
 	return *logLevel, *configurationFileName
 }

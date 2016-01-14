@@ -11,7 +11,7 @@ dep-install:
 	$(GOMCMD) install
 
 build:
-	$(GOMCMD) build nerve/nerve
+	$(GOMCMD) build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.Version=`cat VERSION.txt`-`git rev-parse HEAD`" nerve/nerve
 	mv nerve bin/.
 
 clean:
