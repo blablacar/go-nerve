@@ -39,7 +39,13 @@ type CheckI interface {
 //	param1 is the username
 //	param2 is the password
 //	param3 is the sql request
-func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout int, ipv6 bool, param1 string, param2 string, param3 string) (CheckI, error) {
+//	param4 is ignored
+// if _type == rabbitmq
+//	param1 is the username
+//	param2 is the password
+//	param3 is the queue name
+//	param4 is the vhost name
+func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout int, ipv6 bool, param1 string, param2 string, param3 string, param4 string) (CheckI, error) {
 	var check CheckI
         switch (strings.ToUpper(_type)) {
                 case CHECK_TCP_TYPE:
@@ -56,8 +62,10 @@ func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout 
 			mysql_check.SetMysqlConfiguration(param1,param2,param3)
                         check = mysql_check
                 case CHECK_RABBITMQ_TYPE:
-                        check = new(rabbitmqCheck)
-			check.Initialize()
+                        rabbitmq_check := new(rabbitmqCheck)
+			rabbitmq_check.Initialize()
+			rabbitmq_check.SetRabbitMQConfiguration(param1,param2,param3,param4)
+			check = rabbitmq_check
                 default:
                         check = new(tcpCheck)
                         check.Initialize()

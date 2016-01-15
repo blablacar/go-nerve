@@ -25,8 +25,6 @@ type NerveCheckConfiguration struct {
 	Password string `json:"password"`
 	ConnectTimeout int `json:"timeout"`
 	VHost string `json:"vhost"`
-	Exchange string `json:"exchange"`
-	BindName string `json:"bind_name"`
 	Queue string `json:"queue"`
 	SQLRequest string `json:"sql_request"`
 }

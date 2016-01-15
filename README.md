@@ -145,12 +145,10 @@ If you set your check `type` to `"http"` you should also set these parameters:
 
 If you set your check `type` to `"rabbitmq"` you should also set these parameters:
 
-* `user`: the user to connect to rabbitmq
-* `password`: the password to connect to rabbitmq
-* `vhost`: the vhost to check (default to /)
-* `exchange`: the temp exchange name to publish message into (default to 'nerve')
-* `bind_name`: the key used to route message from exchange to queue (default to 'nerve')
-* `queue`: the queue in which get test message (default to 'nerve') 
+* `user` (optional): the user to connect to rabbitmq (default to 'nerve')
+* `password` (optional): the password to connect to rabbitmq (default to 'nerve')
+* `vhost` (optional): the vhost to check (default to /)
+* `queue` (optional): the queue in which get test message (default to 'nerve') 
 
 #### Mysql Check ####
 
