@@ -35,7 +35,6 @@ type NerveCheckConfiguration struct {
 }
 
 type NerveWatcherConfiguration struct {
-	CheckInterval int `json:"check_interval"`
 	Checks []NerveCheckConfiguration `json:"checks"`
 }
 
@@ -43,6 +42,7 @@ type NerveServiceConfiguration struct {
 	Name string `json:"name"`
 	Host string `json:"host"`
 	Port int `json:"port"`
+	CheckInterval int `json:"check_interval"`
 	Watcher NerveWatcherConfiguration `json:"watcher"`
 	Reporter NerveReporterConfiguration `json:"reporter"`
 }

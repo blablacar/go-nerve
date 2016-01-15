@@ -11,18 +11,12 @@ type Watcher struct {
 	Port int
 	Status int
 	Error error
-	CheckInterval int
 	Checks []checks.CheckI
 }
 
 type WatcherI interface {
 	Initialize(config NerveWatcherConfiguration, IP string, Host string, Port int, ipv6 bool) error
 	Check() (int, error)
-	GetCheckInterval() int
-}
-
-func(w *Watcher) GetCheckInterval() int {
-	return w.CheckInterval
 }
 
 func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port int, ipv6 bool) ([]checks.CheckI, error) {
@@ -99,7 +93,6 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 }
 
 func(w *Watcher) Initialize(config NerveWatcherConfiguration, IP string, Host string, Port int, ipv6 bool) (error) {
-	w.CheckInterval = config.CheckInterval
 	var err error
 	w.Checks, err = createChecks(config,IP,Host,Port,ipv6)
 	return err

@@ -93,6 +93,7 @@ The configuration contains the following options:
 * `haproxy_server_options` (optional): a string containing any special haproxy server options for this service instance. For example if you wanted to set a service instance as a backup.
 * `rise`: (optional) how many consecutive checks must pass before the check is reported; defaults to 1
 * `fall`: (optional) how many consecutive checks must fail before the check is reported; defaults to 1
+* `check_interval` (required): the frequency with which service checks (and report) will be initiated in milliseconds; defaults to `500`
 
 #### Zookeeper Reporter ####
 
@@ -117,7 +118,6 @@ If you set your reporter `type` to `"file"` you should also set these parameters
 ### Watcher Config ###
 
 * `checks` (required): an array of checks that nerve will perform; if all of the pass, the service will be registered; otherwise, it will be un-registered
-* `check_interval` (required): the frequency with which service checks will be initiated in milliseconds; defaults to `500`
 
 ### Checks ###
 

@@ -13,6 +13,7 @@ type NerveService struct {
 	Host string
 	IP string
 	Port int
+	CheckInterval int
 }
 
 func(ns *NerveService) Initialize(config NerveServiceConfiguration,InstanceID string, ipv6 bool) error {
@@ -21,6 +22,7 @@ func(ns *NerveService) Initialize(config NerveServiceConfiguration,InstanceID st
 	ns.Name = config.Name
 	ns.Host = config.Host
 	ns.Port = config.Port
+	ns.CheckInterval = config.CheckInterval
 	addrs, err := net.LookupIP(ns.Host)
 	if err != nil {
 		log.Warn("Error getting IP for the Host[",ns.Host,"]")
@@ -74,7 +76,7 @@ func(ns *NerveService) Run(stop <-chan bool) {
 			}
 			break Loop
 		default:
-			time.Sleep(time.Millisecond * time.Duration(ns.Watcher.GetCheckInterval()))
+			time.Sleep(time.Millisecond * time.Duration(ns.CheckInterval))
 		}
 	}
 	err := ns.Reporter.Destroy()
