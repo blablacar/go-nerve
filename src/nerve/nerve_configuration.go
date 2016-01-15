@@ -27,6 +27,11 @@ type NerveCheckConfiguration struct {
 	VHost string `json:"vhost"`
 	Queue string `json:"queue"`
 	SQLRequest string `json:"sql_request"`
+	Hosts []string `json:"hosts"`
+	Path string `json:"path"`
+	URLs []string `json:"urls"`
+	Host string `json:"host"`
+	Port string `json:"port"`
 }
 
 type NerveWatcherConfiguration struct {

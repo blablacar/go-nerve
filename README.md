@@ -141,6 +141,16 @@ If you set your check `type` to `"http"` you should also set these parameters:
 
 * `uri` (required): the URI to check
 
+#### HTTP Proxy Check ####
+
+If you set your check `type` to `"httpproxy"` you should also set these parameters:
+
+* `urls` (required): an array of string containing the full url to tests
+* `port` (required): the proxy port to use
+* `host` (required): the proxy host to use
+* `user` (optional): the proxy username
+* `password` (optional): the proxy password
+
 #### RabbitMQ Check ####
 
 If you set your check `type` to `"rabbitmq"` you should also set these parameters:
@@ -152,11 +162,18 @@ If you set your check `type` to `"rabbitmq"` you should also set these parameter
 
 #### Mysql Check ####
 
-If you set your check `type` to `"rabbitmq"` you should also set these parameters:
+If you set your check `type` to `"mysql"` you should also set these parameters:
 
 * `user` (optional): the user to connect to mysql (default to 'nerve')
 * `password` (optional): the password to connect to msqla (default to 'nerve')
 * `sql_request` (optional): the SQL Request used to check the Mysql availability (default to "select 1 where 1")
+
+#### Zookeeper Flag Check ####
+
+At BlaBlaCar, we use this Check as a maintenance check. Typically if a defined flag exist in Zookeeper, then the check fail, and the reporter report a failed service. If you want to use it, put the `type` to `"zkflag"`, and you should also set these parameters:
+
+* `hosts` (required): a string list of ZK nodes, each node separated by a comma
+* `path` (required): the key to verify. If it exists, then the check fail
 
 ## Contributing ##
 

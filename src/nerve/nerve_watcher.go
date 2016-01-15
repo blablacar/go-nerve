@@ -33,27 +33,44 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 			var param2 string
 			var param3 string
 			var param4 string
+			var param5 []string
 			switch config.Checks[i].Type {
 			case "http"    :
 				param1 = config.Checks[i].Uri
 				param2 = ""
 				param3 = ""
 				param4 = ""
+				param5 = []string{""}
 			case "mysql"   :
 				param1 = config.Checks[i].User
 				param2 = config.Checks[i].Password
 				param3 = config.Checks[i].SQLRequest
 				param4 = ""
+				param5 = []string{""}
 			case "rabbitmq" :
 				param1 = config.Checks[i].User
 				param2 = config.Checks[i].Password
 				param3 = config.Checks[i].Queue
 				param4 = config.Checks[i].VHost
+				param5 = []string{""}
+			case "zkflag" :
+				param1 = config.Checks[i].Path
+				param2 = ""
+				param3 = ""
+				param4 = ""
+				param5 = config.Checks[i].Hosts
+			case "httpproxy" :
+				param1 = config.Checks[i].User
+				param2 = config.Checks[i].Password
+				param3 = config.Checks[i].Host
+				param4 = config.Checks[i].Port
+				param5 = config.Checks[i].URLs
 			default:
 				param1 = ""
 				param2 = ""
 				param3 = ""
 				param4 = ""
+				param5 = []string{""}
 			}
                         check, err := checks.CreateCheck(
 				config.Checks[i].Type,
@@ -66,6 +83,7 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 				param2,
 				param3,
 				param4,
+				param5,
 			)
                         if err != nil {
                                 log.Warn("Error when creating a check (",err,")")
