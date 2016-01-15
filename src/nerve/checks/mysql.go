@@ -2,8 +2,8 @@ package checks
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"time"
-	"net"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"strconv"
 )
 
@@ -14,12 +14,14 @@ type mysqlCheck struct {
 	Username string
 	Password string
 	SQLRequest string
+	Protocol string
 }
 
 //Initialize 
 func (mc *mysqlCheck) Initialize() error {
 	//Default value pushed here
 	mc.Status = StatusUnknown
+	mc.Protocol = "tcp"
 	mc.Username = "nerve"
 	mc.Password = "nerve"
 	mc.SQLRequest = "select 1 where 1"
@@ -47,14 +49,19 @@ func(mc *mysqlCheck) SetMysqlConfiguration(Username string, Password string, SQL
 
 //Verify that the given host or ip / port is healthy
 func (mc *mysqlCheck) DoCheck() (int, error) {
-	log.Debug("Check of [",mc.IP,":",mc.Port,"] starting")
-	conn, err := net.DialTimeout("tcp",mc.IP + ":" + strconv.Itoa(mc.Port),time.Duration(mc.ConnectTimeout)*time.Millisecond)
+	log.Debug("MySQL Check of [",mc.IP,":",mc.Port,"] starting")
+	conn, err := sql.Open("mysql",mc.Username+":"+mc.Password+"@"+mc.Protocol+"(["+mc.IP+"]:"+strconv.Itoa(mc.Port)+")/?timeout="+strconv.Itoa(mc.ConnectTimeout)+"ms")
 	if err != nil {
-		log.Warn("Check to [",mc.IP,":",mc.Port,"] failed(",err,")")
+		log.WithError(err).Warn("Connection Check to [",mc.IP,":",mc.Port,"] failed")
+		return StatusKO, err
+	}
+	_, err = conn.Query(mc.SQLRequest)
+	if err != nil {
+		log.WithError(err).Warn("Query Check to [",mc.IP,":",mc.Port,"] failed")
 		return StatusKO, err
 	}
 	conn.Close()
-	log.Debug("Check of [",mc.IP,":",mc.Port,"] finished")
+	log.Debug("MySQL Check of [",mc.IP,":",mc.Port,"] finished")
 	return StatusOK, nil
 }
 
