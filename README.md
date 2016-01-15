@@ -73,7 +73,7 @@ The config file is composed of four main sections:
 * `instance_id` (required): the name nerve will submit when registering services; makes debugging easier
 * `log-level` (optional): The log level (any valid value from DEBUG, INFO, WARN, FATAL) (default to 'WARN')
 * `ipv6` (optional): Whether to enable ipv6 management (if you pass a host instead of an IP, the resolution can be an ipv6 address or not)
-* `services` (required): the hash (from service name to config) of the services nerve will be monitoring
+* `services` (required): the array of the services nerve will be monitoring
 
 ### Services Config ###
 
@@ -172,7 +172,7 @@ If you set your check `type` to `"mysql"` you should also set these parameters:
 
 At BlaBlaCar, we use this Check as a maintenance check. Typically if a defined flag exist in Zookeeper, then the check fail, and the reporter report a failed service. If you want to use it, put the `type` to `"zkflag"`, and you should also set these parameters:
 
-* `hosts` (required): a string list of ZK nodes, each node separated by a comma
+* `hosts` (required): an array of string of ZK nodes
 * `path` (required): the key to verify. If it exists, then the check fail
 
 ## Contributing ##
