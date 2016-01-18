@@ -83,6 +83,7 @@ The configuration contains the following options:
 
 * `host` (required): the default host on which to make service checks; you should make this your *public* ip to ensure your service is publically accessible
 * `port` (required): the default port for service checks; nerve will report the `ip`:`port` combo via your chosen reporter (if you give a real hostname, it will be translated into an IP)
+* `check_interval` (optional): the frequency with which service checks (and report) will be initiated in milliseconds; defaults to `500`
 * `reporter` (required): a hash containing all information to report if the service is up or down
 * `watcher` (required): a hash containing the configuration to check if the service is up or down
 
@@ -93,7 +94,6 @@ The configuration contains the following options:
 * `haproxy_server_options` (optional): a string containing any special haproxy server options for this service instance. For example if you wanted to set a service instance as a backup.
 * `rise`: (optional) how many consecutive checks must pass before the check is reported; defaults to 1
 * `fall`: (optional) how many consecutive checks must fail before the check is reported; defaults to 1
-* `check_interval` (required): the frequency with which service checks (and report) will be initiated in milliseconds; defaults to `500`
 
 #### Zookeeper Reporter ####
 
@@ -166,7 +166,7 @@ If you set your check `type` to `"mysql"` you should also set these parameters:
 
 * `user` (optional): the user to connect to mysql (default to 'nerve')
 * `password` (optional): the password to connect to msqla (default to 'nerve')
-* `sql_request` (optional): the SQL Request used to check the Mysql availability (default to "select 1 where 1")
+* `sql_request` (optional): the SQL Request used to check the Mysql availability (default to "SELECT 1")
 
 #### Zookeeper Flag Check ####
 

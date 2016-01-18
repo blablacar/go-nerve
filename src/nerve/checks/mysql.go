@@ -24,7 +24,7 @@ func (mc *mysqlCheck) Initialize() error {
 	mc.Protocol = "tcp"
 	mc.Username = "nerve"
 	mc.Password = "nerve"
-	mc.SQLRequest = "select 1 where 1"
+	mc.SQLRequest = "SELECT 1"
 	mc.Host = "localhost"
 	mc.Port = 3307
 	mc.IP = "127.0.0.1"
