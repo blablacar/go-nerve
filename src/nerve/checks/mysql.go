@@ -55,11 +55,13 @@ func (mc *mysqlCheck) DoCheck() (int, error) {
 		log.WithError(err).Warn("Connection Check to [",mc.IP,":",mc.Port,"] failed")
 		return StatusKO, err
 	}
-	_, err = conn.Query(mc.SQLRequest)
+	rows, err := conn.Query(mc.SQLRequest)
 	if err != nil {
+		conn.Close()
 		log.WithError(err).Warn("Query Check to [",mc.IP,":",mc.Port,"] failed")
 		return StatusKO, err
 	}
+	rows.Close()
 	conn.Close()
 	log.Debug("MySQL Check of [",mc.IP,":",mc.Port,"] finished")
 	return StatusOK, nil
