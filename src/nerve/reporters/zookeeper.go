@@ -23,9 +23,9 @@ func(ZKDebugLogger) Printf(format string, a ...interface{}) {
 	log.Debug(format, a)
 }
 
-func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
+func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string,Tags []string) error {
 	zr._type = REPORTER_ZOOKEEPER_TYPE
-	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions)
+	zr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions,Tags)
 	zr.ZKConnection = nil
 	zr.CurrentNode = zr.ZKPath + "/" + zr.IP + "_" + zr.InstanceID
 	return nil

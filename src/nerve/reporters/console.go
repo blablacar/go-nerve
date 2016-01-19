@@ -10,9 +10,9 @@ type ConsoleReporter struct {
 	Reporter
 }
 
-func(cr *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
+func(cr *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) error {
 	cr._type = REPORTER_CONSOLE_TYPE
-	cr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions)
+	cr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions,Tags)
 	return nil
 }
 

@@ -92,8 +92,9 @@ The configuration contains the following options:
 * `type` (required): the mechanism used to report up/down information; depending on the reporter you choose, additional parameters may be required. Defaults to `console`
 * `weight` (optional): a positive integer weight value which can be used to affect the haproxy backend weighting in synapse.
 * `haproxy_server_options` (optional): a string containing any special haproxy server options for this service instance. For example if you wanted to set a service instance as a backup.
-* `rise`: (optional) how many consecutive checks must pass before the check is reported; defaults to 1
-* `fall`: (optional) how many consecutive checks must fail before the check is reported; defaults to 1
+* `rise` (optional): how many consecutive checks must pass before the check is reported; defaults to 1
+* `fall` (optional): how many consecutive checks must fail before the check is reported; defaults to 1
+* `tags` (optional): an array of strings to pass to the reporter.
 
 #### Zookeeper Reporter ####
 

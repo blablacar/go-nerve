@@ -15,12 +15,12 @@ type FileReporter struct {
 	Mode string
 }
 
-func(fr *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
+func(fr *FileReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) error {
 	fr.Path = "/tmp/"
 	fr.Filename = "nerve.report"
 	fr._type = REPORTER_FILE_TYPE
 	fr.Mode = "write"
-	fr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions)
+	fr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions,Tags)
 	return nil
 }
 

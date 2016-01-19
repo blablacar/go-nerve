@@ -15,6 +15,7 @@ type Reporter struct {
 	ServiceName string
 	InstanceID string
 	lastStatuses []int
+	Tags []string
 	_type string
 }
 
@@ -53,7 +54,7 @@ func(r *Reporter) CanReport(status int) bool {
 	return true
 }
 
-func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) {
+func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) {
 	r.IP = IP
 	r.Port = Port
 	if Rise > 0 {
@@ -65,6 +66,9 @@ func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, 
 		r.Fall = Fall
 	}else {
 		r.Fall = 1
+	}
+	if len(Tags) > 0 {
+		r.Tags = Tags
 	}
 	r.Weight = Weight
 	r.InstanceID = InstanceID
@@ -81,6 +85,16 @@ func(r *Reporter) GetJsonReporterData() string {
 	}
 	if r.HAProxyServerOptions != "" {
 		jsonReporterData += ",\"haproxy_server_options\":\"" + r.HAProxyServerOptions + "\""
+	}
+	if len(r.Tags) > 0 {
+		jsonReporterData += ",\"tags\":["
+		for i, tag := range r.Tags {
+			if i > 0 {
+				jsonReporterData += ","
+			}
+			jsonReporterData += "\""+tag+"\""
+		}
+		jsonReporterData += "]"
 	}
 	jsonReporterData += "}"
 	return jsonReporterData

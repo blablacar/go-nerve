@@ -30,6 +30,7 @@
       "host": "localhost",
       "port": 25,
       "reporter": {
+        "tags": ["smtp","local_stmp"],
         "type": "console",
         "rise": 3,
         "fall": 2

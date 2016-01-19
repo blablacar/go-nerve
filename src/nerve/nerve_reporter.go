@@ -6,7 +6,7 @@ import (
 )
 
 type ReporterI interface {
-	Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error
+	Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) error
 	Report(Status int) error
 	Destroy() error
 	GetType() string
@@ -25,6 +25,6 @@ func CreateReporter(IP string, Port int, ServiceName string, InstanceID string, 
 		default:
 			reporter = new(reporters.ConsoleReporter)
 	}
-	reporter.Initialize(IP,Port,config.Rise,config.Fall,config.Weight,ServiceName,InstanceID,config.HAProxyServerOptions)
+	reporter.Initialize(IP,Port,config.Rise,config.Fall,config.Weight,ServiceName,InstanceID,config.HAProxyServerOptions,config.Tags)
 	return reporter, nil
 }

@@ -8,6 +8,7 @@ import (
 type NerveReporterConfiguration struct {
 	Type string `json:"type"`
 	Hosts []string `json:"hosts"`
+	Tags []string `json:"tags"`
 	Path string `json:"path"`
 	Filename string `json:"filename"`
 	Mode string `json:"mode"`
