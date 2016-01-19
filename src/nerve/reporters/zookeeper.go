@@ -49,7 +49,7 @@ func(zr *ZookeeperReporter) Connect() (zk.State, error) {
 			}
 		}
 	}
-	conn, _, err := zk.Connect(zr.ZKHosts, time.Second)
+	conn, _, err := zk.Connect(zr.ZKHosts, 10 * time.Second)
 	if err != nil {
 		zr.ZKConnection = nil
 		log.Warn("Unable to Connect to ZooKeeper (",err,")")
