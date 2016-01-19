@@ -17,6 +17,11 @@ type ZookeeperReporter struct {
 	CurrentNode string
 }
 
+type ZKDebugLogger struct {}
+
+func(ZKDebugLogger) Printf(format string, a ...interface{}) {
+	log.Debug(format, a)
+}
 
 func(zr *ZookeeperReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string) error {
 	zr._type = REPORTER_ZOOKEEPER_TYPE
@@ -55,6 +60,9 @@ func(zr *ZookeeperReporter) Connect() (zk.State, error) {
 		log.Warn("Unable to Connect to ZooKeeper (",err,")")
 		return zk.StateDisconnected, err
 	}
+	zr.ZKConnection = conn
+	var zkLogger ZKDebugLogger
+	zr.ZKConnection.SetLogger(zkLogger)
 	zr.ZKConnection = conn
 	state := zr.ZKConnection.State()
 	return state, nil

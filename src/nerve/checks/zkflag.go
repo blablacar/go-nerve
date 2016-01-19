@@ -14,6 +14,12 @@ type zkflagCheck struct {
 	Path string
 }
 
+type ZKDebugLogger struct {}
+
+func(ZKDebugLogger) Printf(format string, a ...interface{}) {
+	log.Debug(format, a)
+}
+
 //Initialize 
 func (zc *zkflagCheck) Initialize() error {
 	//Default value pushed here
@@ -39,6 +45,8 @@ func(zc *zkflagCheck) Connect() (*zk.Conn, error) {
 		log.Warn("Unable to Connect to ZooKeeper (",err,")")
 		return nil, err
 	}
+	var zkLogger ZKDebugLogger
+	conn.SetLogger(zkLogger)
 	return conn, nil
 }
 
