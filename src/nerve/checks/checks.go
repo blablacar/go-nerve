@@ -31,7 +31,7 @@ type CheckI interface {
 // Create a Check object
 // where:
 // if _type == tcp
-//	param1,param2,param3 are ignored
+//	param1,param2,param3,param4,param5 are ignored
 // if _type == http
 //	param1 is the uri to check
 //	param2,param3,param4,param5 are ignored
@@ -49,13 +49,13 @@ type CheckI interface {
 // if _type == zkflag
 //	param5 is the list of hosts
 //	param1 is the path to check
-//	param2,param3,param3 are ignored
+//	param2,param3,param4 are ignored
 // if _type == httpproxy
 //	param1 is the username
 //	param2 is the password
 //	param3 is the host
 //	param4 is the port
-//	param5 is the urls to checks
+//	param5 is the urls to check
 func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout int, ipv6 bool, param1 string, param2 string, param3 string, param4 string, param5 []string) (CheckI, error) {
 	var check CheckI
         switch (strings.ToUpper(_type)) {
