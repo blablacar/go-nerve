@@ -52,7 +52,7 @@ func(zc *zkflagCheck) Connect() (*zk.Conn, error) {
 
 //Verify that the given host or ip / port is healthy
 func (zc *zkflagCheck) DoCheck() (int, error) {
-	log.Debug("Check of ZooKeeper Maintenance starting")
+	log.Debug("Check of ZooKeeper Flag starting")
 	conn, err := zc.Connect()
 	if err != nil {
 		log.WithError(err).Warn("Unable to Connect to ZooKeeper")
@@ -60,10 +60,12 @@ func (zc *zkflagCheck) DoCheck() (int, error) {
 	}
 	exists, _, _ := conn.Exists(zc.Path)
 	if exists {
+		log.Debug("ZooKeeper Flag detected")
+		conn.Close()
 		return StatusKO, nil
 	}
 	conn.Close()
-	log.Debug("Check of ZooKeeper Maintenance stopping")
+	log.Debug("Check of ZooKeeper Flag stopping")
 	return StatusOK, nil
 }
 

@@ -80,7 +80,7 @@ func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout 
                 case CHECK_ZKFLAG_TYPE:
                         zkflag_check := new(zkflagCheck)
 			zkflag_check.Initialize()
-			zkflag_check.SetZKFlagConfiguration(param5,param2)
+			zkflag_check.SetZKFlagConfiguration(param5,param1)
 			check = zkflag_check
                 default:
                         check = new(tcpCheck)
