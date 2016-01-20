@@ -12,6 +12,7 @@ type zkflagCheck struct {
 	Check
 	Hosts []string
 	Path string
+	Connection *zk.Conn
 }
 
 type ZKDebugLogger struct {}
@@ -39,32 +40,54 @@ func(zc *zkflagCheck) SetZKFlagConfiguration(Hosts []string, Path string) {
 	}
 }
 
-func(zc *zkflagCheck) Connect() (*zk.Conn, error) {
-	conn, _, err := zk.Connect(zc.Hosts, time.Second)
-	if err != nil {
-		log.Warn("Unable to Connect to ZooKeeper (",err,")")
-		return nil, err
+func(zc *zkflagCheck) Connect() (zk.State, error) {
+	if zc.Connection != nil {
+		state := zc.Connection.State()
+		switch state {
+			case zk.StateUnknown,zk.StateConnectedReadOnly,zk.StateExpired,zk.StateAuthFailed,zk.StateConnecting: {
+				//Disconnect, and let Reconnection happen
+				log.Warn("ZKFlag Connection is in BAD State [",state,"] Reconnect")
+				zc.Connection.Close()
+			}
+			case zk.StateConnected, zk.StateHasSession: {
+				log.Debug("ZKFlag Connection established(",state,"), nothing to do.")
+				return state, nil
+			}
+			case zk.StateDisconnected: {
+				log.Info("ZKFlag Connection is Disconnected -> Reconnection")
+			}
+		}
 	}
+	conn, _, err := zk.Connect(zc.Hosts, 10 * time.Second)
+	if err != nil {
+		zc.Connection = nil
+		log.Warn("Unable to Connect to ZKFlag (",err,")")
+		return zk.StateDisconnected, err
+	}
+	zc.Connection = conn
 	var zkLogger ZKDebugLogger
-	conn.SetLogger(zkLogger)
-	return conn, nil
+	zc.Connection.SetLogger(zkLogger)
+	state := zc.Connection.State()
+	return state, nil
 }
 
 //Verify that the given host or ip / port is healthy
 func (zc *zkflagCheck) DoCheck() (int, error) {
 	log.Debug("Check of ZooKeeper Flag starting")
-	conn, err := zc.Connect()
+	state, err := zc.Connect()
 	if err != nil {
-		log.WithError(err).Warn("Unable to Connect to ZooKeeper")
+		log.WithError(err).Warn("Unable to Connect to ZKFlag")
 		return StatusKO, err
 	}
-	exists, _, _ := conn.Exists(zc.Path)
-	if exists {
-		log.Debug("ZooKeeper Flag detected")
-		conn.Close()
-		return StatusKO, nil
+	if state == zk.StateHasSession {
+		exists, _, _ := zc.Connection.Exists(zc.Path)
+		if exists {
+			log.Debug("ZooKeeper Flag detected")
+			return StatusKO, nil
+		}
+	}else {
+		log.Warn("ZKFlag Session in BAD State [",state,"]")
 	}
-	conn.Close()
 	log.Debug("Check of ZooKeeper Flag stopping")
 	return StatusOK, nil
 }
