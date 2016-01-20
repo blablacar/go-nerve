@@ -78,8 +78,8 @@ func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, 
 
 func(r *Reporter) GetJsonReporterData() string {
 	var jsonReporterData string
-	jsonReporterData = "{\"host\":" + r.IP + "\",\"port\":" + strconv.Itoa(r.Port) + ","
-	jsonReporterData += "\"name\":\"" + r.ServiceName + "\""
+	jsonReporterData = "{\"host\":\"" + r.IP + "\",\"port\":" + strconv.Itoa(r.Port) + ","
+	jsonReporterData += "\"name\":\"" + r.InstanceID + "\""
 	if r.Weight > 0 {
 		jsonReporterData += ",\"weight\":" + strconv.Itoa(r.Weight)
 	}
