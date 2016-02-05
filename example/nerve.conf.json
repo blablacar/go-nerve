@@ -7,6 +7,7 @@
       "name": "your_http_service",
       "host": "1.2.3.4",
       "port": 3000,
+      "check_interval": 2000,
       "reporter": {
         "type": "zookeeper",
         "hosts": ["localhost:2181"],
@@ -15,7 +16,6 @@
         "fall": 2
       },
       "watcher": {
-        "check_interval": 2000,
         "checks": [
           {
             "type": "http",
@@ -29,6 +29,7 @@
       "name": "local_smtp",
       "host": "localhost",
       "port": 25,
+      "check_interval": 2000,
       "reporter": {
         "tags": ["smtp","local_stmp"],
         "type": "console",
@@ -36,7 +37,6 @@
         "fall": 2
       },
       "watcher": {
-        "check_interval": 2000,
         "checks": [
           {
             "type": "tcp",
@@ -49,6 +49,7 @@
       "name": "your_rabbit_service",
       "host": "1.2.3.4",
       "port": 5672,
+      "check_interval": 2000,
       "reporter": {
         "type": "file",
         "filename": "nerve_report.txt",
@@ -56,7 +57,6 @@
 	"mode": "write"
       },
       "watcher": {
-        "check_interval": 2000,
         "checks": [
           {
             "type": "rabbitmq",
