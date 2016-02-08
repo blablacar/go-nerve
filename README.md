@@ -2,7 +2,7 @@
 
 ___/!\ This Software is in Alpha Stage! Don't use it in production, until it's considered Stable /!\___
 
-# Go-Nerve
+# Go-Nerve #
 
 Go-Nerve is a utility for tracking the status of machines and services, a Go rewritten work of Airbnb's [Nerve](https://github.com/airbnb/nerve)
 It runs locally on the boxes which make up a distributed system, and reports state information to a distributed key-value store.
@@ -55,13 +55,15 @@ If you have a GNU Make or equivalent on your system, you can also use it to buil
 
 	`make dep-install` # Will install all go dependencies into _vendor directory
 
-	`make build` # Will compile nerve binary and push it into local bin/ diretory
+	`make build` # Will compile nerve binary and push it into local bin/ directory
+
+	`make test` # Will execute all units tests
 
 	`make install` # Will install nerve binary in the system directory /usr/local/bin (can be overriden at the top of the Makefile)
 
 	`make clean` # Will remove all existing binary in bin/ and remove the dependencies directory _vendor
 
-	`make all` # an alias to make clean dep-install build
+	`make all` # an alias to make clean dep-install build test
 
 ## Configuration ##
 

@@ -5,7 +5,7 @@
 
 GOMCMD=gom
 
-all: clean dep-install build
+all: clean dep-install build test
 
 dep-install:
 	$(GOMCMD) install
@@ -17,6 +17,9 @@ build:
 clean:
 	rm -f bin/*
 	rm -rf _vendor
+
+test:
+	$(GOMCMD) test nerve nerve/checks nerve/reporters
 
 install:
 	cp bin/nerve /usr/local/bin/nerve
