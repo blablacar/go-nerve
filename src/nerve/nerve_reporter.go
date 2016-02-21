@@ -7,7 +7,7 @@ import (
 
 type ReporterI interface {
 	Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) error
-	Report(Status int) error
+	Report(Status int, StatusMaintenance int) error
 	Destroy() error
 	GetType() string
 }

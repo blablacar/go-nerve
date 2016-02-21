@@ -36,20 +36,32 @@ func(fr *FileReporter) SetFileConfiguration(Path string, Filename string, Mode s
 	}
 }
 
-func(fr *FileReporter) Report(Status int) error {
+func(fr *FileReporter) Report(Status int, StatusMaintenance int) error {
+	var statusString string
+	if Status == 0 {
+		statusString = "OK"
+	}else {
+		statusString = "KO"
+	}
+	var inMaintenance bool
+	if StatusMaintenance != 0 {
+		inMaintenance = true
+	}else {
+		inMaintenance = false
+	}
 	if fr.Mode == "append" {
 		file, err := os.OpenFile(fr.Path+"/"+fr.Filename,os.O_APPEND|os.O_CREATE|os.O_WRONLY,0644)
 		if err != nil {
 			log.WithField("Filename",fr.Path+"/"+fr.Filename).WithError(err).Warn("Unable to open File to Report to")
 			return err
 		}
-		if _, err = file.WriteString(fr.GetJsonReporterData()); err != nil {
+		if _, err = file.WriteString(statusString + ": " + fr.GetJsonReporterData(inMaintenance)); err != nil {
 			log.WithField("Filename",fr.Path+"/"+fr.Filename).WithError(err).Warn("Unable to Append to File to Report to")
 			return err
 		}
 		file.Close()
 	} else {
-		err := ioutil.WriteFile(fr.Path+"/"+fr.Filename,[]byte(fr.GetJsonReporterData()),0644)
+		err := ioutil.WriteFile(fr.Path+"/"+fr.Filename,[]byte(statusString + ": " + fr.GetJsonReporterData(inMaintenance)),0644)
 		if err != nil {
 			log.WithField("Filename",fr.Path+"/"+fr.Filename).WithError(err).Warn("Unable to Write File to Report to")
 			return err

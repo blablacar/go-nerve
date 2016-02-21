@@ -25,7 +25,7 @@ func(ns *NerveService) Initialize(config NerveServiceConfiguration,InstanceID st
 	ns.CheckInterval = config.CheckInterval
 	addrs, err := net.LookupIP(ns.Host)
 	if err != nil {
-		log.Warn("Error getting IP for the Host[",ns.Host,"]")
+		log.WithError(err).Warn("Error getting IP for the Host[",ns.Host,"]")
 		ns.IP = "127.0.0.1"
 	}else {
 		for i := 0; i<len(addrs); i++ {
@@ -60,11 +60,15 @@ func(ns *NerveService) Run(stop <-chan bool) {
 	Loop:
 	for {
 		// Here The job to check, and report
-		status, err := ns.Watcher.Check()
+		status, err := ns.Watcher.Check(false)
 		if err != nil  {
 			log.Warn("Check error for Service [", ns.Name, "] [",err,"]")
 		}
-		ns.Reporter.Report(status);
+		statusMaintenance, errMaintenance := ns.Watcher.Check(true)
+		if errMaintenance != nil  {
+			log.Warn("Maintenance Check error for Service [", ns.Name, "] [",errMaintenance,"]")
+		}
+		ns.Reporter.Report(status,statusMaintenance);
 
 		// Wait for the stop signal
 		select {

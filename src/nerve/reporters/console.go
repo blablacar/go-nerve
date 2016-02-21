@@ -16,9 +16,15 @@ func(cr *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, We
 	return nil
 }
 
-func(cr *ConsoleReporter) Report(Status int) error {
+func(cr *ConsoleReporter) Report(Status int, StatusMaintenance int) error {
+	var inMaintenance bool
+	if StatusMaintenance != 0 {
+		inMaintenance = true
+	}else {
+		inMaintenance = false
+	}
 	if cr.CanReport(Status) {
-		fmt.Printf("Data:[%s] Status[%d]\n",cr.GetJsonReporterData(),Status)
+		fmt.Printf("Data:[%s] Status[%d]\n",cr.GetJsonReporterData(inMaintenance),Status)
 	}
 	return nil
 }

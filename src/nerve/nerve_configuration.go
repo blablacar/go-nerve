@@ -37,6 +37,7 @@ type NerveCheckConfiguration struct {
 
 type NerveWatcherConfiguration struct {
 	Checks []NerveCheckConfiguration `json:"checks"`
+	MaintenanceChecks []NerveCheckConfiguration `json:"maintenance_checks"`
 }
 
 type NerveServiceConfiguration struct {

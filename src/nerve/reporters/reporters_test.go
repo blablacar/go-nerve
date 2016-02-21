@@ -11,7 +11,7 @@ func TestReporters(t *testing.T) {
 	reporter.Port = 1234
 	reporter.InstanceID = "ApelyAgamakou"
 	reporter.Weight = 42
-	if reporter.GetJsonReporterData() != "{\"host\":\"1234\",\"port\":1234,\"name\":\"ApelyAgamakou\",\"weight\":42}" {
-		t.Error("Reporter JSON serialization failed expect [{\"host\":\"1234\",\"port\":1234,\"name\":\"ApelyAgamakou\",\"weight\":42}], got ",reporter.GetJsonReporterData())
+	if reporter.GetJsonReporterData(false) != "{\"host\":\"1234\",\"port\":1234,\"name\":\"ApelyAgamakou\",\"weight\":42,\"maintenance\":false}" {
+		t.Error("Reporter JSON serialization failed expect [{\"host\":\"1234\",\"port\":1234,\"name\":\"ApelyAgamakou\",\"weight\":42}], got ",reporter.GetJsonReporterData(false))
 	}
 }

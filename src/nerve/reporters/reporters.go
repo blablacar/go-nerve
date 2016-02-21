@@ -76,7 +76,7 @@ func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, 
 	r.ServiceName = ServiceName
 }
 
-func(r *Reporter) GetJsonReporterData() string {
+func(r *Reporter) GetJsonReporterData(inMaintenance bool) string {
 	var jsonReporterData string
 	jsonReporterData = "{\"host\":\"" + r.IP + "\",\"port\":" + strconv.Itoa(r.Port) + ","
 	jsonReporterData += "\"name\":\"" + r.InstanceID + "\""
@@ -85,6 +85,12 @@ func(r *Reporter) GetJsonReporterData() string {
 	}
 	if r.HAProxyServerOptions != "" {
 		jsonReporterData += ",\"haproxy_server_options\":\"" + r.HAProxyServerOptions + "\""
+	}
+	jsonReporterData += ",\"maintenance\":"
+	if inMaintenance {
+		jsonReporterData += "true"
+	}else {
+		jsonReporterData += "false"
 	}
 	if len(r.Tags) > 0 {
 		jsonReporterData += ",\"tags\":["

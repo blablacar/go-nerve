@@ -91,7 +91,7 @@ func(zr *ZookeeperReporter) mkdirStaticPath(acl []zk.ACL) error {
 	return nil
 }
 
-func(zr *ZookeeperReporter) Report(Status int) error {
+func(zr *ZookeeperReporter) Report(Status int,StatusMaintenance int) error {
 	//Test Connection to ZooKeeper
 	state, err := zr.Connect() //internally the connection is maintained
 	if err != nil {
@@ -102,6 +102,12 @@ func(zr *ZookeeperReporter) Report(Status int) error {
 		realPath := zr.ZKPath + "/" + zr.IP + "_" + zr.InstanceID
 		exists, _, _ := zr.ZKConnection.Exists(zr.CurrentNode)
 		if Status == 0 {
+			var inMaintenance bool
+			if StatusMaintenance != 0 {
+				inMaintenance = true
+			}else {
+				inMaintenance = false
+			}
 			if !exists {
 				acl := zk.WorldACL(zk.PermAll)
 				//Create Full Static Path if not exists
@@ -111,13 +117,13 @@ func(zr *ZookeeperReporter) Report(Status int) error {
 					return err
 				}
 				//Don't use Create, as it's an ephemeral zk node, and there's some race condition to avoid
-				zr.CurrentNode, err = zr.ZKConnection.CreateProtectedEphemeralSequential(realPath, []byte(zr.GetJsonReporterData()), acl)
+				zr.CurrentNode, err = zr.ZKConnection.CreateProtectedEphemeralSequential(realPath, []byte(zr.GetJsonReporterData(inMaintenance)), acl)
 				if err != nil {
 					log.WithError(err).Warn("Unable to Create [",realPath,"] into ZooKeeper")
 					return err
 				}
 			} else {
-				zr.ZKConnection.Set(zr.CurrentNode, []byte(zr.GetJsonReporterData()), int32(0)	)
+				zr.ZKConnection.Set(zr.CurrentNode, []byte(zr.GetJsonReporterData(inMaintenance)), int32(0)	)
 			}
 		}else {
 			if exists {

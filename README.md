@@ -121,6 +121,7 @@ If you set your reporter `type` to `"file"` you should also set these parameters
 ### Watcher Config ###
 
 * `checks` (required): an array of checks that nerve will perform; if all of the pass, the service will be registered; otherwise, it will be un-registered
+* `maintenance_checks` (optional): an array of checks that nerve will perform; if one failed, the service will have the maintenance tag set to true; otherwise, it will be set to false
 
 ### Checks ###
 
