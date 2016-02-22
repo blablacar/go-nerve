@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"nerve/checks"
 	"errors"
+	"strconv"
 )
 
 type Watcher struct {
@@ -22,6 +23,7 @@ type WatcherI interface {
 
 func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port int, ipv6 bool, isMaintenance bool) ([]checks.CheckI, error) {
         var _checks []checks.CheckI
+	port := Port
 	var ncc []NerveCheckConfiguration
 	if isMaintenance {
 		ncc = config.MaintenanceChecks
@@ -37,18 +39,27 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 			var param5 []string
 			switch ncc[i].Type {
 			case "http"    :
+				if ncc[i].Port != 0 {
+					port = ncc[i].Port
+				}
 				param1 = ncc[i].Uri
 				param2 = ""
 				param3 = ""
 				param4 = ""
 				param5 = []string{""}
 			case "mysql"   :
+				if ncc[i].Port != 0 {
+					port = ncc[i].Port
+				}
 				param1 = ncc[i].User
 				param2 = ncc[i].Password
 				param3 = ncc[i].SQLRequest
 				param4 = ""
 				param5 = []string{""}
 			case "rabbitmq" :
+				if ncc[i].Port != 0 {
+					port = ncc[i].Port
+				}
 				param1 = ncc[i].User
 				param2 = ncc[i].Password
 				param3 = ncc[i].Queue
@@ -64,9 +75,12 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 				param1 = ncc[i].User
 				param2 = ncc[i].Password
 				param3 = ncc[i].Host
-				param4 = ncc[i].Port
+				param4 = strconv.Itoa(ncc[i].Port)
 				param5 = ncc[i].URLs
 			default:
+				if ncc[i].Port != 0 {
+					port = ncc[i].Port
+				}
 				param1 = ""
 				param2 = ""
 				param3 = ""
@@ -77,7 +91,7 @@ func createChecks(config NerveWatcherConfiguration, IP string, Host string, Port
 				ncc[i].Type,
 				IP,
 				Host,
-				Port,
+				port,
 				ncc[i].ConnectTimeout,
 				ipv6,
 				param1,

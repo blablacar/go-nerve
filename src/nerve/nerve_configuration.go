@@ -32,7 +32,7 @@ type NerveCheckConfiguration struct {
 	Path string `json:"path"`
 	URLs []string `json:"urls"`
 	Host string `json:"host"`
-	Port string `json:"port"`
+	Port int `json:"port"`
 }
 
 type NerveWatcherConfiguration struct {
