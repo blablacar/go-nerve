@@ -14,7 +14,7 @@ func TestCreateService(t *testing.T) {
 	config.CheckInterval = 2000
 	var check nerve.NerveCheckConfiguration
 	check.Type="tcp"
-	check.Port="2345"
+	check.Port=2345
 	check.Host="1.2.3.4"
 	check.Timeout=17.23
 	config.Watcher.Checks = append(config.Watcher.Checks, check)
