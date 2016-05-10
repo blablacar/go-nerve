@@ -1,4 +1,0 @@
-gom 'github.com/Sirupsen/logrus'
-gom 'github.com/samuel/go-zookeeper/zk'
-gom 'github.com/streadway/amqp'
-gom 'github.com/go-sql-driver/mysql'

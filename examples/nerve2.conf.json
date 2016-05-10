@@ -1,0 +1,23 @@
+{
+  "instance_id": "mymachine",
+  "log-level": "DEBUG",
+  "ipv6":false,
+  "services": [
+    {
+      "name": "your_http_service",
+      "host": "127.0.0.1",
+      "port": 4242,
+      "check_interval": 2000,
+      "watcher": {
+        "checks": [
+          {
+            "type": "http",
+            "uri": "/version",
+            "port": 4242,
+            "timeout": 200
+          }
+        ]
+      }
+    }
+  ]
+}

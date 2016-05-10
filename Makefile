@@ -3,23 +3,16 @@
 # To build the project, you need the gom package from https://github.com/mattn/gom
 #
 
-GOMCMD=gom
-
-all: clean dep-install build test
-
-dep-install:
-	$(GOMCMD) install
+all: clean utest build
 
 build:
-	$(GOMCMD) build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.Version=`cat VERSION.txt`-`git rev-parse HEAD`" nerve/nerve
-	mv nerve bin/.
+	godep go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.Version=`cat VERSION.txt`-`git rev-parse HEAD`" -o nerve
 
 clean:
-	rm -f bin/*
-	rm -rf _vendor
+	rm -f nerve
 
-test:
-	$(GOMCMD) test nerve nerve/checks nerve/reporters
+utest:
+	godep go test ./...
 
 install:
-	cp bin/nerve /usr/local/bin/nerve
+	cp nerve ${GOPATH}/bin/nerve
