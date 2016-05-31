@@ -11,5 +11,4 @@ install:
   - sudo apt-get install -qq upx
 
 script:
-  - ./build.sh
-  - sudo PATH=${GOPATH}/bin:$PATH ./test.sh
+  - ./all.sh

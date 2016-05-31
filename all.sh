@@ -6,6 +6,6 @@ dir=$( dirname "$0" )
 ${dir}/clean.sh
 ${dir}/build.sh
 ${dir}/quality.sh
-${dir}/test.sh
+PATH=${GOPATH}/bin:$PATH ${dir}/test.sh
 
 echo -e "\033[0;35mAll duration : $((`date +%s`-start))s\033[0m"
