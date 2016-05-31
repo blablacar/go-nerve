@@ -15,7 +15,7 @@ osarchi="$(go env GOHOSTOS)-$(go env GOHOSTARCH)"
 ${dir}/clean.sh
 
 echo -e "\033[0;32mSave Dependencies\033[0m"
-godep save ./${dir}/...
+godep save ./${dir}/... || true
 
 echo -e "\033[0;32mFormat\033[0m"
 gofmt -w -s ${dir}/
