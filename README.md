@@ -30,41 +30,20 @@ The information it reports can be used to take action from a centralized automat
 ## Installation ##
 
 ### Pre-requisite ###
-Verify that you have a decent installation of the Golang compiler, you need one.
-Then, we use here the [GOM](https://github.com/mattn/gom) tool to manage dependencies and build the nerve binary. All install information can be found on the github repository:
-https://github.com/mattn/gom
 
-Optionnaly, you can also install a GNU Make on your system. It's not needed, but will ease the build and install process.
+go-nerve depend on `godep`, `golint` but they will be fetched if not present during build
 
 ### Build ###
 
 Clone the repository where you want to have it:
 
-git clone https://github.com/blablacar/go-nerve
+    git clone https://github.com/blablacar/go-nerve
 
-Install in _vendor directory all dependencies (for a list take a look at the Gomfile):
+Build the Nerve Binary for your arch, or for a list of arch :
 
-	gom install
-
-Then you can build the Nerve Binary:
-
-	gom build nerve/nerve
-
-### Makefile ###
-If you have a GNU Make or equivalent on your system, you can also use it to build and install nerve.
-
-	`make dep-install` # Will install all go dependencies into _vendor directory
-
-	`make build` # Will compile nerve binary and push it into local bin/ directory
-
-	`make test` # Will execute all units tests
-
-	`make install` # Will install nerve binary in the system directory /usr/local/bin (can be overriden at the top of the Makefile)
-
-	`make clean` # Will remove all existing binary in bin/ and remove the dependencies directory _vendor
-
-	`make all` # an alias to make clean dep-install build test
-
+	./build.sh
+	./build.sh windows-amd64,darwin-amd64
+	
 ## Configuration ##
 
 Go-Nerve depends on a single configuration file, in json format.
