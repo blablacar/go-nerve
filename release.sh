@@ -12,7 +12,7 @@ app="nerve"
 github_repo="blablacar/go-nerve"
 version=$1
 access_token=$2
-osarchi="linux-amd64\ndarwin-amd64\nwindows-amd64"
+osarchi="linux-amd64,darwin-amd64,windows-amd64"
 
 require_clean_work_tree () {
     # Update the index

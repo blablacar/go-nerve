@@ -23,7 +23,8 @@ gofmt -w -s ${dir}/
 echo -e "\033[0;32mLint\033[0m"
 golint ${dir}
 
-for e in `echo -e "$osarchi"`; do
+IFS=',' read -ra current <<< "$osarchi"
+for e in "${current[@]}"; do
     echo -e "\033[0;32mBuilding $e\033[0m"
 
     GOOS="${e%-*}" GOARCH="${e#*-}" \
