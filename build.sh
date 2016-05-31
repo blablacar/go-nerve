@@ -9,19 +9,10 @@ osarchi="$(go env GOHOSTOS)-$(go env GOHOSTARCH)"
 [ ! -z ${version+x} ] || version="0"
 
 [ -f ${GOPATH}/bin/godep ] || go get github.com/tools/godep
-[ -f ${GOPATH}/bin/golint ] || go get github.com/golang/lint/golint
 [ -f /usr/bin/upx ] || (echo "upx is required to build" && exit 1)
-
-${dir}/clean.sh
 
 echo -e "\033[0;32mSave Dependencies\033[0m"
 godep save ./${dir}/... || true
-
-echo -e "\033[0;32mFormat\033[0m"
-gofmt -w -s ${dir}/
-
-echo -e "\033[0;32mLint\033[0m"
-golint ${dir}
 
 IFS=',' read -ra current <<< "$osarchi"
 for e in "${current[@]}"; do
@@ -33,7 +24,7 @@ for e in "${current[@]}"; do
 
     if [ "${e%-*}" != "darwin" ]; then
         echo -e "\033[0;32mCompressing ${e}\033[0m"
-        upx ${dir}/dist/${app}-v${version}-${e}/${app}
+        upx ${dir}/dist/${app}-v${version}-${e}/${app} &> /dev/null
     fi
 
     if [ "${e%-*}" == "windows" ]; then
@@ -45,4 +36,4 @@ echo -e "\033[0;32mInstalling\033[0m"
 
 cp ${dir}/dist/${app}-v${version}-$(go env GOHOSTOS)-$(go env GOHOSTARCH)/${app}* ${GOPATH}/bin/
 
-echo "Duration : $((`date +%s`-start))s"
+echo -e "\033[0;35mBuild duration : $((`date +%s`-start))s\033[0m"
