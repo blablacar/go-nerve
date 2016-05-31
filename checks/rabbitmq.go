@@ -1,10 +1,10 @@
 package checks
 
 import (
+	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"strconv"
-	"bytes"
 )
 
 const CHECK_RABBITMQ_TYPE string = "RABBITMQ"
@@ -13,12 +13,12 @@ type rabbitmqCheck struct {
 	Check
 	Username string
 	Password string
-	VHost string
-	Queue string
+	VHost    string
+	Queue    string
 }
 
-//Initialize 
-func(rc *rabbitmqCheck) Initialize() error {
+//Initialize
+func (rc *rabbitmqCheck) Initialize() error {
 	//Default value pushed here
 	rc.Status = StatusUnknown
 	rc.Host = "localhost"
@@ -34,7 +34,7 @@ func(rc *rabbitmqCheck) Initialize() error {
 	return nil
 }
 
-func(rc *rabbitmqCheck) SetRabbitMQConfiguration(Username string, Password string, Queue string, VHost string) {
+func (rc *rabbitmqCheck) SetRabbitMQConfiguration(Username string, Password string, Queue string, VHost string) {
 	if Username != "" {
 		rc.Username = Username
 	}
@@ -47,16 +47,16 @@ func(rc *rabbitmqCheck) SetRabbitMQConfiguration(Username string, Password strin
 	if VHost != "" {
 		if VHost == "/" {
 			rc.VHost = ""
-		}else {
+		} else {
 			rc.VHost = VHost
 		}
 	}
 }
 
 //Verify that the given host or ip / port is healthy
-func(rc *rabbitmqCheck) DoCheck() (status int, err error) {
+func (rc *rabbitmqCheck) DoCheck() (status int, err error) {
 	//First connect
-	conn, err := amqp.Dial("amqp://"+rc.Username+":"+rc.Password+"@"+rc.IP+":"+strconv.Itoa(rc.Port)+"/"+rc.VHost)
+	conn, err := amqp.Dial("amqp://" + rc.Username + ":" + rc.Password + "@" + rc.IP + ":" + strconv.Itoa(rc.Port) + "/" + rc.VHost)
 	if err != nil {
 		log.WithError(err).Warn("Unable to Connect to RabbitMQ")
 		return StatusKO, err
@@ -67,42 +67,42 @@ func(rc *rabbitmqCheck) DoCheck() (status int, err error) {
 		log.WithError(err).Warn("Unable to Open Channel in RabbitMQ Connection")
 		return StatusKO, err
 	}
-	queue, err := channel.QueueDeclare(rc.Queue,false,false,false,false,nil)
+	queue, err := channel.QueueDeclare(rc.Queue, false, false, false, false, nil)
 	if err != nil {
 		conn.Close()
-		log.WithError(err).Warn("Unable to Declare Queue[",rc.Queue,"] in RabbitMQ Connection")
+		log.WithError(err).Warn("Unable to Declare Queue[", rc.Queue, "] in RabbitMQ Connection")
 		return StatusKO, err
 	}
-	err = channel.Publish("",queue.Name,true,false,amqp.Publishing {
+	err = channel.Publish("", queue.Name, true, false, amqp.Publishing{
 		ContentType: "text/plain",
-		Body: []byte("nerve"),
-		})
+		Body:        []byte("nerve"),
+	})
 	if err != nil {
 		conn.Close()
 		log.WithError(err).Warn("Unable to Publish message in RabbitMQ Connection")
 		return StatusKO, err
 	}
-	delivery, ok, err := channel.Get(queue.Name,true)
+	delivery, ok, err := channel.Get(queue.Name, true)
 	if !ok {
 		conn.Close()
 		if err != nil {
-			log.WithError(err).Warn("Error getting message from the RabbitMQ Queue [",rc.Queue,"]")
+			log.WithError(err).Warn("Error getting message from the RabbitMQ Queue [", rc.Queue, "]")
 			return StatusKO, err
-		}else {
-			log.Warn("Error no message in the RabbitMQ Queue [",rc.Queue,"]")
+		} else {
+			log.Warn("Error no message in the RabbitMQ Queue [", rc.Queue, "]")
 			return StatusKO, err
 		}
 	}
-	if delivery.Body != nil && bytes.Compare(delivery.Body,[]byte("nerve")) != 0 {
+	if delivery.Body != nil && bytes.Compare(delivery.Body, []byte("nerve")) != 0 {
 		conn.Close()
-		log.WithField("Body",delivery.Body).WithField("queue",rc.Queue).Warn("Error Invalid message Body expect \"nerve\"")
+		log.WithField("Body", delivery.Body).WithField("queue", rc.Queue).Warn("Error Invalid message Body expect \"nerve\"")
 		return StatusKO, err
 	}
 
 	return StatusOK, nil
 }
 
-func(x *rabbitmqCheck) GetType() string {
+func (x *rabbitmqCheck) GetType() string {
 	return x._type
 }
 

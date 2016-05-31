@@ -6,47 +6,47 @@ import (
 )
 
 type Reporter struct {
-	IP string
-	Port int
-	Rise int
-	Fall int
-	Weight int
+	IP                   string
+	Port                 int
+	Rise                 int
+	Fall                 int
+	Weight               int
 	HAProxyServerOptions string
-	ServiceName string
-	InstanceID string
-	lastStatuses []int
-	Tags []string
-	_type string
+	ServiceName          string
+	InstanceID           string
+	lastStatuses         []int
+	Tags                 []string
+	_type                string
 }
 
-func(r *Reporter) CanReport(status int) bool {
+func (r *Reporter) CanReport(status int) bool {
 	var _lastStatuses []int
 	_lastStatuses = append(_lastStatuses, status)
 	_lastStatuses = append(_lastStatuses, r.lastStatuses...)
-	if len(_lastStatuses) > max(r.Rise,r.Fall) {
-		r.lastStatuses = _lastStatuses[:len(_lastStatuses) -1]
-	}else {
+	if len(_lastStatuses) > max(r.Rise, r.Fall) {
+		r.lastStatuses = _lastStatuses[:len(_lastStatuses)-1]
+	} else {
 		r.lastStatuses = _lastStatuses
 	}
 	if status == 0 {
 		if len(r.lastStatuses) < r.Rise {
-			log.Debug("Not Enough Valid Check to report got[",len(r.lastStatuses),"] expect [",r.Rise,"]")
+			log.Debug("Not Enough Valid Check to report got[", len(r.lastStatuses), "] expect [", r.Rise, "]")
 			return false
 		}
 		for i := 0; i < r.Rise; i++ {
 			if r.lastStatuses[i] != 0 {
-				log.Debug("Not Enough Valid Check to report got[",i+1,"] expect [",r.Rise,"]")
+				log.Debug("Not Enough Valid Check to report got[", i+1, "] expect [", r.Rise, "]")
 				return false
 			}
 		}
-	}else {
+	} else {
 		if len(r.lastStatuses) < r.Fall {
-			log.Debug("Not Enough Unvalid Check to report got[",len(r.lastStatuses),"] expect [",r.Fall,"]")
+			log.Debug("Not Enough Unvalid Check to report got[", len(r.lastStatuses), "] expect [", r.Fall, "]")
 			return false
 		}
 		for i := 0; i < r.Fall; i++ {
 			if r.lastStatuses[i] == 0 {
-				log.Debug("Not Enough Unvalid Check to report got[",i+1,"] expect [",r.Fall,"]")
+				log.Debug("Not Enough Unvalid Check to report got[", i+1, "] expect [", r.Fall, "]")
 				return false
 			}
 		}
@@ -54,17 +54,17 @@ func(r *Reporter) CanReport(status int) bool {
 	return true
 }
 
-func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) {
+func (r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) {
 	r.IP = IP
 	r.Port = Port
 	if Rise > 0 {
 		r.Rise = Rise
-	}else {
+	} else {
 		r.Rise = 1
 	}
 	if Fall > 0 {
 		r.Fall = Fall
-	}else {
+	} else {
 		r.Fall = 1
 	}
 	if len(Tags) > 0 {
@@ -76,7 +76,7 @@ func(r *Reporter) SetBaseConfiguration(IP string, Port int, Rise int, Fall int, 
 	r.ServiceName = ServiceName
 }
 
-func(r *Reporter) GetJsonReporterData(inMaintenance bool) string {
+func (r *Reporter) GetJsonReporterData(inMaintenance bool) string {
 	var jsonReporterData string
 	jsonReporterData = "{\"host\":\"" + r.IP + "\",\"port\":" + strconv.Itoa(r.Port) + ","
 	jsonReporterData += "\"name\":\"" + r.InstanceID + "\""
@@ -89,7 +89,7 @@ func(r *Reporter) GetJsonReporterData(inMaintenance bool) string {
 	jsonReporterData += ",\"maintenance\":"
 	if inMaintenance {
 		jsonReporterData += "true"
-	}else {
+	} else {
 		jsonReporterData += "false"
 	}
 	if len(r.Tags) > 0 {
@@ -98,7 +98,7 @@ func(r *Reporter) GetJsonReporterData(inMaintenance bool) string {
 			if i > 0 {
 				jsonReporterData += ","
 			}
-			jsonReporterData += "\""+tag+"\""
+			jsonReporterData += "\"" + tag + "\""
 		}
 		jsonReporterData += "]"
 	}

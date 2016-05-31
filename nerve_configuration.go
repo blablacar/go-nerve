@@ -6,54 +6,54 @@ import (
 )
 
 type NerveReporterConfiguration struct {
-	Type string `json:"type"`
-	Hosts []string `json:"hosts"`
-	Tags []string `json:"tags"`
-	Path string `json:"path"`
-	Filename string `json:"filename"`
-	Mode string `json:"mode"`
-	Rise int `json:"rise"`
-	Fall int `json:"fall"`
-	Weight int `json:"weight"`
-	HAProxyServerOptions string `json:"haproxy_server_options"`
+	Type                 string   `json:"type"`
+	Hosts                []string `json:"hosts"`
+	Tags                 []string `json:"tags"`
+	Path                 string   `json:"path"`
+	Filename             string   `json:"filename"`
+	Mode                 string   `json:"mode"`
+	Rise                 int      `json:"rise"`
+	Fall                 int      `json:"fall"`
+	Weight               int      `json:"weight"`
+	HAProxyServerOptions string   `json:"haproxy_server_options"`
 }
 
 type NerveCheckConfiguration struct {
-	Type string `json:"type"`
-        Timeout float32 `json:"timeout"`
-	Uri string `json:"uri"`
-	User string `json:"user"`
-	Password string `json:"password"`
-	ConnectTimeout int `json:"timeout"`
-	VHost string `json:"vhost"`
-	Queue string `json:"queue"`
-	SQLRequest string `json:"sql_request"`
-	Hosts []string `json:"hosts"`
-	Path string `json:"path"`
-	URLs []string `json:"urls"`
-	Host string `json:"host"`
-	Port int `json:"port"`
+	Type           string   `json:"type"`
+	Timeout        float32  `json:"timeout"`
+	Uri            string   `json:"uri"`
+	User           string   `json:"user"`
+	Password       string   `json:"password"`
+	ConnectTimeout int      `json:"timeout"`
+	VHost          string   `json:"vhost"`
+	Queue          string   `json:"queue"`
+	SQLRequest     string   `json:"sql_request"`
+	Hosts          []string `json:"hosts"`
+	Path           string   `json:"path"`
+	URLs           []string `json:"urls"`
+	Host           string   `json:"host"`
+	Port           int      `json:"port"`
 }
 
 type NerveWatcherConfiguration struct {
-	Checks []NerveCheckConfiguration `json:"checks"`
+	Checks            []NerveCheckConfiguration `json:"checks"`
 	MaintenanceChecks []NerveCheckConfiguration `json:"maintenance_checks"`
 }
 
 type NerveServiceConfiguration struct {
-	Name string `json:"name"`
-	Host string `json:"host"`
-	Port int `json:"port"`
-	CheckInterval int `json:"check_interval"`
-	Watcher NerveWatcherConfiguration `json:"watcher"`
-	Reporter NerveReporterConfiguration `json:"reporter"`
+	Name          string                     `json:"name"`
+	Host          string                     `json:"host"`
+	Port          int                        `json:"port"`
+	CheckInterval int                        `json:"check_interval"`
+	Watcher       NerveWatcherConfiguration  `json:"watcher"`
+	Reporter      NerveReporterConfiguration `json:"reporter"`
 }
 
 type NerveConfiguration struct {
-	InstanceID string `json:"instance_id"`
-	LogLevel string `json:"log-level"`
-	IPv6 bool `json:"ipv6"`
-	Services []NerveServiceConfiguration `json:"services"`
+	InstanceID string                      `json:"instance_id"`
+	LogLevel   string                      `json:"log-level"`
+	IPv6       bool                        `json:"ipv6"`
+	Services   []NerveServiceConfiguration `json:"services"`
 }
 
 // Open Nerve configuration file, and parse it's JSON content

@@ -2,9 +2,9 @@ package checks
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"time"
 	"net"
 	"strconv"
+	"time"
 )
 
 const CHECK_TCP_TYPE string = "TCP"
@@ -13,7 +13,7 @@ type tcpCheck struct {
 	Check
 }
 
-//Initialize 
+//Initialize
 func (x *tcpCheck) Initialize() error {
 	//Default value pushed here
 	x.Status = StatusUnknown
@@ -28,14 +28,14 @@ func (x *tcpCheck) Initialize() error {
 
 //Verify that the given host or ip / port is healthy
 func (x *tcpCheck) DoCheck() (int, error) {
-	log.Debug("Check of [",x.IP,":",x.Port,"] starting")
-	conn, err := net.DialTimeout("tcp",x.IP + ":" + strconv.Itoa(x.Port),time.Duration(x.ConnectTimeout)*time.Millisecond)
+	log.Debug("Check of [", x.IP, ":", x.Port, "] starting")
+	conn, err := net.DialTimeout("tcp", x.IP+":"+strconv.Itoa(x.Port), time.Duration(x.ConnectTimeout)*time.Millisecond)
 	if err != nil {
-		log.Warn("Check to [",x.IP,":",x.Port,"] failed(",err,")")
+		log.Warn("Check to [", x.IP, ":", x.Port, "] failed(", err, ")")
 		return StatusKO, err
 	}
 	conn.Close()
-	log.Debug("Check of [",x.IP,":",x.Port,"] finished")
+	log.Debug("Check of [", x.IP, ":", x.Port, "] finished")
 	return StatusOK, nil
 }
 

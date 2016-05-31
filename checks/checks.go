@@ -5,21 +5,21 @@ import (
 )
 
 const (
-	StatusOK int = 0
-	StatusKO int = 1
+	StatusOK      int = 0
+	StatusKO      int = 1
 	StatusUnknown int = 2
 )
 
 type Check struct {
-	Host string
-	IP string
-	Port int
-	Status int
-	ConnectTimeout int
+	Host              string
+	IP                string
+	Port              int
+	Status            int
+	ConnectTimeout    int
 	DisconnectTimeout int
-	IPv6 bool
-	Error error
-	_type string
+	IPv6              bool
+	Error             error
+	_type             string
 }
 
 type CheckI interface {
@@ -28,6 +28,7 @@ type CheckI interface {
 	GetType() string
 	SetBaseConfiguration(IP string, Host string, Port int, ConnectTimeout int, IPv6 bool)
 }
+
 // Create a Check object
 // where:
 // if _type == tcp
@@ -58,34 +59,34 @@ type CheckI interface {
 //	param5 is the urls to check
 func CreateCheck(_type string, IP string, Host string, Port int, ConnectTimeout int, ipv6 bool, param1 string, param2 string, param3 string, param4 string, param5 []string) (CheckI, error) {
 	var check CheckI
-        switch (strings.ToUpper(_type)) {
-                case CHECK_TCP_TYPE:
-			check = new(tcpCheck)
-			check.Initialize()
-                case CHECK_HTTP_TYPE:
-			http_check := new(httpCheck)
-			http_check.Initialize()
-			http_check.Uri = param1
-                        check = http_check
-                case CHECK_MYSQL_TYPE:
-                        mysql_check := new(mysqlCheck)
-			mysql_check.Initialize()
-			mysql_check.SetMysqlConfiguration(param1,param2,param3)
-                        check = mysql_check
-                case CHECK_RABBITMQ_TYPE:
-                        rabbitmq_check := new(rabbitmqCheck)
-			rabbitmq_check.Initialize()
-			rabbitmq_check.SetRabbitMQConfiguration(param1,param2,param3,param4)
-			check = rabbitmq_check
-                case CHECK_ZKFLAG_TYPE:
-                        zkflag_check := new(zkflagCheck)
-			zkflag_check.Initialize()
-			zkflag_check.SetZKFlagConfiguration(param5,param1)
-			check = zkflag_check
-                default:
-                        check = new(tcpCheck)
-                        check.Initialize()
-        }
-	check.SetBaseConfiguration(IP,Host,Port,ConnectTimeout,ipv6)
-        return check, nil
+	switch strings.ToUpper(_type) {
+	case CHECK_TCP_TYPE:
+		check = new(tcpCheck)
+		check.Initialize()
+	case CHECK_HTTP_TYPE:
+		http_check := new(httpCheck)
+		http_check.Initialize()
+		http_check.Uri = param1
+		check = http_check
+	case CHECK_MYSQL_TYPE:
+		mysql_check := new(mysqlCheck)
+		mysql_check.Initialize()
+		mysql_check.SetMysqlConfiguration(param1, param2, param3)
+		check = mysql_check
+	case CHECK_RABBITMQ_TYPE:
+		rabbitmq_check := new(rabbitmqCheck)
+		rabbitmq_check.Initialize()
+		rabbitmq_check.SetRabbitMQConfiguration(param1, param2, param3, param4)
+		check = rabbitmq_check
+	case CHECK_ZKFLAG_TYPE:
+		zkflag_check := new(zkflagCheck)
+		zkflag_check.Initialize()
+		zkflag_check.SetZKFlagConfiguration(param5, param1)
+		check = zkflag_check
+	default:
+		check = new(tcpCheck)
+		check.Initialize()
+	}
+	check.SetBaseConfiguration(IP, Host, Port, ConnectTimeout, ipv6)
+	return check, nil
 }

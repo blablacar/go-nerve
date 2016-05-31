@@ -10,29 +10,29 @@ type ConsoleReporter struct {
 	Reporter
 }
 
-func(cr *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) error {
+func (cr *ConsoleReporter) Initialize(IP string, Port int, Rise int, Fall int, Weight int, ServiceName string, InstanceID string, HAProxyServerOptions string, Tags []string) error {
 	cr._type = REPORTER_CONSOLE_TYPE
-	cr.SetBaseConfiguration(IP,Port,Rise,Fall,Weight,ServiceName,InstanceID,HAProxyServerOptions,Tags)
+	cr.SetBaseConfiguration(IP, Port, Rise, Fall, Weight, ServiceName, InstanceID, HAProxyServerOptions, Tags)
 	return nil
 }
 
-func(cr *ConsoleReporter) Report(Status int, StatusMaintenance int) error {
+func (cr *ConsoleReporter) Report(Status int, StatusMaintenance int) error {
 	var inMaintenance bool
 	if StatusMaintenance != 0 {
 		inMaintenance = true
-	}else {
+	} else {
 		inMaintenance = false
 	}
 	if cr.CanReport(Status) {
-		fmt.Printf("Data:[%s] Status[%d]\n",cr.GetJsonReporterData(inMaintenance),Status)
+		fmt.Printf("Data:[%s] Status[%d]\n", cr.GetJsonReporterData(inMaintenance), Status)
 	}
 	return nil
 }
 
-func(cr *ConsoleReporter) Destroy() error {
+func (cr *ConsoleReporter) Destroy() error {
 	return nil
 }
 
-func(cr *ConsoleReporter) GetType() string {
+func (cr *ConsoleReporter) GetType() string {
 	return cr._type
 }

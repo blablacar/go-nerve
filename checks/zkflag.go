@@ -10,18 +10,18 @@ const CHECK_ZKFLAG_TYPE string = "ZKFLAG"
 
 type zkflagCheck struct {
 	Check
-	Hosts []string
-	Path string
+	Hosts      []string
+	Path       string
 	Connection *zk.Conn
 }
 
-type ZKDebugLogger struct {}
+type ZKDebugLogger struct{}
 
-func(ZKDebugLogger) Printf(format string, a ...interface{}) {
+func (ZKDebugLogger) Printf(format string, a ...interface{}) {
 	log.Debug(format, a)
 }
 
-//Initialize 
+//Initialize
 func (zc *zkflagCheck) Initialize() error {
 	//Default value pushed here
 	zc.Status = StatusUnknown
@@ -31,7 +31,7 @@ func (zc *zkflagCheck) Initialize() error {
 	return nil
 }
 
-func(zc *zkflagCheck) SetZKFlagConfiguration(Hosts []string, Path string) {
+func (zc *zkflagCheck) SetZKFlagConfiguration(Hosts []string, Path string) {
 	if len(Hosts) > 0 {
 		zc.Hosts = Hosts
 	}
@@ -40,28 +40,31 @@ func(zc *zkflagCheck) SetZKFlagConfiguration(Hosts []string, Path string) {
 	}
 }
 
-func(zc *zkflagCheck) Connect() (zk.State, error) {
+func (zc *zkflagCheck) Connect() (zk.State, error) {
 	if zc.Connection != nil {
 		state := zc.Connection.State()
 		switch state {
-			case zk.StateUnknown,zk.StateConnectedReadOnly,zk.StateExpired,zk.StateAuthFailed,zk.StateConnecting: {
+		case zk.StateUnknown, zk.StateConnectedReadOnly, zk.StateExpired, zk.StateAuthFailed, zk.StateConnecting:
+			{
 				//Disconnect, and let Reconnection happen
-				log.Warn("ZKFlag Connection is in BAD State [",state,"] Reconnect")
+				log.Warn("ZKFlag Connection is in BAD State [", state, "] Reconnect")
 				zc.Connection.Close()
 			}
-			case zk.StateConnected, zk.StateHasSession: {
-				log.Debug("ZKFlag Connection established(",state,"), nothing to do.")
+		case zk.StateConnected, zk.StateHasSession:
+			{
+				log.Debug("ZKFlag Connection established(", state, "), nothing to do.")
 				return state, nil
 			}
-			case zk.StateDisconnected: {
+		case zk.StateDisconnected:
+			{
 				log.Info("ZKFlag Connection is Disconnected -> Reconnection")
 			}
 		}
 	}
-	conn, _, err := zk.Connect(zc.Hosts, 10 * time.Second)
+	conn, _, err := zk.Connect(zc.Hosts, 10*time.Second)
 	if err != nil {
 		zc.Connection = nil
-		log.Warn("Unable to Connect to ZKFlag (",err,")")
+		log.Warn("Unable to Connect to ZKFlag (", err, ")")
 		return zk.StateDisconnected, err
 	}
 	zc.Connection = conn
@@ -85,8 +88,8 @@ func (zc *zkflagCheck) DoCheck() (int, error) {
 			log.Debug("ZooKeeper Flag detected")
 			return StatusKO, nil
 		}
-	}else {
-		log.Warn("ZKFlag Session in BAD State [",state,"]")
+	} else {
+		log.Warn("ZKFlag Session in BAD State [", state, "]")
 	}
 	log.Debug("Check of ZooKeeper Flag stopping")
 	return StatusOK, nil

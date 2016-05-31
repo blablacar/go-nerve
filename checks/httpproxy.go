@@ -13,14 +13,14 @@ type httpproxyCheck struct {
 	Check
 	ProxyUsername string
 	ProxyPassword string
-	ProxyHost string
-	ProxyPort string
-	URLs []string
-	client http.Client
+	ProxyHost     string
+	ProxyPort     string
+	URLs          []string
+	client        http.Client
 }
 
-//Initialize 
-func(x *httpproxyCheck) Initialize() error {
+//Initialize
+func (x *httpproxyCheck) Initialize() error {
 	//Default value pushed here
 	x.Status = StatusUnknown
 	x.Host = "localhost"
@@ -36,7 +36,7 @@ func(x *httpproxyCheck) Initialize() error {
 	return nil
 }
 
-func(hc *httpproxyCheck) SetHTTPProxyConfiguration(User string, Password string, Host string, Port string, URLs []string) {
+func (hc *httpproxyCheck) SetHTTPProxyConfiguration(User string, Password string, Host string, Port string, URLs []string) {
 	has_proxy := false
 	if User != "" {
 		hc.ProxyUsername = User
@@ -56,25 +56,25 @@ func(hc *httpproxyCheck) SetHTTPProxyConfiguration(User string, Password string,
 		hc.URLs = URLs
 	}
 	if has_proxy {
-		proxyUrl, err := url.Parse("http://"+hc.ProxyHost+":"+hc.ProxyPort)
+		proxyUrl, err := url.Parse("http://" + hc.ProxyHost + ":" + hc.ProxyPort)
 		if err == nil {
 			timeout := time.Duration(hc.ConnectTimeout) * time.Millisecond
 			hc.client = http.Client{
-				Transport: &http.Transport {
+				Transport: &http.Transport{
 					Proxy: http.ProxyURL(proxyUrl),
 				},
-			        Timeout: timeout,
+				Timeout: timeout,
 			}
 		}
 	}
 }
 
 //Verify that the given proxy is healthy
-func(hc *httpproxyCheck) DoCheck() (status int, err error) {
+func (hc *httpproxyCheck) DoCheck() (status int, err error) {
 	for _, url := range hc.URLs {
 		resp, err := hc.client.Get(url)
 		if err != nil {
-			log.WithError(err).Warn("HTTP Check of [",url,"] fail")
+			log.WithError(err).Warn("HTTP Check of [", url, "] fail")
 			return StatusKO, err
 		}
 		resp.Body.Close()
@@ -82,7 +82,7 @@ func(hc *httpproxyCheck) DoCheck() (status int, err error) {
 	return StatusOK, nil
 }
 
-func(hc *httpproxyCheck) GetType() string {
+func (hc *httpproxyCheck) GetType() string {
 	return hc._type
 }
 

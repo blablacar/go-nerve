@@ -1,8 +1,8 @@
 package checks
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"database/sql"
+	log "github.com/Sirupsen/logrus"
 	_ "github.com/go-sql-driver/mysql"
 	"strconv"
 )
@@ -11,13 +11,13 @@ const CHECK_MYSQL_TYPE string = "MYSQL"
 
 type mysqlCheck struct {
 	Check
-	Username string
-	Password string
+	Username   string
+	Password   string
 	SQLRequest string
-	Protocol string
+	Protocol   string
 }
 
-//Initialize 
+//Initialize
 func (mc *mysqlCheck) Initialize() error {
 	//Default value pushed here
 	mc.Status = StatusUnknown
@@ -35,7 +35,7 @@ func (mc *mysqlCheck) Initialize() error {
 }
 
 //Set Specific Configuration
-func(mc *mysqlCheck) SetMysqlConfiguration(Username string, Password string, SQLRequest string) {
+func (mc *mysqlCheck) SetMysqlConfiguration(Username string, Password string, SQLRequest string) {
 	if Username != "" {
 		mc.Username = Username
 	}
@@ -49,21 +49,21 @@ func(mc *mysqlCheck) SetMysqlConfiguration(Username string, Password string, SQL
 
 //Verify that the given host or ip / port is healthy
 func (mc *mysqlCheck) DoCheck() (int, error) {
-	log.Debug("MySQL Check of [",mc.IP,":",mc.Port,"] starting")
-	conn, err := sql.Open("mysql",mc.Username+":"+mc.Password+"@"+mc.Protocol+"(["+mc.IP+"]:"+strconv.Itoa(mc.Port)+")/?timeout="+strconv.Itoa(mc.ConnectTimeout)+"ms")
+	log.Debug("MySQL Check of [", mc.IP, ":", mc.Port, "] starting")
+	conn, err := sql.Open("mysql", mc.Username+":"+mc.Password+"@"+mc.Protocol+"(["+mc.IP+"]:"+strconv.Itoa(mc.Port)+")/?timeout="+strconv.Itoa(mc.ConnectTimeout)+"ms")
 	if err != nil {
-		log.WithError(err).Warn("Connection Check to [",mc.IP,":",mc.Port,"] failed")
+		log.WithError(err).Warn("Connection Check to [", mc.IP, ":", mc.Port, "] failed")
 		return StatusKO, err
 	}
 	rows, err := conn.Query(mc.SQLRequest)
 	if err != nil {
 		conn.Close()
-		log.WithError(err).Warn("Query Check to [",mc.IP,":",mc.Port,"] failed")
+		log.WithError(err).Warn("Query Check to [", mc.IP, ":", mc.Port, "] failed")
 		return StatusKO, err
 	}
 	rows.Close()
 	conn.Close()
-	log.Debug("MySQL Check of [",mc.IP,":",mc.Port,"] finished")
+	log.Debug("MySQL Check of [", mc.IP, ":", mc.Port, "] finished")
 	return StatusOK, nil
 }
 
