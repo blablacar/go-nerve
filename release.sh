@@ -9,7 +9,7 @@ if [ $# != 2 ]; then
 fi
 
 app="nerve"
-github_repo="blablacar/ggn"
+github_repo="blablacar/go-nerve"
 version=$1
 access_token=$2
 osarchi="linux-amd64\ndarwin-amd64\nwindows-amd64"
@@ -56,15 +56,15 @@ for i in *-* ; do
 done
 cd -
 
-git tag ${version} -a -m "Version $version"
+git tag v${version} -a -m "Version $version"
 git push --tags
-
-sleep 5
-
-posturl=$(curl --data "{\"tag_name\": \"$1\",\"target_commitish\": \"master\",\"name\": \"$1\",\"body\": \"Release of version $1\",\"draft\": false,\"prerelease\": false}" https://api.github.com/repos/${github_repo}/releases?access_token=${access_token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
+#
+#sleep 5
+#
+posturl=$(curl --data "{\"tag_name\": \"v${version}\",\"target_commitish\": \"master\",\"name\": \"v${version}\",\"body\": \"Release of version ${version}\",\"draft\": false,\"prerelease\": false}" https://api.github.com/repos/${github_repo}/releases?access_token=${access_token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
 for i in ${dir}/dist/*.tar.gz ; do
-    fullpath=$(ls ${i}/*.tar.gz)
+    fullpath=$(ls ${i})
     filename=${fullpath##*/}
     curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" "${posturl%\{?name,label\}}?name=${filename}&label=${filename}&access_token=${access_token}"
 done
