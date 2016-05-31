@@ -1,0 +1,15 @@
+language: go
+
+sudo: required
+
+go:
+ - 1.6
+
+install:
+  - sudo rm -rf /var/lib/apt/lists/*
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq upx
+
+script:
+  - ./build.sh
+  - sudo PATH=${GOPATH}/bin:$PATH ./tests.sh
