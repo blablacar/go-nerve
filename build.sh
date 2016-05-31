@@ -9,7 +9,7 @@ osarchi="$(go env GOHOSTOS)-$(go env GOHOSTARCH)"
 [ ! -z ${version+x} ] || version="0"
 
 [ -f ${GOPATH}/bin/godep ] || go get github.com/tools/godep
-[ -f ${GOPATH}/bin/golint ] || go get github.com/tools/golint
+[ -f ${GOPATH}/bin/golint ] || go get github.com/golang/lint/golint
 [ -f /usr/bin/upx ] || (echo "upx is required to build" && exit 1)
 
 ${dir}/clean.sh
