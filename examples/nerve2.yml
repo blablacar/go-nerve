@@ -1,0 +1,8 @@
+
+services:
+  - host: 127.0.0.1
+    port: 4242
+    checks:
+      - {type: http, path: /version,timeout: 200}
+    reporters:
+      - {type: zookeeper, path: /yopla, hosts: [':12081']}

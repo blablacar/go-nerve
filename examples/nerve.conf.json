@@ -8,13 +8,13 @@
       "host": "1.2.3.4",
       "port": 3000,
       "check_interval": 2000,
-      "reporter": {
+      "reporters": [{
         "type": "zookeeper",
         "hosts": ["localhost:2181"],
         "path": "/nerve/services/your_http_service/services",
         "rise": 3,
         "fall": 2
-      },
+      }],
       "watcher": {
         "checks": [
           {

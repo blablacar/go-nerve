@@ -11,4 +11,4 @@ install:
   - sudo apt-get install -qq upx
 
 script:
-  - ./all.sh
+  - ./gomake

@@ -7,9 +7,8 @@
 	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.7",
-			"Rev": "418b41d23a1bf978c06faea5313ba194650ac088"
+			"ImportPath": "github.com/ghodss/yaml",
+			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
 		},
 		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
@@ -17,12 +16,125 @@
 			"Rev": "fb7299726d2e68745a8805b14f2ff44b5c2cfa84"
 		},
 		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-96-gee1442b",
+			"Rev": "ee1442bda7bd1b6a84e913bdb421cb1874ec629d"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-96-gee1442b",
+			"Rev": "ee1442bda7bd1b6a84e913bdb421cb1874ec629d"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Comment": "v1.1.0-67-g7204887",
+			"Rev": "7204887cf3a42df1cfaa5505dc3a3427f6dded8b"
+		},
+		{
+			"ImportPath": "github.com/mgutz/ansi",
+			"Rev": "c286dcecd19ff979eeb73ea444e479b903f2cfcb"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog",
+			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog/data",
+			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog/errs",
+			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog/logs",
+			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+		},
+		{
+			"ImportPath": "github.com/n0rad/go-erlog/register",
+			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/format",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/assertion",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/asyncassertion",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/oraclematcher",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/internal/testingtsupport",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/edge",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/node",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/matchers/support/goraph/util",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/types",
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
 			"ImportPath": "github.com/samuel/go-zookeeper/zk",
-			"Rev": "177002e16a0061912f02377e2dd8951a8b3551bc"
+			"Rev": "4b20de542e40ed2b89d65ae195fc20a330919b92"
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
 			"Rev": "2e25825abdbd7752ff08b270d313b93519a0a232"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.0-42-gb8dc1ce",
+			"Rev": "b8dc1cecf15bdaf1988d9e87aa7cd98d899a06d6"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/require",
+			"Comment": "v1.0-42-gb8dc1ce",
+			"Rev": "b8dc1cecf15bdaf1988d9e87aa7cd98d899a06d6"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
 		}
 	]
 }
