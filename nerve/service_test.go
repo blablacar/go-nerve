@@ -1,19 +1,20 @@
 package nerve
 
 import (
+	"github.com/n0rad/go-erlog/errs"
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
-	"github.com/n0rad/go-erlog/errs"
 )
 
 type ReporterMemory struct {
 	ReporterCommon
 	reported error
-	status error
+	status   error
 	count    int
 }
+
 func (r *ReporterMemory) Init(s *Service) error {
 	return nil
 }
@@ -27,6 +28,7 @@ type CheckMemory struct {
 	CheckCommon
 	status error
 }
+
 func (x *CheckMemory) Init(s *Service) error {
 	return nil
 }

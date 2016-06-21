@@ -7,6 +7,55 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/appc/spec/aci",
+			"Comment": "v0.8.1",
+			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/discovery",
+			"Comment": "v0.8.1",
+			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/pkg/device",
+			"Comment": "v0.8.1",
+			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/pkg/tarheader",
+			"Comment": "v0.8.1",
+			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/schema",
+			"Comment": "v0.8.1",
+			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/schema/common",
+			"Comment": "v0.8.1",
+			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
+		},
+		{
+			"ImportPath": "github.com/appc/spec/schema/types",
+			"Comment": "v0.8.1",
+			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
+		},
+		{
+			"ImportPath": "github.com/blablacar/dgr/bin-dgr/common",
+			"Comment": "70-1-g1ed5592",
+			"Rev": "1ed55925fea72b40fa0af16fc154cc447e1406a8"
+		},
+		{
+			"ImportPath": "github.com/blablacar/dgr/bin-templater/template",
+			"Comment": "70-1-g1ed5592",
+			"Rev": "1ed55925fea72b40fa0af16fc154cc447e1406a8"
+		},
+		{
+			"ImportPath": "github.com/coreos/go-semver/semver",
+			"Rev": "d043ae190b3202550d026daf009359bb5d761672"
+		},
+		{
 			"ImportPath": "github.com/ghodss/yaml",
 			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
 		},
@@ -14,6 +63,14 @@
 			"ImportPath": "github.com/go-sql-driver/mysql",
 			"Comment": "v1.2-112-gfb72997",
 			"Rev": "fb7299726d2e68745a8805b14f2ff44b5c2cfa84"
+		},
+		{
+			"ImportPath": "github.com/juju/errors",
+			"Rev": "1b5e39b83d1835fa480e0c2ddefb040ee82d58b3"
+		},
+		{
+			"ImportPath": "github.com/leekchan/gtf",
+			"Rev": "882e96b937c8506c67b5adf98ff1f84cd7b7b93a"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
@@ -119,6 +176,10 @@
 			"Rev": "4b20de542e40ed2b89d65ae195fc20a330919b92"
 		},
 		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "67cbc198fd11dab704b214c1e629a97af392c085"
+		},
+		{
 			"ImportPath": "github.com/streadway/amqp",
 			"Rev": "2e25825abdbd7752ff08b270d313b93519a0a232"
 		},
@@ -133,8 +194,29 @@
 			"Rev": "b8dc1cecf15bdaf1988d9e87aa7cd98d899a06d6"
 		},
 		{
+			"ImportPath": "go4.org/errorutil",
+			"Rev": "03efcb870d84809319ea509714dd6d19a1498483"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "0c607074acd38c5f23d1344dfe74c977464d1257"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
+			"Rev": "0c607074acd38c5f23d1344dfe74c977464d1257"
+		},
+		{
 			"ImportPath": "gopkg.in/yaml.v2",
 			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
+		},
+		{
+			"ImportPath": "k8s.io/kubernetes/pkg/api/resource",
+			"Comment": "v1.1.0-alpha.1-152-g77e2d4f",
+			"Rev": "77e2d4f9185ecbedab327f228960d4ba33703025"
+		},
+		{
+			"ImportPath": "speter.net/go/exp/math/dec/inf",
+			"Rev": "42ca6cd68aa922bc3f32f1e056e61b65945d9ad7"
 		}
 	]
 }

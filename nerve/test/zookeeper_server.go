@@ -2,7 +2,9 @@ package tests
 
 import (
 	"fmt"
+	"github.com/blablacar/dgr/bin-dgr/common"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -86,12 +88,13 @@ func (sc ServerConfig) Marshall(w io.Writer) error {
 }
 
 var jarSearchPaths = []string{
-	"/home/n0rad/Downloads/zookeeper-3.4.8/contrib/fatjar/zookeeper-*-fatjar.jar",
-	"zookeeper-*/contrib/fatjar/zookeeper-*-fatjar.jar",
-	"../zookeeper-*/contrib/fatjar/zookeeper-*-fatjar.jar",
-	"/usr/share/java/zookeeper-*.jar",
-	"/usr/local/zookeeper-*/contrib/fatjar/zookeeper-*-fatjar.jar",
-	"/usr/local/Cellar/zookeeper/*/libexec/contrib/fatjar/zookeeper-*-fatjar.jar",
+	jarPath,
+	//"/home/n0rad/Downloads/zookeeper-3.4.8/contrib/fatjar/zookeeper-*-fatjar.jar",
+	//"zookeeper-*/contrib/fatjar/zookeeper-*-fatjar.jar",
+	//"../zookeeper-*/contrib/fatjar/zookeeper-*-fatjar.jar",
+	//"/usr/share/java/zookeeper-*.jar",
+	//"/usr/local/zookeeper-*/contrib/fatjar/zookeeper-*-fatjar.jar",
+	//"/usr/local/Cellar/zookeeper/*/libexec/contrib/fatjar/zookeeper-*-fatjar.jar",
 }
 
 func findZookeeperFatJar() string {
@@ -112,6 +115,26 @@ func findZookeeperFatJar() string {
 	return ""
 }
 
+const version = "3.4.8"
+const filename = "zookeeper-" + version + ".tar.gz"
+const zooTarPath = "/tmp/" + filename
+const jarPath = "/tmp/zookeeper-" + version + "/contrib/fatjar/zookeeper-*-fatjar.jar"
+
+func downloadZookeeper() error {
+	println("Downloading zookeeper")
+	out, err := os.Create(zooTarPath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	resp, err := http.Get("http://apache.mirrors.ovh.net/ftp.apache.org/dist/zookeeper/zookeeper-" + version + "/" + filename)
+	defer resp.Body.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
+}
+
 type Server struct {
 	JarPath        string
 	ConfigPath     string
@@ -121,6 +144,16 @@ type Server struct {
 }
 
 func (srv *Server) Start() error {
+	if _, err := os.Stat(zooTarPath); err != nil {
+		if err := downloadZookeeper(); err != nil {
+			return err
+		}
+		if err := common.ExecCmd("tar", "xf", zooTarPath, "-C", "/tmp"); err != nil {
+			os.Remove(zooTarPath)
+			return err
+		}
+	}
+
 	if srv.JarPath == "" {
 		srv.JarPath = findZookeeperFatJar()
 		if srv.JarPath == "" {
@@ -134,6 +167,7 @@ func (srv *Server) Start() error {
 }
 
 func (srv *Server) Stop() error {
+	println("Stopping zookeeper server")
 	srv.cmd.Process.Signal(os.Kill)
 	return srv.cmd.Wait()
 }

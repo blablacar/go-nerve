@@ -11,9 +11,14 @@ import (
 
 type ReporterZookeeper struct {
 	ReporterCommon
-	Path  string
-	Hosts []string
+	Path                   string
+	Hosts                  []string
+	RefreshIntervalInMilli int
 
+	statusPayload []byte
+	status        error
+
+	stopChecker chan struct{}
 	connection  *zk.Conn
 	serviceIp   string
 	fullPath    string
@@ -21,7 +26,9 @@ type ReporterZookeeper struct {
 }
 
 func NewReporterZookeeper() *ReporterZookeeper {
-	return &ReporterZookeeper{}
+	return &ReporterZookeeper{
+		RefreshIntervalInMilli: 5 * 60 * 1000, // 5min
+	}
 }
 
 func (r *ReporterZookeeper) Init(s *Service) error {
@@ -36,9 +43,12 @@ func (r *ReporterZookeeper) Destroy() {
 	if r.connection != nil {
 		r.connection.Close()
 	}
+	if r.stopChecker != nil {
+		close(r.stopChecker)
+	}
 }
 
-func (r *ReporterZookeeper) Report(status error, s *Service) error {
+func (r *ReporterZookeeper) sendReportToZk() error {
 	state, err := r.Connect()
 	logs.WithF(r.fields).Debug("Connected")
 	if err != nil /*|| state != zk.StateHasSession*/ {
@@ -46,7 +56,7 @@ func (r *ReporterZookeeper) Report(status error, s *Service) error {
 	}
 
 	exists, _, _ := r.connection.Exists(r.currentNode)
-	if status == nil {
+	if r.status == nil {
 		logs.WithF(r.fields).Debug("will write status")
 		if !exists {
 			logs.WithF(r.fields).Debug("does not exists")
@@ -57,13 +67,13 @@ func (r *ReporterZookeeper) Report(status error, s *Service) error {
 				return errs.WithEF(err, r.fields, "Cannot create static path")
 			}
 			//Don't use Create, as it's an ephemeral zk node, and there's some race condition to avoid
-			r.currentNode, err = r.connection.CreateProtectedEphemeralSequential(r.fullPath, r.toJsonReport(status, s), acl)
+			r.currentNode, err = r.connection.CreateProtectedEphemeralSequential(r.fullPath, r.statusPayload, acl)
 			if err != nil {
 				return errs.WithEF(err, r.fields.WithField("fullpath", r.fullPath), "Cannot create path")
 			}
 		} else {
 			logs.WithF(r.fields).Debug("writting data")
-			_, err := r.connection.Set(r.currentNode, r.toJsonReport(status, s), int32(0))
+			_, err := r.connection.Set(r.currentNode, r.statusPayload, int32(0))
 			if err != nil {
 				return errs.WithE(err, "Failed to write status")
 			}
@@ -78,6 +88,34 @@ func (r *ReporterZookeeper) Report(status error, s *Service) error {
 		}
 	}
 	return nil
+}
+
+func (r *ReporterZookeeper) Report(status error, s *Service) error {
+	if r.stopChecker == nil {
+		r.stopChecker = make(chan struct{})
+		go r.refresher()
+	}
+
+	r.statusPayload = r.toJsonReport(status, s)
+	r.status = status
+	return r.sendReportToZk()
+}
+
+func (r *ReporterZookeeper) refresher() {
+	for {
+		select {
+		case <-r.stopChecker:
+			logs.WithFields(r.fields).Debug("Stop refresher requested")
+			return
+		default:
+			time.Sleep(time.Duration(r.RefreshIntervalInMilli) * time.Millisecond)
+		}
+
+		logs.WithFields(r.fields).Debug("Refreshing report")
+		if err := r.sendReportToZk(); err != nil {
+			logs.WithEF(err, r.fields).Warn("Failed to refresh status in zookeeper")
+		}
+	}
 }
 
 func (r *ReporterZookeeper) Connect() (zk.State, error) {

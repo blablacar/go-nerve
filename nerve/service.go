@@ -21,14 +21,14 @@ const OK Status = true
 const KO Status = false
 
 type Service struct {
-	Port                       int
-	Host                       string
-	PreferIpv4                 bool
-	Rise                       int
-	Fall                       int
-	CheckIntervalInMilli       int
-	Checks                     []json.RawMessage
-	Reporters                  []json.RawMessage
+	Port                 int
+	Host                 string
+	PreferIpv4           bool
+	Rise                 int
+	Fall                 int
+	CheckIntervalInMilli int
+	Checks               []json.RawMessage
+	Reporters            []json.RawMessage
 
 	typedChecks                []*TypedCheck
 	typedReportersWithReported map[Reporter]bool
@@ -100,8 +100,8 @@ func (s *Service) Run(stop <-chan struct{}, servicesGroup *sync.WaitGroup) {
 		}
 		select {
 		case <-stop:
-			logs.Debug("Stop requested")
-			for reporter, _ := range s.typedReportersWithReported {
+			logs.WithFields(s.fields).Debug("Stop requested")
+			for reporter := range s.typedReportersWithReported {
 				reporter.Destroy()
 			}
 			return
