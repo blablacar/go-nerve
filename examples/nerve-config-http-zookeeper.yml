@@ -1,0 +1,12 @@
+
+services:
+  - host: 127.0.0.1
+    port: 4242
+    preferIpv4: true
+    rise: 10
+    fall: 2
+    checkIntervalInMilli: 1000
+    checks:
+      - {type: http, port: 80, path: /version, timeoutInMilli: 1000}
+    reporters:
+      - {type: zookeeper, path: /services/api/myapi, hosts : [':12081']}

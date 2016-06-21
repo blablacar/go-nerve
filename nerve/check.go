@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
-	"net"
 )
 
 type Checker interface {
@@ -21,7 +20,7 @@ type CheckCommon struct {
 	TimeoutInMilli int
 
 	fields data.Fields
-	ip     net.IP
+	ip     string
 }
 
 func (c *CheckCommon) GetFields() data.Fields {
@@ -33,7 +32,7 @@ func (c *CheckCommon) Init(s *Service) error {
 	c.Port = s.Port
 	c.TimeoutInMilli = 2000
 	c.fields = s.fields
-	c.ip = IpLookupNoError(c.Host, s.PreferIpv4)
+	c.ip = IpLookupNoError(c.Host, s.PreferIpv4).String()
 	return nil
 }
 

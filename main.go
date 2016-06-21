@@ -26,7 +26,7 @@ func printVersion() {
 
 func processArgsGetConfigPath() (string, error) {
 	var logLevel = flag.String("log-level", "info", "log level")
-	var configPath = flag.String("config", "./nerve.json.conf", "the complete filename of the configuration file")
+	var configPath = flag.String("config", "./nerve.yml", "the complete filename of the configuration file")
 	var version = flag.Bool("version", false, "Display version and exit")
 	flag.Parse()
 
