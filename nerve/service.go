@@ -21,24 +21,26 @@ const OK Status = true
 const KO Status = false
 
 type Service struct {
-	Port                 int
-	Host                 string
-	PreferIpv4           bool
-	Rise                 int
-	Fall                 int
-	CheckIntervalInMilli int
-	Checks               []json.RawMessage
-	Reporters            []json.RawMessage
+	Port                       int
+	Host                       string
+	PreferIpv4                 bool
+	Rise                       int
+	Fall                       int
+	CheckIntervalInMilli       int
+	Checks                     []json.RawMessage
+	Reporters                  []json.RawMessage
 
-	typedChecks        []*TypedCheck
-	typedReporters     []Reporter
-	fields             data.Fields
-	currentNotifStatus *Status
-	latestStatuses     []Status
+	typedChecks                []*TypedCheck
+	typedReportersWithReported map[Reporter]bool
+	fields                     data.Fields
+	currentNotifStatus         *Status
+	latestStatuses             []Status
 }
 
 func (s *Service) Init() error {
 	logs.WithField("data", s).Info("service loaded")
+
+	s.typedReportersWithReported = make(map[Reporter]bool)
 
 	//TODO NewService()
 	if s.CheckIntervalInMilli == 0 {
@@ -67,11 +69,11 @@ func (s *Service) Init() error {
 			return errs.WithEF(err, s.fields, "Failed to load reporter")
 		}
 		logs.WithF(s.fields).WithFields(reporter.GetFields()).Info("Reporter loaded")
-		s.typedReporters = append(s.typedReporters, reporter)
+		s.typedReportersWithReported[reporter] = true
 	}
-	if len(s.typedReporters) == 0 {
+	if len(s.typedReportersWithReported) == 0 {
 		logs.WithF(s.fields).Warn("No reporter specified, adding console")
-		s.typedReporters = append(s.typedReporters, NewReporterConsole())
+		s.typedReportersWithReported[NewReporterConsole()] = true
 	}
 
 	return nil
@@ -84,17 +86,22 @@ func (s *Service) Run(stop <-chan struct{}, servicesGroup *sync.WaitGroup) {
 	for {
 		errStatus := s.checkServiceStatus()
 		s.saveStatus(errStatus)
-		if s.processStatusAndTellIfReportRequired(errStatus) {
-			for _, reporter := range s.typedReporters {
+		required := s.processStatusAndTellIfReportRequired(errStatus)
+		for reporter, reported := range s.typedReportersWithReported {
+			if required || !reported {
+				logs.WithFields(s.fields).WithField("reporter", reporter).Debug("Sending report")
 				if err := reporter.Report(errStatus, s); err != nil {
 					logs.WithEF(err, s.fields.WithFields(reporter.GetFields())).Error("Failed to report")
+					s.typedReportersWithReported[reporter] = false
+				} else {
+					s.typedReportersWithReported[reporter] = true
 				}
 			}
 		}
 		select {
 		case <-stop:
 			logs.Debug("Stop requested")
-			for _, reporter := range s.typedReporters {
+			for reporter, _ := range s.typedReportersWithReported {
 				reporter.Destroy()
 			}
 			return
