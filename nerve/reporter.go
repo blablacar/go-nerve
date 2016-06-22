@@ -10,6 +10,7 @@ type Report struct {
 	Available            bool
 	Host                 string
 	Port                 int
+	Name                 string
 	HaproxyServerOptions string `json:"haproxy_server_options"`
 	Labels               map[string]string
 }
@@ -91,6 +92,7 @@ func toReport(status error, s *Service) Report {
 		Available:            status == nil,
 		Host:                 s.Host,
 		Port:                 s.Port,
+		Name:                 s.Name,
 		HaproxyServerOptions: s.HaproxyServerOptions,
 		Labels:               s.Labels,
 	}

@@ -21,6 +21,7 @@ const OK Status = true
 const KO Status = false
 
 type Service struct {
+	Name                 string
 	Port                 int
 	Host                 string
 	PreferIpv4           bool
