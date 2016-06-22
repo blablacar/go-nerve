@@ -21,19 +21,19 @@ const OK Status = true
 const KO Status = false
 
 type Service struct {
-	Name                 string
-	Port                 int
-	Host                 string
-	PreferIpv4           bool
-	Rise                 int
-	Fall                 int
-	CheckIntervalInMilli int
-	Checks               []json.RawMessage
-	Reporters            []json.RawMessage
+	Name                       string
+	Port                       int
+	Host                       string
+	PreferIpv4                 bool
+	Rise                       int
+	Fall                       int
+	CheckIntervalInMilli       int
+	Checks                     []json.RawMessage
+	Reporters                  []json.RawMessage
+	HaproxyServerOptions       string
+	Labels                     map[string]string
 
-	HaproxyServerOptions string
-	Labels               map[string]string
-
+	disabled                   error
 	typedChecks                []*TypedCheck
 	typedReportersWithReported map[Reporter]bool
 	fields                     data.Fields
@@ -57,7 +57,7 @@ func (s *Service) Init() error {
 		s.Rise = 3
 	}
 
-	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
+	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
 	for _, data := range s.Checks {
 		checkType, checker, err := CheckerFromJson(data, s)
 		if err != nil {
@@ -84,25 +84,14 @@ func (s *Service) Init() error {
 }
 
 func (s *Service) Run(stop <-chan struct{}, servicesGroup *sync.WaitGroup) {
-	logs.WithFields(s.fields).Info("Starting service")
+	logs.WithFields(s.fields).Info("Starting service check")
 	defer servicesGroup.Done()
 
 	for {
 		errStatus := s.checkServiceStatus()
 		s.saveStatus(errStatus)
 		required := s.processStatusAndTellIfReportRequired(errStatus)
-		report := toReport(errStatus, s)
-		for reporter, reported := range s.typedReportersWithReported {
-			if required || !reported {
-				logs.WithFields(s.fields).WithField("reporter", reporter).WithField("report", report).Debug("Sending report")
-				if err := reporter.Report(report); err != nil {
-					logs.WithEF(err, s.fields.WithFields(reporter.GetFields())).Error("Failed to report")
-					s.typedReportersWithReported[reporter] = false
-				} else {
-					s.typedReportersWithReported[reporter] = true
-				}
-			}
-		}
+		s.report(errStatus, required)
 		select {
 		case <-stop:
 			logs.WithFields(s.fields).Debug("Stop requested")
@@ -112,6 +101,24 @@ func (s *Service) Run(stop <-chan struct{}, servicesGroup *sync.WaitGroup) {
 			return
 		default:
 			time.Sleep(time.Duration(s.CheckIntervalInMilli) * time.Millisecond)
+		}
+	}
+}
+
+func (s *Service) report(errStatus error, required bool) {
+	if s.disabled != nil {
+		errStatus = s.disabled
+	}
+	report := toReport(errStatus, s)
+	for reporter, reported := range s.typedReportersWithReported {
+		if required || !reported {
+			logs.WithFields(s.fields).WithField("reporter", reporter).WithField("report", report).Debug("Sending report")
+			if err := reporter.Report(report); err != nil {
+				logs.WithEF(err, s.fields.WithFields(reporter.GetFields())).Error("Failed to report")
+				s.typedReportersWithReported[reporter] = false
+			} else {
+				s.typedReportersWithReported[reporter] = true
+			}
 		}
 	}
 }
@@ -134,7 +141,7 @@ func (s *Service) processStatusAndTellIfReportRequired(statusErr error) bool {
 	latest := s.latestStatuses
 
 	if (latest[0] == OK && sameLastStatusCount(latest) >= s.Rise && (current == nil || *current == KO)) ||
-		(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
+	(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
 
 		s.currentNotifStatus = &s.latestStatuses[0]
 		if s.latestStatuses[0] == OK {
@@ -159,6 +166,18 @@ func sameLastStatusCount(statuses []Status) int {
 	return i
 }
 
+func (s *Service) Disable() {
+	s.disabled = errs.With("Service is disabled")
+	s.report(s.disabled, true)
+}
+
+func (s *Service) Enable() {
+	s.disabled = nil
+	for reporter, _ := range s.typedReportersWithReported {
+		s.typedReportersWithReported[reporter] = false
+	}
+}
+
 func (s *Service) saveStatus(err error) {
 	status := KO
 	if err == nil {
@@ -169,7 +188,7 @@ func (s *Service) saveStatus(err error) {
 	tmp = append(tmp, status)
 	tmp = append(tmp, s.latestStatuses...)
 	if len(tmp) > max(s.Rise, s.Fall) {
-		s.latestStatuses = tmp[:len(tmp)-1]
+		s.latestStatuses = tmp[:len(tmp) - 1]
 	} else {
 		s.latestStatuses = tmp
 	}

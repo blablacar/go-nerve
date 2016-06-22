@@ -7,9 +7,9 @@ services:
     fall: 2
     checkIntervalInMilli: 1000
     checks:
-      - {type: http, port: 80, path: /version, timeoutInMilli: 1000}
+      - {type: http, path: /version, timeoutInMilli: 1000}
     reporters:
-      - {type: zookeeper, path: /services/api/myapi, hosts : [':12081']}
+      - {type: zookeeper, path: /services/api/myapi, hosts : ['127.0.0.1:14396']}
     haproxyServerOptions: backup
     labels:
       service: superApi
