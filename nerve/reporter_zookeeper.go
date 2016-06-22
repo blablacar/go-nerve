@@ -81,7 +81,7 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 			}
 		} else {
 			logs.WithF(r.fields).Debug("writting data")
-			_, err := r.connection.Set(r.currentNode, content, int32(0))
+			_, err := r.connection.Set(r.currentNode, content, -1)
 			if err != nil {
 				return errs.WithE(err, "Failed to write status")
 			}
