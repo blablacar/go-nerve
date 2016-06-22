@@ -2,6 +2,7 @@ package nerve
 
 import (
 	"fmt"
+	"github.com/n0rad/go-erlog/errs"
 	"io"
 	"os"
 )
@@ -21,7 +22,11 @@ func (r *ReporterConsole) Init(s *Service) error {
 	return nil
 }
 
-func (r *ReporterConsole) Report(status error, s *Service) error {
-	fmt.Fprintf(r.writer, "%s\n", r.toJsonReport(status, s))
+func (r *ReporterConsole) Report(report Report) error {
+	content, err := report.toJson()
+	if err != nil {
+		return errs.WithEF(err, r.fields, "Failed to prepare report")
+	}
+	fmt.Fprintf(r.writer, "%s\n", content)
 	return nil
 }

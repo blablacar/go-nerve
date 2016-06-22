@@ -2,7 +2,6 @@ package nerve
 
 import (
 	"github.com/blablacar/go-nerve/nerve/test"
-	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	. "github.com/onsi/gomega"
 	"github.com/samuel/go-zookeeper/zk"
@@ -37,7 +36,7 @@ func TestZkReport(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(nil, &Service{})).To(BeNil())
+	Expect(r.Report(Report{Available: true})).To(BeNil())
 	checkThere(r)
 }
 
@@ -50,7 +49,7 @@ func TestZkRefresh(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(nil, &Service{})).To(BeNil())
+	Expect(r.Report(Report{Available: true})).To(BeNil())
 	checkThere(r)
 	remove(r)
 	checkNotThere(r)
@@ -67,7 +66,7 @@ func TestZkRefreshClosed(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	r.Report(nil, &Service{})
+	r.Report(Report{Available: true})
 	r.Destroy()
 	time.Sleep(3 * time.Second)
 
@@ -86,8 +85,8 @@ func TestZkReportFailure(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(nil, &Service{})).To(BeNil())
-	Expect(r.Report(errs.With("Failure"), &Service{})).To(BeNil())
+	Expect(r.Report(Report{Available: true})).To(BeNil())
+	Expect(r.Report(Report{Available: false})).To(BeNil())
 	checkNotThere(r)
 }
 
@@ -99,11 +98,11 @@ func TestZkReportAfterClose(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(nil, &Service{})).To(BeNil())
+	Expect(r.Report(Report{Available: true})).To(BeNil())
 	checkThere(r)
 	r.connection.Close()
 	checkNotThere(r)
-	Expect(r.Report(nil, &Service{})).To(BeNil())
+	Expect(r.Report(Report{Available: true})).To(BeNil())
 	checkThere(r)
 }
 
@@ -115,11 +114,11 @@ func TestZkReportConnectionLost(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(nil, &Service{})).To(BeNil())
+	Expect(r.Report(Report{Available: true})).To(BeNil())
 	checkThere(r)
 	r.connection = nil
 	checkThere(r)
-	Expect(r.Report(nil, &Service{})).To(BeNil())
+	Expect(r.Report(Report{Available: true})).To(BeNil())
 	checkThere(r)
 }
 

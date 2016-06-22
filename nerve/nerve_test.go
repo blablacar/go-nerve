@@ -16,7 +16,6 @@ import (
 
 func TestSimple(t *testing.T) {
 	logs.SetLevel(logs.DEBUG)
-	os.Remove("/tmp/nerve.report")
 
 	nerve := &Nerve{
 		Services: []*Service{{
@@ -54,6 +53,7 @@ func TestSimple(t *testing.T) {
 		logs.WithE(err).Fatal("failed to listen")
 	}
 	go http.Serve(ln, nil)
+	os.Remove("/tmp/nerve.report")
 
 	require.Nil(t, report())
 
@@ -81,15 +81,18 @@ func marshallNoError(obj interface{}) []byte {
 }
 
 func report() *bool {
-	res, _ := ioutil.ReadFile("/tmp/nerve.report")
-	var rr bool
-	switch string(res) {
-	case "OK\n":
-		rr = true
-	case "KO\n":
-		rr = false
-	default:
+	res, err := ioutil.ReadFile("/tmp/nerve.report")
+	if err != nil {
 		return nil
 	}
-	return &rr
+	if len(res) == 0 {
+		rr := false
+		return &(rr)
+	}
+
+	r, err := NewReport(res)
+	if err != nil {
+		panic(err)
+	}
+	return &r.Available
 }

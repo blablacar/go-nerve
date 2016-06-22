@@ -6,6 +6,7 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/samuel/go-zookeeper/zk"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -15,9 +16,8 @@ type ReporterZookeeper struct {
 	Hosts                  []string
 	RefreshIntervalInMilli int
 
-	statusPayload []byte
-	status        error
-
+	report      Report
+	reportMutex sync.Mutex
 	stopChecker chan struct{}
 	connection  *zk.Conn
 	serviceIp   string
@@ -49,6 +49,9 @@ func (r *ReporterZookeeper) Destroy() {
 }
 
 func (r *ReporterZookeeper) sendReportToZk() error {
+	r.reportMutex.Lock()
+	defer r.reportMutex.Unlock()
+
 	state, err := r.Connect()
 	logs.WithF(r.fields).Debug("Connected")
 	if err != nil /*|| state != zk.StateHasSession*/ {
@@ -56,7 +59,12 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 	}
 
 	exists, _, _ := r.connection.Exists(r.currentNode)
-	if r.status == nil {
+	if r.report.Available {
+		content, err := r.report.toJson()
+		if err != nil {
+			return errs.WithEF(err, r.fields, "Failed to prepare report")
+		}
+
 		logs.WithF(r.fields).Debug("will write status")
 		if !exists {
 			logs.WithF(r.fields).Debug("does not exists")
@@ -67,13 +75,13 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 				return errs.WithEF(err, r.fields, "Cannot create static path")
 			}
 			//Don't use Create, as it's an ephemeral zk node, and there's some race condition to avoid
-			r.currentNode, err = r.connection.CreateProtectedEphemeralSequential(r.fullPath, r.statusPayload, acl)
+			r.currentNode, err = r.connection.CreateProtectedEphemeralSequential(r.fullPath, content, acl)
 			if err != nil {
 				return errs.WithEF(err, r.fields.WithField("fullpath", r.fullPath), "Cannot create path")
 			}
 		} else {
 			logs.WithF(r.fields).Debug("writting data")
-			_, err := r.connection.Set(r.currentNode, r.statusPayload, int32(0))
+			_, err := r.connection.Set(r.currentNode, content, int32(0))
 			if err != nil {
 				return errs.WithE(err, "Failed to write status")
 			}
@@ -90,14 +98,13 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 	return nil
 }
 
-func (r *ReporterZookeeper) Report(status error, s *Service) error {
+func (r *ReporterZookeeper) Report(report Report) error {
+	r.report = report
 	if r.stopChecker == nil {
 		r.stopChecker = make(chan struct{})
 		go r.refresher()
 	}
 
-	r.statusPayload = r.toJsonReport(status, s)
-	r.status = status
 	return r.sendReportToZk()
 }
 
@@ -113,7 +120,7 @@ func (r *ReporterZookeeper) refresher() {
 
 		logs.WithFields(r.fields).Debug("Refreshing report")
 		if err := r.sendReportToZk(); err != nil {
-			logs.WithEF(err, r.fields).Warn("Failed to refresh status in zookeeper")
+			logs.WithEF(err, r.fields).Error("Failed to refresh status in zookeeper")
 		}
 	}
 }

@@ -1,10 +1,10 @@
 package nerve
 
 import (
-	"github.com/n0rad/go-erlog/errs"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -23,10 +23,11 @@ func TestCanReport(t *testing.T) {
 	reporter := NewReporterFile()
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(nil, &Service{})
+	reporter.Report(Report{Available: true})
 
-	res, err := ioutil.ReadFile(reporter.Path)
-	Expect(string(res), err).Should(Equal("OK\n"))
+	res, _ := ioutil.ReadFile(reporter.Path)
+	r, _ := NewReport(res)
+	Expect(r.Available).Should(BeTrue())
 }
 
 func TestReportReplace(t *testing.T) {
@@ -34,11 +35,14 @@ func TestReportReplace(t *testing.T) {
 	reporter := NewReporterFile()
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(nil, &Service{})
-	reporter.Report(errs.With("fail!"), &Service{})
+	reporter.Report(Report{Available: true})
+	res, _ := ioutil.ReadFile(reporter.Path)
+	r, _ := NewReport(res)
+	Expect(r.Available).Should(BeTrue())
 
-	res, err := ioutil.ReadFile(reporter.Path)
-	Expect(string(res), err).Should(Equal("KO\n"))
+	reporter.Report(Report{Available: false})
+	res, _ = ioutil.ReadFile(reporter.Path)
+	Expect(res).Should(HaveLen(0))
 }
 
 func TestReportAppend(t *testing.T) {
@@ -48,9 +52,16 @@ func TestReportAppend(t *testing.T) {
 	reporter.Mode = Append
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(nil, &Service{})
-	reporter.Report(errs.With("fail!"), &Service{})
+	reporter.Report(Report{Available: true})
+	reporter.Report(Report{Available: false})
 
-	res, err := ioutil.ReadFile(reporter.Path)
-	Expect(string(res), err).Should(Equal("OK\nKO\n"))
+	res, _ := ioutil.ReadFile(reporter.Path)
+	lines := strings.Split(string(res), "\n")
+	Expect(lines).To(HaveLen(3))
+	r1, _ := NewReport([]byte(lines[0]))
+	r2, _ := NewReport([]byte(lines[1]))
+
+	Expect(r1.Available).Should(BeTrue())
+	Expect(r2.Available).Should(BeFalse())
+	Expect(lines[2]).Should(Equal(""))
 }

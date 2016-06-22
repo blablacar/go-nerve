@@ -7,10 +7,9 @@ import (
 )
 
 type Nerve struct {
-	InstanceID string
-	LogLevel   string
-	IPv6       bool
-	Services   []*Service
+	LogLevel string
+	IPv6     bool
+	Services []*Service
 
 	stopChecker chan struct{}
 	doneWaiter  sync.WaitGroup

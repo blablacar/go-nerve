@@ -30,6 +30,9 @@ type Service struct {
 	Checks               []json.RawMessage
 	Reporters            []json.RawMessage
 
+	HaproxyServerOptions string
+	Labels               map[string]string
+
 	typedChecks                []*TypedCheck
 	typedReportersWithReported map[Reporter]bool
 	fields                     data.Fields
@@ -87,10 +90,11 @@ func (s *Service) Run(stop <-chan struct{}, servicesGroup *sync.WaitGroup) {
 		errStatus := s.checkServiceStatus()
 		s.saveStatus(errStatus)
 		required := s.processStatusAndTellIfReportRequired(errStatus)
+		report := toReport(errStatus, s)
 		for reporter, reported := range s.typedReportersWithReported {
 			if required || !reported {
-				logs.WithFields(s.fields).WithField("reporter", reporter).Debug("Sending report")
-				if err := reporter.Report(errStatus, s); err != nil {
+				logs.WithFields(s.fields).WithField("reporter", reporter).WithField("report", report).Debug("Sending report")
+				if err := reporter.Report(report); err != nil {
 					logs.WithEF(err, s.fields.WithFields(reporter.GetFields())).Error("Failed to report")
 					s.typedReportersWithReported[reporter] = false
 				} else {

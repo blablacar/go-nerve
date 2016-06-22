@@ -10,18 +10,18 @@ import (
 
 type ReporterMemory struct {
 	ReporterCommon
-	reported error
-	status   error
-	count    int
+	fail   error
+	report Report
+	count  int
 }
 
 func (r *ReporterMemory) Init(s *Service) error {
 	return nil
 }
-func (r *ReporterMemory) Report(status error, s *Service) error {
+func (r *ReporterMemory) Report(report Report) error {
 	r.count++
-	r.status = status
-	return r.reported
+	r.report = report
+	return r.fail
 }
 
 type CheckMemory struct {
@@ -58,30 +58,30 @@ func TestReplayReportFailure(t *testing.T) {
 	defer nerve.Stop()
 
 	// everything is ok, reported once
-	require.Nil(t, reporter.reported)
+	require.Nil(t, reporter.fail)
 	time.Sleep(3 * time.Second)
-	require.Nil(t, reporter.reported)
+	require.Nil(t, reporter.fail)
 	require.Equal(t, reporter.count, 1)
 
 	time.Sleep(3 * time.Second)
 	require.Equal(t, reporter.count, 1)
-	require.Nil(t, reporter.status)
+	require.True(t, reporter.report.Available)
 
 	// now service fail and cannot report
 	check.status = errs.With("Check failed")
-	reporter.reported = errs.With("Cannot report")
+	reporter.fail = errs.With("Cannot report")
 	reporter.count = 0
 
 	time.Sleep(3 * time.Second) // fall + 1
 	require.True(t, reporter.count >= 2)
 
 	// reporter is back
-	reporter.reported = nil
+	reporter.fail = nil
 	reporter.count = 0
 	time.Sleep(1 * time.Second) // check interval
 
 	require.Equal(t, reporter.count, 1)
-	require.NotNil(t, reporter.status)
+	require.False(t, reporter.report.Available)
 	time.Sleep(1 * time.Second)
 	require.Equal(t, reporter.count, 1)
 
@@ -89,5 +89,5 @@ func TestReplayReportFailure(t *testing.T) {
 	check.status = nil
 	time.Sleep(4 * time.Second) // rise + 2
 	require.True(t, reporter.count == 2)
-	require.Nil(t, reporter.status)
+	require.True(t, reporter.report.Available)
 }

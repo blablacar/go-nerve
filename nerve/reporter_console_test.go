@@ -3,8 +3,8 @@ package nerve
 import (
 	"bufio"
 	"bytes"
-	"github.com/n0rad/go-erlog/errs"
 	. "github.com/onsi/gomega"
+	"strings"
 	"testing"
 )
 
@@ -15,9 +15,17 @@ func TestReportConsole(t *testing.T) {
 	write := bufio.NewWriter(&b)
 	reporter.writer = write
 
-	reporter.Report(nil, &Service{})
-	reporter.Report(errs.With("fail!"), &Service{})
+	reporter.Report(Report{Available: true})
+	reporter.Report(Report{Available: false})
 
 	write.Flush()
-	Expect(b.String()).Should(Equal("OK\nKO\n"))
+
+	lines := strings.Split(b.String(), "\n")
+	Expect(lines).To(HaveLen(3))
+	r1, _ := NewReport([]byte(lines[0]))
+	r2, _ := NewReport([]byte(lines[1]))
+
+	Expect(r1.Available).Should(BeTrue())
+	Expect(r2.Available).Should(BeFalse())
+	Expect(lines[2]).Should(Equal(""))
 }

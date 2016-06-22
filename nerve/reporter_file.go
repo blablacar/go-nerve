@@ -53,15 +53,25 @@ func (r *ReporterFile) openReport() (*os.File, error) {
 	return file, nil
 }
 
-func (r *ReporterFile) Report(status error, s *Service) error {
+func (r *ReporterFile) Report(report Report) error {
 	file, err := r.openReport()
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	report := string(r.toJsonReport(status, s)) + "\n"
-	if n, err := file.WriteString(report); err != nil || n != len(report) {
+	var res string
+	if r.Mode == Replace && !report.Available {
+		res = ""
+	} else {
+		content, err := report.toJson()
+		if err != nil {
+			return errs.WithEF(err, r.fields, "Failed to prepare report")
+		}
+		res = string(content) + "\n"
+	}
+
+	if n, err := file.WriteString(res); err != nil || n != len(res) {
 		return errs.WithEF(err, r.fields, "Failed write report to file")
 	}
 	return nil
