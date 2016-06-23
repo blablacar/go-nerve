@@ -8,7 +8,7 @@ set -e
  : ${osarchi:="$(go env GOHOSTOS)-$(go env GOHOSTARCH)"}
  : ${release_osarchi:="linux-amd64,darwin-amd64,windows-amd64"}
  : ${version:=0}
- : ${access_token:=}
+ : ${token:=}
  : ${upx:=}
 
 read -d '' helper <<EOF || true
@@ -33,15 +33,19 @@ EOF
 
 
 echo_red() {
-    echo >&2 -e "\033[0;31m${@}\033[0m"
+    echo -e "\e[0;31m${@}\e[0m"
 }
 
 echo_purple() {
-    echo -e "\033[0;35m${@}\033[0m"
+    echo -e "\e[0;35m${@}\e[0m"
 }
 
 echo_green() {
-    echo -e "\033[0;32m${@}\033[0m"
+    echo -e "\e[0;32m${@}\e[0m"
+}
+
+echo_yellow() {
+    echo -e "\e[0;93m${@}\e[0m"
 }
 
 gomake_update() {
@@ -66,7 +70,7 @@ build() {
     [ -f /usr/bin/upx ] || (echo "upx is required to build" && exit 1)
 
     echo_green "Save Dependencies"
-    godep save ./${work_path}/... || echo "Cannot save dependencies. Continuing"
+    godep save ./${work_path}/... || echo_yellow "Cannot save dependencies. Continuing"
 
     IFS=',' read -ra current <<< "$osarchi"
     for e in "${current[@]}"; do
@@ -204,12 +208,12 @@ release() {
 
     sleep 5
 
-    posturl=$(curl --data "{\"tag_name\": \"v${version}\",\"target_commitish\": \"master\",\"name\": \"v${version}\",\"body\": \"Release of version ${version}\",\"draft\": false,\"prerelease\": false}" https://api.github.com/repos/${github_repo}/releases?access_token=${access_token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
+    posturl=$(curl --data "{\"tag_name\": \"v${version}\",\"target_commitish\": \"master\",\"name\": \"v${version}\",\"body\": \"Release of version ${version}\",\"draft\": false,\"prerelease\": false}" https://api.github.com/repos/${github_repo}/releases?access_token=${token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
     for i in ${work_path}/${target_name}/*.tar.gz ; do
         fullpath=$(ls ${i})
         filename=${fullpath##*/}
-        curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" "${posturl%\{?name,label\}}?name=${filename}&label=${filename}&access_token=${access_token}"
+        curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" "${posturl%\{?name,label\}}?name=${filename}&label=${filename}&access_token=${token}"
     done
     echo_purple "Release duration : $((`date +%s`-${start}))s"
 }
