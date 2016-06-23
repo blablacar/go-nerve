@@ -1,59 +1,40 @@
 package nerve
 
 import (
-	"net"
 	"github.com/n0rad/go-erlog/errs"
-	"net/http"
 	"github.com/n0rad/go-erlog/logs"
+	"gopkg.in/macaron.v1"
+	"net"
+	"net/http"
 	"strconv"
 )
 
-
-func (n *Nerve) apiDisable() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logs.WithFields(n.fields).Info("Api called /disable")
-		for _, service := range n.Services {
-			service.Disable()
-		}
+func (n *Nerve) DisableServices() error {
+	for _, service := range n.Services {
+		service.Disable()
 	}
+	return nil
 }
 
-func (n *Nerve) apiEnable() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logs.WithFields(n.fields).Info("Api called /enable")
-		for _, service := range n.Services {
-			service.Enable()
-		}
+func (n *Nerve) EnableServices() error {
+	for _, service := range n.Services {
+		service.Enable()
 	}
+	return nil
 }
 
-func (n *Nerve) apiStatus() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logs.WithFields(n.fields).Info("Api called /status")
-		for _, service := range n.Services {
-			// TODO json ?
-			w.Write([]byte(service.Host))
-			w.Write([]byte(":"))
-			w.Write([]byte(strconv.Itoa(service.Port)))
-			w.Write([]byte(" "))
-			if service.disabled == nil {
-				w.Write([]byte("enabled"))
-			} else {
-				w.Write([]byte("disabled"))
-			}
-			w.Write([]byte("\n"))
+func (n *Nerve) ServiceStatus() []string {
+	var statuses []string
+	for _, service := range n.Services {
+		state := service.Host + ":" + strconv.Itoa(service.Port) + " "
+		if service.disabled == nil {
+			state += "enabled"
+		} else {
+			state += "disabled"
 		}
+		statuses = append(statuses, state)
 	}
-}
-
-func (n *Nerve) apiMain() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logs.WithFields(n.fields).Info("Api called /")
-		w.Write([]byte(`/enable
-/disable
-/status
-`))
-	}
+	return statuses
 }
 
 func (n *Nerve) startApi() error {
@@ -63,14 +44,20 @@ func (n *Nerve) startApi() error {
 		return errs.WithEF(err, n.fields.WithField("url", n.ApiUrl), "Failed to listen")
 	}
 
-	http.HandleFunc("/", n.apiMain())
-	http.HandleFunc("/status", n.apiStatus())
-	http.HandleFunc("/disable", n.apiDisable())
-	http.HandleFunc("/enable", n.apiEnable())
+	m := macaron.Classic()
+	m.Get("/enable", n.EnableServices)
+	m.Get("/disable", n.DisableServices)
+	m.Get("/status", n.ServiceStatus)
+	m.Get("/", func() []string {
+		return []string{
+			"/enable",
+			"/disable",
+			"/status",
+		}
+	})
 
-	logs.WithF(n.fields.WithField("url", n.ApiUrl)).Info("Api listening")
-
-	go http.Serve(n.apiListener, nil)
+	logs.WithF(n.fields.WithField("url", n.ApiUrl)).Info("Starting api")
+	go http.Serve(n.apiListener, m)
 	return nil
 }
 

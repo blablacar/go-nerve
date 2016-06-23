@@ -21,17 +21,17 @@ const OK Status = true
 const KO Status = false
 
 type Service struct {
-	Name                       string
-	Port                       int
-	Host                       string
-	PreferIpv4                 bool
-	Rise                       int
-	Fall                       int
-	CheckIntervalInMilli       int
-	Checks                     []json.RawMessage
-	Reporters                  []json.RawMessage
-	HaproxyServerOptions       string
-	Labels                     map[string]string
+	Name                 string
+	Port                 int
+	Host                 string
+	PreferIpv4           bool
+	Rise                 int
+	Fall                 int
+	CheckIntervalInMilli int
+	Checks               []json.RawMessage
+	Reporters            []json.RawMessage
+	HaproxyServerOptions string
+	Labels               map[string]string
 
 	disabled                   error
 	typedChecks                []*TypedCheck
@@ -57,7 +57,7 @@ func (s *Service) Init() error {
 		s.Rise = 3
 	}
 
-	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
+	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
 	for _, data := range s.Checks {
 		checkType, checker, err := CheckerFromJson(data, s)
 		if err != nil {
@@ -141,7 +141,7 @@ func (s *Service) processStatusAndTellIfReportRequired(statusErr error) bool {
 	latest := s.latestStatuses
 
 	if (latest[0] == OK && sameLastStatusCount(latest) >= s.Rise && (current == nil || *current == KO)) ||
-	(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
+		(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
 
 		s.currentNotifStatus = &s.latestStatuses[0]
 		if s.latestStatuses[0] == OK {
@@ -173,7 +173,7 @@ func (s *Service) Disable() {
 
 func (s *Service) Enable() {
 	s.disabled = nil
-	for reporter, _ := range s.typedReportersWithReported {
+	for reporter := range s.typedReportersWithReported {
 		s.typedReportersWithReported[reporter] = false
 	}
 }
@@ -188,7 +188,7 @@ func (s *Service) saveStatus(err error) {
 	tmp = append(tmp, status)
 	tmp = append(tmp, s.latestStatuses...)
 	if len(tmp) > max(s.Rise, s.Fall) {
-		s.latestStatuses = tmp[:len(tmp) - 1]
+		s.latestStatuses = tmp[:len(tmp)-1]
 	} else {
 		s.latestStatuses = tmp
 	}

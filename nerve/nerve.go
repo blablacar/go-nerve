@@ -1,20 +1,21 @@
 package nerve
 
 import (
+	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"sync"
-	"github.com/n0rad/go-erlog/data"
 	"net"
+	"sync"
 )
 
 type Nerve struct {
-	LogLevel    string
-	IPv6        bool
-	ApiUrl      string
-	Services    []*Service
+	LogLevel string
+	IPv6     bool
+	ApiUrl   string
+	Services []*Service
 
 	apiListener net.Listener
+	//apiServer   macaron.Macaron
 	fields      data.Fields
 	stopChecker chan struct{}
 	doneWaiter  sync.WaitGroup

@@ -7,6 +7,11 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/Unknwon/com",
+			"Comment": "v1",
+			"Rev": "28b053d5a2923b87ce8c5a08f3af779894a72758"
+		},
+		{
 			"ImportPath": "github.com/appc/spec/aci",
 			"Comment": "v0.8.1",
 			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
@@ -43,13 +48,13 @@
 		},
 		{
 			"ImportPath": "github.com/blablacar/dgr/bin-dgr/common",
-			"Comment": "70-1-g1ed5592",
-			"Rev": "1ed55925fea72b40fa0af16fc154cc447e1406a8"
+			"Comment": "70-1-g20796f2",
+			"Rev": "20796f28e5c4a830d8423b006e55211a6d1a8e08"
 		},
 		{
 			"ImportPath": "github.com/blablacar/dgr/bin-templater/template",
-			"Comment": "70-1-g1ed5592",
-			"Rev": "1ed55925fea72b40fa0af16fc154cc447e1406a8"
+			"Comment": "70-1-g20796f2",
+			"Rev": "20796f28e5c4a830d8423b006e55211a6d1a8e08"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-semver/semver",
@@ -58,6 +63,10 @@
 		{
 			"ImportPath": "github.com/ghodss/yaml",
 			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
+		},
+		{
+			"ImportPath": "github.com/go-macaron/inject",
+			"Rev": "c5ab7bf3a307593cd44cb272d1a5beea473dd072"
 		},
 		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
@@ -204,6 +213,16 @@
 		{
 			"ImportPath": "golang.org/x/net/html/atom",
 			"Rev": "0c607074acd38c5f23d1344dfe74c977464d1257"
+		},
+		{
+			"ImportPath": "gopkg.in/ini.v1",
+			"Comment": "v1.12.0",
+			"Rev": "72ba3e6b9e6b87e0c74c9a7a4dc86e8dd8ba4355"
+		},
+		{
+			"ImportPath": "gopkg.in/macaron.v1",
+			"Comment": "v1.1.3",
+			"Rev": "94a5ef7105036242f79e5e07a8eb8651d06c8533"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
