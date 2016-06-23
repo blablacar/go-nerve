@@ -9,10 +9,11 @@ import (
 )
 
 type Nerve struct {
-	LogLevel string
-	IPv6     bool
-	ApiUrl   string
-	Services []*Service
+	LogLevel           string
+	IPv6               bool
+	ApiUrl             string
+	Services           []*Service
+	DisableWaitInMilli int
 
 	apiListener net.Listener
 	//apiServer   macaron.Macaron
@@ -24,6 +25,9 @@ type Nerve struct {
 func (n *Nerve) Init() error {
 	if n.ApiUrl == "" {
 		n.ApiUrl = ":3454"
+	}
+	if n.DisableWaitInMilli == 0 {
+		n.DisableWaitInMilli = 3000
 	}
 
 	n.stopChecker = make(chan struct{})

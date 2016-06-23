@@ -8,11 +8,11 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	_ "github.com/n0rad/go-erlog/register"
+	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/spf13/cobra"
 )
 
 var Version = "No Version Defined"

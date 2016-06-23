@@ -7,12 +7,14 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (n *Nerve) DisableServices() error {
 	for _, service := range n.Services {
 		service.Disable()
 	}
+	time.Sleep(time.Duration(n.DisableWaitInMilli) * time.Millisecond)
 	return nil
 }
 
