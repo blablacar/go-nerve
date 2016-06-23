@@ -23,8 +23,8 @@ func (n *Nerve) EnableServices() error {
 	return nil
 }
 
-func (n *Nerve) ServiceStatus() []string {
-	var statuses []string
+func (n *Nerve) ServiceStatus() string {
+	var statuses string
 	for _, service := range n.Services {
 		state := service.Host + ":" + strconv.Itoa(service.Port) + " "
 		if service.disabled == nil {
@@ -32,7 +32,7 @@ func (n *Nerve) ServiceStatus() []string {
 		} else {
 			state += "disabled"
 		}
-		statuses = append(statuses, state)
+		statuses += state + "\n"
 	}
 	return statuses
 }
@@ -48,12 +48,10 @@ func (n *Nerve) startApi() error {
 	m.Get("/enable", n.EnableServices)
 	m.Get("/disable", n.DisableServices)
 	m.Get("/status", n.ServiceStatus)
-	m.Get("/", func() []string {
-		return []string{
-			"/enable",
-			"/disable",
-			"/status",
-		}
+	m.Get("/", func() string {
+		return `/enable
+/disable
+/status`
 	})
 
 	logs.WithF(n.fields.WithField("url", n.ApiUrl)).Info("Starting api")
