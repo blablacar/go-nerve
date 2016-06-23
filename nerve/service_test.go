@@ -40,7 +40,6 @@ func TestReplayReportFailure(t *testing.T) {
 	nerve := &Nerve{
 		DisableWaitInMilli: &disableWait,
 		Services: []*Service{{
-			Host:                 "127.0.0.1",
 			Port:                 1234,
 			CheckIntervalInMilli: 10,
 			Rise:                 2,
@@ -53,9 +52,9 @@ func TestReplayReportFailure(t *testing.T) {
 	nerve.Services[0].typedReportersWithReported[reporter] = true
 
 	check := &CheckMemory{}
-	nerve.Services[0].typedChecks = append(nerve.Services[0].typedChecks, &TypedCheck{typedCheck: check, checkType: "mem"})
+	nerve.Services[0].typedChecks = []*TypedCheck{{typedCheck: check, checkType: "mem"}}
 
-	require.NoError(t, nerve.Start())
+	nerve.Start(nil)
 	defer nerve.Stop()
 
 	// everything is ok, reported once

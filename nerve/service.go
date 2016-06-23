@@ -66,6 +66,13 @@ func (s *Service) Init() error {
 		logs.WithF(s.fields).WithFields(checker.GetFields()).Info("check loaded")
 		s.typedChecks = append(s.typedChecks, &TypedCheck{typedCheck: checker, checkType: checkType})
 	}
+	if len(s.typedChecks) == 0 {
+		logs.WithF(s.fields).Warn("No check specified, adding tcp")
+		check := NewCheckTcp()
+		check.CheckCommon.Init(s)
+		check.Init(s)
+		s.typedChecks = append(s.typedChecks, &TypedCheck{typedCheck: check, checkType: "tcp"})
+	}
 
 	for _, data := range s.Reporters {
 		reporter, err := ReporterFromJson(data, s)

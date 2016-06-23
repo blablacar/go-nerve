@@ -73,7 +73,11 @@ func main() {
 				logs.WithE(err).Fatal("Failed to init nerve")
 			}
 
-			go nerve.Start()
+			startStatus := make(chan error)
+			go nerve.Start(startStatus)
+			if status := <-startStatus; status != nil {
+				logs.WithE(status).Fatal("Failed to start nerve")
+			}
 			waitForSignal()
 			nerve.Stop()
 		},

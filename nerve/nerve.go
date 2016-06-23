@@ -41,14 +41,24 @@ func (n *Nerve) Init() error {
 	return nil
 }
 
-func (n *Nerve) Start() error {
+func (n *Nerve) Start(startStatus chan error) {
 	logs.Info("Starting nerve")
+	if len(n.Services) == 0 {
+		if startStatus != nil {
+			startStatus <- errs.WithF(n.fields, "No service specified")
+		}
+		return
+	}
+
 	for _, service := range n.Services {
 		n.doneWaiter.Add(1)
 		go service.Run(n.stopChecker, &n.doneWaiter)
 	}
-	n.startApi()
-	return nil
+
+	res := n.startApi()
+	if startStatus != nil {
+		startStatus <- res
+	}
 }
 
 func (n *Nerve) Stop() {

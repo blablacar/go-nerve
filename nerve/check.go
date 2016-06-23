@@ -22,7 +22,6 @@ type CheckCommon struct {
 	Fall           int
 
 	fields data.Fields
-	ip     string
 }
 
 func (c *CheckCommon) GetFields() data.Fields {
@@ -30,13 +29,14 @@ func (c *CheckCommon) GetFields() data.Fields {
 }
 
 func (c *CheckCommon) Init(s *Service) error {
-	c.Host = s.Host
 	c.Port = s.Port
-	//c.Rise = s.Rise TODO by check
-	//c.Fall = s.Fall
 	c.TimeoutInMilli = 2000
 	c.fields = s.fields
-	c.ip = IpLookupNoError(c.Host, s.PreferIpv4).String()
+	if s.Host == "" {
+		c.Host = "127.0.0.1"
+	} else {
+		c.Host = IpLookupNoError(c.Host, s.PreferIpv4).String()
+	}
 	return nil
 }
 

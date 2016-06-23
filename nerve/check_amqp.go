@@ -26,7 +26,7 @@ func NewCheckAmqp() *CheckAmqp {
 }
 
 func (x *CheckAmqp) Init(conf *Service) error {
-	x.url = "amqp://" + x.Username + ":" + x.Password + "@" + x.ip + ":" + strconv.Itoa(x.Port) + "/" + x.Vhost
+	x.url = "amqp://" + x.Username + ":" + x.Password + "@" + x.Host + ":" + strconv.Itoa(x.Port) + "/" + x.Vhost
 	x.fields = x.fields.WithField("url", x.url).WithField("queue", x.Queue)
 	return nil
 }

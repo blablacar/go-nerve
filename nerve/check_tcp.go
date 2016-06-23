@@ -18,7 +18,8 @@ func NewCheckTcp() *CheckTcp {
 }
 
 func (x *CheckTcp) Init(conf *Service) error {
-	x.url = IpLookupNoError(x.Host, conf.PreferIpv4).String() + ":" + strconv.Itoa(x.Port)
+	x.url = x.Host + ":" + strconv.Itoa(x.Port)
+	x.fields = x.fields.WithField("url", x.url)
 	return nil
 }
 

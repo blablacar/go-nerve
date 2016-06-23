@@ -45,7 +45,7 @@ func TestSimple(t *testing.T) {
 		}},
 	}
 	require.NoError(t, nerve.Init())
-	require.NoError(t, nerve.Start())
+	nerve.Start(nil)
 	defer nerve.Stop()
 
 	m := macaron.Classic()
@@ -104,7 +104,7 @@ func TestDisableEnable(t *testing.T) {
 		}},
 	}
 	require.NoError(t, nerve.Init())
-	require.NoError(t, nerve.Start())
+	nerve.Start(nil)
 	defer nerve.Stop()
 
 	m := macaron.Classic()
@@ -115,29 +115,21 @@ func TestDisableEnable(t *testing.T) {
 	go http.Serve(ln, m)
 	os.Remove("/tmp/nerve.report")
 
-	println("tttdfdfd")
-
 	require.Nil(t, report())
 
 	time.Sleep(30 * time.Millisecond)
 	require.True(t, *report())
-
-	println("1")
 
 	resp, err := http.Get("http://localhost" + nerve.ApiUrl + "/disable")
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, 200)
 	require.False(t, *report())
 
-	println("2")
-
 	time.Sleep(30 * time.Millisecond)
 
 	resp, err = http.Get("http://localhost" + nerve.ApiUrl + "/enable")
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, 200)
-
-	println("3")
 
 	time.Sleep(20 * time.Millisecond)
 	require.True(t, *report())
@@ -146,8 +138,6 @@ func TestDisableEnable(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, 200)
 	require.False(t, *report())
-
-	println("4")
 
 	ln.Close()
 	time.Sleep(20 * time.Millisecond)
@@ -158,12 +148,8 @@ func TestDisableEnable(t *testing.T) {
 	require.Equal(t, resp.StatusCode, 200)
 	require.False(t, *report())
 
-	println("5")
-
 	time.Sleep(20 * time.Millisecond)
 	require.False(t, *report())
-
-	println("end")
 
 }
 
