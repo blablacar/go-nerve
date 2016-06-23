@@ -38,10 +38,11 @@ func (x *CheckMemory) Check() error {
 
 func TestReplayReportFailure(t *testing.T) {
 	nerve := &Nerve{
+		DisableWaitInMilli: &disableWait,
 		Services: []*Service{{
 			Host:                 "127.0.0.1",
 			Port:                 1234,
-			CheckIntervalInMilli: 1000,
+			CheckIntervalInMilli: 10,
 			Rise:                 2,
 			Fall:                 2,
 		}},
@@ -59,11 +60,11 @@ func TestReplayReportFailure(t *testing.T) {
 
 	// everything is ok, reported once
 	require.Nil(t, reporter.fail)
-	time.Sleep(3 * time.Second)
+	time.Sleep(30 * time.Millisecond)
 	require.Nil(t, reporter.fail)
 	require.Equal(t, reporter.count, 1)
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(30 * time.Millisecond)
 	require.Equal(t, reporter.count, 1)
 	require.True(t, reporter.report.Available)
 
@@ -72,22 +73,22 @@ func TestReplayReportFailure(t *testing.T) {
 	reporter.fail = errs.With("Cannot report")
 	reporter.count = 0
 
-	time.Sleep(3 * time.Second) // fall + 1
+	time.Sleep(30 * time.Millisecond) // fall + 1
 	require.True(t, reporter.count >= 2)
 
 	// reporter is back
 	reporter.fail = nil
 	reporter.count = 0
-	time.Sleep(1 * time.Second) // check interval
+	time.Sleep(10 * time.Millisecond) // check interval
 
 	require.Equal(t, reporter.count, 1)
 	require.False(t, reporter.report.Available)
-	time.Sleep(1 * time.Second)
+	time.Sleep(10 * time.Millisecond)
 	require.Equal(t, reporter.count, 1)
 
 	// service is back
 	check.status = nil
-	time.Sleep(4 * time.Second) // rise + 2
+	time.Sleep(40 * time.Millisecond) // rise + 2
 	require.True(t, reporter.count == 2)
 	require.True(t, reporter.report.Available)
 }

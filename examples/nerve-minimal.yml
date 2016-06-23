@@ -1,0 +1,5 @@
+#services:
+# nerve will assume it's localhost
+#  - port: 80
+# nerve will add console report
+# nerve will add tcp check

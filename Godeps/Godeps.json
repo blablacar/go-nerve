@@ -96,11 +96,6 @@
 			"Rev": "ee1442bda7bd1b6a84e913bdb421cb1874ec629d"
 		},
 		{
-			"ImportPath": "github.com/mattn/go-sqlite3",
-			"Comment": "v1.1.0-67-g7204887",
-			"Rev": "7204887cf3a42df1cfaa5505dc3a3427f6dded8b"
-		},
-		{
 			"ImportPath": "github.com/mgutz/ansi",
 			"Rev": "c286dcecd19ff979eeb73ea444e479b903f2cfcb"
 		},

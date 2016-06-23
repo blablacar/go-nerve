@@ -14,14 +14,17 @@ import (
 	"time"
 )
 
+var disableWait = 0
+
 func TestSimple(t *testing.T) {
 	logs.SetLevel(logs.DEBUG)
 
 	nerve := &Nerve{
+		DisableWaitInMilli: &disableWait,
 		Services: []*Service{{
 			Host:                 "127.0.0.1",
 			Port:                 1234,
-			CheckIntervalInMilli: 1000,
+			CheckIntervalInMilli: 10,
 			Rise:                 5,
 			Fall:                 2,
 			Reporters: []json.RawMessage{marshallNoError(ReporterFile{
@@ -58,28 +61,29 @@ func TestSimple(t *testing.T) {
 
 	require.Nil(t, report())
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(20 * time.Millisecond)
 	require.Nil(t, report())
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(40 * time.Millisecond)
 	require.True(t, *report())
 
 	ln.Close()
-	time.Sleep(1 * time.Second)
+	time.Sleep(10 * time.Millisecond)
 	require.True(t, *report())
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(20 * time.Millisecond)
 	require.False(t, *report())
 }
 
 func TestDisableEnable(t *testing.T) {
-	logs.SetLevel(logs.DEBUG)
+	logs.SetLevel(logs.INFO)
 
 	nerve := &Nerve{
+		DisableWaitInMilli: &disableWait,
 		Services: []*Service{{
 			Host:                 "127.0.0.1",
 			Port:                 1234,
-			CheckIntervalInMilli: 1000,
+			CheckIntervalInMilli: 10,
 			Rise:                 2,
 			Fall:                 2,
 			Reporters: []json.RawMessage{marshallNoError(ReporterFile{
@@ -111,23 +115,31 @@ func TestDisableEnable(t *testing.T) {
 	go http.Serve(ln, m)
 	os.Remove("/tmp/nerve.report")
 
+	println("tttdfdfd")
+
 	require.Nil(t, report())
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(30 * time.Millisecond)
 	require.True(t, *report())
+
+	println("1")
 
 	resp, err := http.Get("http://localhost" + nerve.ApiUrl + "/disable")
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, 200)
 	require.False(t, *report())
 
-	time.Sleep(3 * time.Second)
+	println("2")
+
+	time.Sleep(30 * time.Millisecond)
 
 	resp, err = http.Get("http://localhost" + nerve.ApiUrl + "/enable")
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, 200)
 
-	time.Sleep(2 * time.Second)
+	println("3")
+
+	time.Sleep(20 * time.Millisecond)
 	require.True(t, *report())
 
 	resp, err = http.Get("http://localhost" + nerve.ApiUrl + "/disable")
@@ -135,8 +147,10 @@ func TestDisableEnable(t *testing.T) {
 	require.Equal(t, resp.StatusCode, 200)
 	require.False(t, *report())
 
+	println("4")
+
 	ln.Close()
-	time.Sleep(2 * time.Second)
+	time.Sleep(20 * time.Millisecond)
 
 	require.False(t, *report())
 	resp, err = http.Get("http://localhost" + nerve.ApiUrl + "/enable")
@@ -144,8 +158,13 @@ func TestDisableEnable(t *testing.T) {
 	require.Equal(t, resp.StatusCode, 200)
 	require.False(t, *report())
 
-	time.Sleep(2 * time.Second)
+	println("5")
+
+	time.Sleep(20 * time.Millisecond)
 	require.False(t, *report())
+
+	println("end")
+
 }
 
 func marshallNoError(obj interface{}) []byte {

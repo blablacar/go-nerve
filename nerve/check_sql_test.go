@@ -1,10 +1,10 @@
 package nerve
 
 import (
-	_ "github.com/mattn/go-sqlite3"
-	//"github.com/n0rad/go-erlog/errs"
-	//"github.com/stretchr/testify/require"
-	//"testing"
+//_ "github.com/mattn/go-sqlite3"
+//"github.com/n0rad/go-erlog/errs"
+//"github.com/stretchr/testify/require"
+//"testing"
 )
 
 //func TestSqlCheckFailForWrongUrl(t *testing.T) {
