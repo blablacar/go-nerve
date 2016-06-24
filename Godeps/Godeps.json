@@ -47,6 +47,10 @@
 			"Rev": "b889d03467ae08bb6c13241762a64305b69bcf82"
 		},
 		{
+			"ImportPath": "github.com/beorn7/perks/quantile",
+			"Rev": "3ac7bf7a47d159a033b107610db8a1b6575507a4"
+		},
+		{
 			"ImportPath": "github.com/blablacar/dgr/bin-dgr/common",
 			"Comment": "70-1-g20796f2",
 			"Rev": "20796f28e5c4a830d8423b006e55211a6d1a8e08"
@@ -74,6 +78,10 @@
 			"Rev": "fb7299726d2e68745a8805b14f2ff44b5c2cfa84"
 		},
 		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "9e6977f30c91c78396e719e164e57f9287fff42c"
+		},
+		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
 			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
 		},
@@ -94,6 +102,11 @@
 			"ImportPath": "github.com/lib/pq/oid",
 			"Comment": "go1.0-cutoff-96-gee1442b",
 			"Rev": "ee1442bda7bd1b6a84e913bdb421cb1874ec629d"
+		},
+		{
+			"ImportPath": "github.com/matttproud/golang_protobuf_extensions/pbutil",
+			"Comment": "v1.0.0-2-gc12348c",
+			"Rev": "c12348ce28de40eed0136aa2b644d0ee0650e56c"
 		},
 		{
 			"ImportPath": "github.com/mgutz/ansi",
@@ -178,6 +191,32 @@
 			"ImportPath": "github.com/onsi/gomega/types",
 			"Comment": "v1.0-71-g2152b45",
 			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/prometheus",
+			"Comment": "0.7.0-81-g488edd0",
+			"Rev": "488edd04dc224ba64c401747cd0a4b5f05dfb234"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_model/go",
+			"Comment": "model-0.0.2-12-gfa8ad6f",
+			"Rev": "fa8ad6fec33561be4280a8f0514318c79d7f6cb6"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/expfmt",
+			"Rev": "4402f4e5ea79ec15f3c574773b6a5198fbea215f"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg",
+			"Rev": "4402f4e5ea79ec15f3c574773b6a5198fbea215f"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/model",
+			"Rev": "4402f4e5ea79ec15f3c574773b6a5198fbea215f"
+		},
+		{
+			"ImportPath": "github.com/prometheus/procfs",
+			"Rev": "abf152e5f3e97f2fafac028d2cc06c1feb87ffa5"
 		},
 		{
 			"ImportPath": "github.com/samuel/go-zookeeper/zk",

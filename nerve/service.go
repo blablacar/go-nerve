@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type TypedCheck struct {
@@ -21,18 +22,20 @@ const OK Status = true
 const KO Status = false
 
 type Service struct {
-	Name                 string
-	Port                 int
-	Host                 string
-	PreferIpv4           bool
-	Rise                 int
-	Fall                 int
-	CheckIntervalInMilli int
-	Checks               []json.RawMessage
-	Reporters            []json.RawMessage
-	HaproxyServerOptions string
-	Labels               map[string]string
+	Name                       string
+	Port                       int
+	Host                       string
+	PreferIpv4                 bool
+	Rise                       int
+	Fall                       int
+	CheckIntervalInMilli       int
+	Checks                     []json.RawMessage
+	Reporters                  []json.RawMessage
+	HaproxyServerOptions       string
+	Labels                     map[string]string
 
+	statusGauge                *prometheus.Counter
+	failureCount               *prometheus.CounterVec
 	disabled                   error
 	typedChecks                []*TypedCheck
 	typedReportersWithReported map[Reporter]bool
@@ -57,7 +60,30 @@ func (s *Service) Init() error {
 		s.Rise = 3
 	}
 
-	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
+
+
+	//s.statusGauge = &prometheus.NewCounterVec(prometheus.CounterOpts{
+	//	Namespace: "nerve",
+	//	Name:      "service status",
+	//	Help:      "service status",
+	//})
+
+	//s.statusGauge = prometheus.NewGauge(prometheus.GaugeOpts{
+	//	Namespace: "nerve",
+	//	Name:      "service Status",
+	//	Help:      "service Status",
+	//})
+	s.failureCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "nerve",
+			Name:      "check_failure_total",
+			Help:      "Counter of failed check",
+		}, []string{"check_type"})
+	if err := prometheus.Register(s.failureCount); err != nil {
+		return errs.WithEF(err, s.fields, "Failed to register failure count metrics")
+	}
+
+	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
 	for _, data := range s.Checks {
 		checkType, checker, err := CheckerFromJson(data, s)
 		if err != nil {
@@ -135,6 +161,7 @@ func (s *Service) checkServiceStatus() error {
 	for _, check := range s.typedChecks {
 		logs.WithFields(check.typedCheck.GetFields()).Debug("Running check")
 		if err = check.typedCheck.Check(); err != nil {
+			s.failureCount.WithLabelValues(check.checkType).Inc()
 			logs.WithFields(check.typedCheck.GetFields()).Debug("KO")
 			break
 		}
@@ -148,7 +175,7 @@ func (s *Service) processStatusAndTellIfReportRequired(statusErr error) bool {
 	latest := s.latestStatuses
 
 	if (latest[0] == OK && sameLastStatusCount(latest) >= s.Rise && (current == nil || *current == KO)) ||
-		(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
+	(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
 
 		s.currentNotifStatus = &s.latestStatuses[0]
 		if s.latestStatuses[0] == OK {
@@ -195,7 +222,7 @@ func (s *Service) saveStatus(err error) {
 	tmp = append(tmp, status)
 	tmp = append(tmp, s.latestStatuses...)
 	if len(tmp) > max(s.Rise, s.Fall) {
-		s.latestStatuses = tmp[:len(tmp)-1]
+		s.latestStatuses = tmp[:len(tmp) - 1]
 	} else {
 		s.latestStatuses = tmp
 	}
