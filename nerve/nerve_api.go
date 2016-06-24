@@ -1,17 +1,17 @@
 package nerve
 
 import (
+	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/macaron.v1"
+	"log"
 	"net"
 	"net/http"
 	"strconv"
-	"time"
-	"github.com/prometheus/client_golang/prometheus"
-	"log"
-	"github.com/n0rad/go-erlog/data"
 	"sync/atomic"
+	"time"
 )
 
 func (n *Nerve) DisableServices() error {
@@ -50,7 +50,6 @@ func (n *Nerve) startApi() error {
 		return errs.WithEF(err, n.fields.WithField("url", n.ApiUrl), "Failed to listen")
 	}
 
-
 	m := macaron.New()
 	m.Use(Logger())
 	m.Use(macaron.Recovery())
@@ -79,16 +78,15 @@ func (n *Nerve) stopApi() {
 	n.apiListener = nil
 }
 
-
 func Logger() macaron.Handler {
 	var reqCounter int64
 	return func(ctx *macaron.Context, log *log.Logger) {
 		start := time.Now()
 
-
 		fields := data.WithField("method", ctx.Req.Method).
-		WithField("uri", ctx.Req.RequestURI).
-		WithField("ip", ctx.RemoteAddr()).WithField("id", atomic.AddInt64(&reqCounter, 1))
+			WithField("uri", ctx.Req.RequestURI).
+			WithField("ip", ctx.RemoteAddr()).
+			WithField("id", atomic.AddInt64(&reqCounter, 1))
 		if logs.IsDebugEnabled() {
 			logs.WithF(fields).Debug("Request received")
 		}
@@ -97,21 +95,19 @@ func Logger() macaron.Handler {
 		ctx.Next()
 
 		if logs.IsInfoEnabled() {
-			fields = fields.WithField("duration", time.Since(start)).
-				WithField("status", rw.Status())
-				var lvl logs.Level
-				if rw.Status() >= 500 && rw.Status() < 600 {
-					lvl = logs.ERROR
-				} else {
-					lvl = logs.INFO
-				}
+			fields = fields.WithField("duration", time.Since(start)).WithField("status", rw.Status())
+			var lvl logs.Level
+			if rw.Status() >= 500 && rw.Status() < 600 {
+				lvl = logs.ERROR
+			} else {
+				lvl = logs.INFO
+			}
 
-				logs.LogEntry(&logs.Entry{
-					Fields: fields,
-					Level: lvl,
-					Message: "Request completed",
-				})
-
+			logs.LogEntry(&logs.Entry{
+				Fields:  fields,
+				Level:   lvl,
+				Message: "Request completed",
+			})
 
 		}
 	}

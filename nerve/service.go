@@ -5,10 +5,10 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"github.com/prometheus/client_golang/prometheus"
 	"strconv"
 	"sync"
 	"time"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 type TypedCheck struct {
@@ -22,17 +22,17 @@ const OK Status = true
 const KO Status = false
 
 type Service struct {
-	Name                       string
-	Port                       int
-	Host                       string
-	PreferIpv4                 bool
-	Rise                       int
-	Fall                       int
-	CheckIntervalInMilli       int
-	Checks                     []json.RawMessage
-	Reporters                  []json.RawMessage
-	HaproxyServerOptions       string
-	Labels                     map[string]string
+	Name                 string
+	Port                 int
+	Host                 string
+	PreferIpv4           bool
+	Rise                 int
+	Fall                 int
+	CheckIntervalInMilli int
+	Checks               []json.RawMessage
+	Reporters            []json.RawMessage
+	HaproxyServerOptions string
+	Labels               map[string]string
 
 	statusGauge                *prometheus.Counter
 	failureCount               *prometheus.CounterVec
@@ -60,8 +60,6 @@ func (s *Service) Init() error {
 		s.Rise = 3
 	}
 
-
-
 	//s.statusGauge = &prometheus.NewCounterVec(prometheus.CounterOpts{
 	//	Namespace: "nerve",
 	//	Name:      "service status",
@@ -83,7 +81,7 @@ func (s *Service) Init() error {
 		return errs.WithEF(err, s.fields, "Failed to register failure count metrics")
 	}
 
-	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
+	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
 	for _, data := range s.Checks {
 		checkType, checker, err := CheckerFromJson(data, s)
 		if err != nil {
@@ -175,7 +173,7 @@ func (s *Service) processStatusAndTellIfReportRequired(statusErr error) bool {
 	latest := s.latestStatuses
 
 	if (latest[0] == OK && sameLastStatusCount(latest) >= s.Rise && (current == nil || *current == KO)) ||
-	(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
+		(latest[0] == KO && sameLastStatusCount(latest) >= s.Fall && (current == nil || *current == OK)) {
 
 		s.currentNotifStatus = &s.latestStatuses[0]
 		if s.latestStatuses[0] == OK {
@@ -222,7 +220,7 @@ func (s *Service) saveStatus(err error) {
 	tmp = append(tmp, status)
 	tmp = append(tmp, s.latestStatuses...)
 	if len(tmp) > max(s.Rise, s.Fall) {
-		s.latestStatuses = tmp[:len(tmp) - 1]
+		s.latestStatuses = tmp[:len(tmp)-1]
 	} else {
 		s.latestStatuses = tmp
 	}
