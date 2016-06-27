@@ -4,6 +4,7 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -21,7 +22,15 @@ func NewCheckHttp() *CheckHttp {
 	}
 }
 
-func (x *CheckHttp) Init(conf *Service) error {
+func (x *CheckHttp) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
+	x.CommonRun(x, statusChange, stop, doneWait)
+}
+
+func (x *CheckHttp) Init(s *Service) error {
+	if err := x.CheckCommon.CommonInit(s); err != nil {
+		return err
+	}
+
 	x.client = http.Client{
 		Timeout: time.Duration(x.TimeoutInMilli) * time.Millisecond,
 	}
@@ -30,14 +39,14 @@ func (x *CheckHttp) Init(conf *Service) error {
 	}
 
 	x.url = "http://" + x.Host + ":" + strconv.Itoa(x.Port) + x.Path
-	x.fields = x.fields.WithField("url", x.url).WithField("timeout", x.TimeoutInMilli).WithField("type", x.Type)
+	x.fields = x.fields.WithField("url", x.url).WithField("type", x.Type)
 	return nil
 }
 
 func (x *CheckHttp) Check() error {
 	resp, err := x.client.Get(x.url)
 	if err != nil {
-		return errs.WithEF(err, x.fields, "Check failed")
+		return errs.WithEF(err, x.fields, "Call failed")
 	}
 	resp.Body.Close()
 	return nil

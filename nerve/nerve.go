@@ -4,6 +4,7 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"github.com/prometheus/client_golang/prometheus"
 	"net"
 	"sync"
 )
@@ -11,33 +12,49 @@ import (
 type Nerve struct {
 	LogLevel           string
 	IPv6               bool
-	ApiUrl             string
+	ApiHost            string
+	ApiPort            int
 	Services           []*Service
 	DisableWaitInMilli *int
 
-	apiListener net.Listener
-	//apiServer   macaron.Macaron
-	fields      data.Fields
-	stopChecker chan struct{}
-	doneWaiter  sync.WaitGroup
+	nerveVersion     string
+	nerveBuildTime   string
+	failureCount     *prometheus.CounterVec
+	apiListener      net.Listener
+	fields           data.Fields
+	serviceStopper   chan struct{}
+	servicesStopWait sync.WaitGroup
 }
 
-func (n *Nerve) Init() error {
-	if n.ApiUrl == "" {
-		n.ApiUrl = ":3454"
+func (n *Nerve) Init(version string, buildTime string) error {
+	n.nerveVersion = version
+	n.nerveBuildTime = buildTime
+	if n.ApiPort == 0 {
+		n.ApiPort = 3454
 	}
 	if n.DisableWaitInMilli == nil {
 		val := 3000
 		n.DisableWaitInMilli = &val
 	}
 
-	n.stopChecker = make(chan struct{})
+	n.failureCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "nerve",
+			Name:      "check_failure_total",
+			Help:      "Counter of failed check",
+		}, []string{"check_type"})
 
+	if err := prometheus.Register(n.failureCount); err != nil {
+		return errs.WithEF(err, n.fields, "Failed to register failure count metrics")
+	}
+
+	n.serviceStopper = make(chan struct{})
 	for _, service := range n.Services {
-		if err := service.Init(); err != nil {
+		if err := service.Init(n); err != nil {
 			return errs.WithE(err, "Failed to init service")
 		}
 	}
+
 	return nil
 }
 
@@ -51,8 +68,7 @@ func (n *Nerve) Start(startStatus chan error) {
 	}
 
 	for _, service := range n.Services {
-		n.doneWaiter.Add(1)
-		go service.Run(n.stopChecker, &n.doneWaiter)
+		go service.Start(n.serviceStopper, &n.servicesStopWait)
 	}
 
 	res := n.startApi()
@@ -63,8 +79,8 @@ func (n *Nerve) Start(startStatus chan error) {
 
 func (n *Nerve) Stop() {
 	logs.Info("Stopping nerve")
-	close(n.stopChecker)
+	close(n.serviceStopper)
 	n.stopApi()
-	n.doneWaiter.Wait()
+	n.servicesStopWait.Wait()
 	logs.Debug("All services stopped")
 }

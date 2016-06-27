@@ -6,25 +6,6 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 )
 
-type Report struct {
-	Available            bool
-	Host                 string
-	Port                 int
-	Name                 string
-	HaproxyServerOptions string `json:"haproxy_server_options"`
-	Labels               map[string]string
-}
-
-func NewReport(content []byte) (*Report, error) {
-	var r Report
-	err := json.Unmarshal(content, &r)
-	return &r, err
-}
-
-func (r *Report) toJson() ([]byte, error) {
-	return json.Marshal(r)
-}
-
 type Reporter interface {
 	Report(report Report) error
 	Init(s *Service) error
@@ -73,27 +54,16 @@ func ReporterFromJson(data []byte, s *Service) (Reporter, error) {
 		return nil, errs.WithF(fields, "Unsupported reporter type")
 	}
 
-	if err := typedReporter.getCommon().Init(s); err != nil {
-		return nil, errs.WithEF(err, fields, "Failed to init common reporter")
-	}
-
 	if err := json.Unmarshal([]byte(data), &typedReporter); err != nil {
 		return nil, errs.WithEF(err, fields, "Failed to unmarshall reporter")
+	}
+
+	if err := typedReporter.getCommon().Init(s); err != nil {
+		return nil, errs.WithEF(err, fields, "Failed to init common reporter")
 	}
 
 	if err := typedReporter.Init(s); err != nil {
 		return nil, errs.WithEF(err, fields, "Failed to init reporter")
 	}
 	return typedReporter, nil
-}
-
-func toReport(status error, s *Service) Report {
-	return Report{
-		Available:            status == nil,
-		Host:                 s.Host,
-		Port:                 s.Port,
-		Name:                 s.Name,
-		HaproxyServerOptions: s.HaproxyServerOptions,
-		Labels:               s.Labels,
-	}
 }

@@ -69,7 +69,7 @@ func main() {
 				logs.WithE(err).Fatal("Cannot start, failed to load configuration")
 			}
 
-			if err := nerve.Init(); err != nil {
+			if err := nerve.Init(Version, BuildTime); err != nil {
 				logs.WithE(err).Fatal("Failed to init nerve")
 			}
 

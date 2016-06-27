@@ -4,6 +4,7 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -17,7 +18,15 @@ func NewCheckTcp() *CheckTcp {
 	return &CheckTcp{}
 }
 
-func (x *CheckTcp) Init(conf *Service) error {
+func (x *CheckTcp) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
+	x.CommonRun(x, statusChange, stop, doneWait)
+}
+
+func (x *CheckTcp) Init(s *Service) error {
+	if err := x.CheckCommon.CommonInit(s); err != nil {
+		return err
+	}
+
 	x.url = x.Host + ":" + strconv.Itoa(x.Port)
 	x.fields = x.fields.WithField("url", x.url)
 	return nil

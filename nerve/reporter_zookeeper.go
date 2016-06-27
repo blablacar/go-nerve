@@ -20,7 +20,6 @@ type ReporterZookeeper struct {
 	reportMutex sync.Mutex
 	stopChecker chan struct{}
 	connection  *zk.Conn
-	serviceIp   string
 	fullPath    string
 	currentNode string
 }
@@ -32,9 +31,11 @@ func NewReporterZookeeper() *ReporterZookeeper {
 }
 
 func (r *ReporterZookeeper) Init(s *Service) error {
-	r.serviceIp = s.Host // TODO this is not the ip
+	if r.Path == "" {
+		return errs.WithF(r.fields, "Zookeeper reporter require a path to report to")
+	}
 	r.fields = r.fields.WithField("path", r.Path)
-	r.fullPath = r.Path + "/" + r.serviceIp + "_" // + r.InstanceID TODO add id
+	r.fullPath = r.Path + "/" + s.Name + "_" + s.Host + "_"
 	r.currentNode = r.fullPath
 	return nil
 }

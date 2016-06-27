@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/n0rad/go-erlog/errs"
 	"strconv"
+	"sync"
 )
 
 type CheckSql struct {
@@ -30,13 +31,21 @@ func NewCheckSql() *CheckSql {
 	}
 }
 
-func (x *CheckSql) Init(conf *Service) error {
+func (x *CheckSql) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
+	x.CommonRun(x, statusChange, stop, doneWait)
+}
+
+func (x *CheckSql) Init(s *Service) error {
+	if err := x.CheckCommon.CommonInit(s); err != nil {
+		return err
+	}
+
 	switch x.Driver {
 	case "mysql", "postgres":
 	default:
 		return errs.WithF(x.fields.WithField("driver", x.Driver), "Unsupported driver")
 	}
-	ip := IpLookupNoError(x.Host, conf.PreferIpv4).String()
+	ip := IpLookupNoError(x.Host, s.PreferIpv4).String()
 	x.datasource = x.Username + ":" + x.Password + "@" + x.Protocol + "([" + ip + "]:" + strconv.Itoa(x.Port) + ")/?timeout=" + strconv.Itoa(x.TimeoutInMilli) + "ms"
 	x.fields = x.fields.WithField("datasource", x.datasource)
 	return nil

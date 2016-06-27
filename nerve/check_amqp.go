@@ -4,6 +4,7 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/streadway/amqp"
 	"strconv"
+	"sync"
 )
 
 const checkMessage = "nerve"
@@ -25,7 +26,15 @@ func NewCheckAmqp() *CheckAmqp {
 	}
 }
 
-func (x *CheckAmqp) Init(conf *Service) error {
+func (x *CheckAmqp) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
+	x.CommonRun(x, statusChange, stop, doneWait)
+}
+
+func (x *CheckAmqp) Init(s *Service) error {
+	if err := x.CheckCommon.CommonInit(s); err != nil {
+		return err
+	}
+
 	x.url = "amqp://" + x.Username + ":" + x.Password + "@" + x.Host + ":" + strconv.Itoa(x.Port) + "/" + x.Vhost
 	x.fields = x.fields.WithField("url", x.url).WithField("queue", x.Queue)
 	return nil

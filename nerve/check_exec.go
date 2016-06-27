@@ -3,6 +3,7 @@ package nerve
 import (
 	"github.com/n0rad/go-erlog/errs"
 	"os/exec"
+	"sync"
 )
 
 type CheckExec struct {
@@ -14,7 +15,15 @@ func NewCheckExec() *CheckExec {
 	return &CheckExec{}
 }
 
+func (x *CheckExec) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
+	x.CommonRun(x, statusChange, stop, doneWait)
+}
+
 func (x *CheckExec) Init(s *Service) error {
+	if err := x.CheckCommon.CommonInit(s); err != nil {
+		return err
+	}
+
 	if len(x.Command) == 0 {
 		return errs.With("Exec command type require a command")
 	}
