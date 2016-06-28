@@ -11,18 +11,18 @@ import (
 )
 
 type Service struct {
-	Name                       string
-	Port                       int
-	Host                       string
-	PreferIpv4                 bool
-	PreEnableCommand           []string
-	PreEnableFailureIgnore     bool
-	PostDisableCommand         []string
-	Checks                     []json.RawMessage
-	Reporters                  []json.RawMessage
-	ReportFailureReplayInMilli int
-	HaproxyServerOptions       string
-	Labels                     map[string]string
+	Name                   string
+	Port                   int
+	Host                   string
+	PreferIpv4             bool
+	PreEnableCommand       []string
+	PreEnableFailureIgnore bool
+	PostDisableCommand     []string
+	Checks                 []json.RawMessage
+	Reporters              []json.RawMessage
+	ReportReplayInMilli    int
+	HaproxyServerOptions   string
+	Labels                 map[string]string
 
 	nerve                      *Nerve
 	disabled                   error
@@ -36,8 +36,8 @@ func (s *Service) Init(n *Nerve) error {
 	logs.WithField("data", s).Info("service loaded") // todo rewrite with conf only
 	s.nerve = n
 
-	if s.ReportFailureReplayInMilli == 0 {
-		s.ReportFailureReplayInMilli = 1000
+	if s.ReportReplayInMilli == 0 {
+		s.ReportReplayInMilli = 1000
 	}
 
 	s.typedReportersWithReported = make(map[Reporter]bool)
@@ -90,6 +90,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 	for {
 		select {
 		case status := <-statusChange:
+			logs.WithF(s.fields.WithField("status", status)).Debug("New status received")
 			s.processStatus(status)
 		case <-stopper:
 			logs.WithFields(s.fields).Debug("Stop requested")
@@ -99,7 +100,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 				reporter.Destroy()
 			}
 			return
-		case <-time.After(time.Duration(s.ReportFailureReplayInMilli) * time.Millisecond):
+		case <-time.After(time.Duration(s.ReportReplayInMilli) * time.Millisecond):
 			s.report(false)
 		}
 	}
@@ -107,29 +108,33 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 
 func (s *Service) processStatus(check Check) {
 	s.typedCheckersWithStatus[check.Checker] = &check.Status
-
-	var combinedStatus error = nil
+	var combinedStatus error
 	for _, status := range s.typedCheckersWithStatus {
-		if status != nil {
+		if status == nil {
+			logs.WithF(s.fields).Debug("One check have no value, cannot report yet")
+			return
+		}
+		if combinedStatus == nil {
 			combinedStatus = *status
 		}
 	}
 
-	reportRequired := false
-	if s.currentStatus == nil ||
-		(*s.currentStatus == nil && combinedStatus == nil) ||
-		(s.currentStatus != nil && combinedStatus != nil) {
-		s.currentStatus = &combinedStatus
-		reportRequired = true
+	if logs.IsDebugEnabled() {
+		logs.WithF(s.fields.WithField("status", check).WithField("combined", combinedStatus)).Debug("combined status process")
 	}
 
-	if reportRequired {
-		if *s.currentStatus == nil {
+	if s.currentStatus == nil ||
+		(*s.currentStatus == nil && combinedStatus != nil) ||
+		(*s.currentStatus != nil && combinedStatus == nil) {
+		if combinedStatus == nil {
 			logs.WithF(s.fields).Info("Service is available")
 		} else {
-			logs.WithEF(*s.currentStatus, s.fields).Warn("Service is not available")
+			logs.WithEF(combinedStatus, s.fields).Warn("Service is not available")
 		}
+		s.currentStatus = &combinedStatus
 		s.report(true)
+	} else {
+		logs.WithF(s.fields).Debug("Combined status is same as previous, no report required")
 	}
 }
 

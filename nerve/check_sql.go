@@ -1,23 +1,25 @@
 package nerve
 
 import (
+	"bytes"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/n0rad/go-erlog/errs"
-	"strconv"
+	"github.com/n0rad/go-erlog/logs"
 	"sync"
+	"text/template"
 )
 
 type CheckSql struct {
 	CheckCommon
-	Username string
-	Password string
-	Request  string
-	Protocol string
-	Driver   string
+	Username   string
+	Password   string
+	Request    string
+	Datasource string
+	Driver     string
 
-	datasource string
+	templatedDatasource string
 }
 
 func NewCheckSql() *CheckSql {
@@ -26,7 +28,7 @@ func NewCheckSql() *CheckSql {
 		Username:    "root",
 		Password:    "",
 		Request:     "SELECT 1",
-		Protocol:    "tcp",
+		Datasource:  "{{.Username}}:{{.Password}}@tcp([{{.Host}}]:{{.Port}})/?timeout={{.TimeoutInMilli}}ms",
 		Driver:      "mysql",
 	}
 }
@@ -45,14 +47,23 @@ func (x *CheckSql) Init(s *Service) error {
 	default:
 		return errs.WithF(x.fields.WithField("driver", x.Driver), "Unsupported driver")
 	}
-	ip := IpLookupNoError(x.Host, s.PreferIpv4).String()
-	x.datasource = x.Username + ":" + x.Password + "@" + x.Protocol + "([" + ip + "]:" + strconv.Itoa(x.Port) + ")/?timeout=" + strconv.Itoa(x.TimeoutInMilli) + "ms"
-	x.fields = x.fields.WithField("datasource", x.datasource)
+
+	template, err := template.New("datasource").Parse(x.Datasource)
+	if err != nil {
+		return errs.WithEF(err, x.fields, "Failed to parse datasource template")
+	}
+
+	var buff bytes.Buffer
+	if err := template.Execute(&buff, x); err != nil {
+		return errs.WithEF(err, x.fields, "Datasource templating failed")
+	}
+	x.templatedDatasource = buff.String()
+	logs.WithF(x.fields.WithField("datasource", x.templatedDatasource)).Debug("datasource templated")
 	return nil
 }
 
 func (x *CheckSql) Check() error {
-	conn, err := sql.Open(x.Driver, x.datasource)
+	conn, err := sql.Open(x.Driver, x.templatedDatasource)
 	if err != nil {
 		return errs.WithEF(err, x.fields, "Cannot open connection")
 	}
@@ -63,5 +74,4 @@ func (x *CheckSql) Check() error {
 	}
 	defer rows.Close()
 	return nil
-
 }
