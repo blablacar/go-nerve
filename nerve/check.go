@@ -73,15 +73,22 @@ func (c *CheckCommon) CommonInit(s *Service) error {
 	return nil
 }
 
-func (c *CheckCommon) saveStatus(err error) {
+func (c *CheckCommon) saveStatus(status error) {
 	var tmp []error
-	tmp = append(tmp, err)
+	tmp = append(tmp, status)
 	tmp = append(tmp, c.latestStatuses...)
 	if len(tmp) > max(c.Rise, c.Fall) {
 		c.latestStatuses = tmp[:len(tmp)-1]
 	} else {
 		c.latestStatuses = tmp
 	}
+
+	if len(c.latestStatuses) == 1 ||
+	c.latestStatuses[0] == nil && c.latestStatuses[1] != nil ||
+	c.latestStatuses[0] != nil && c.latestStatuses[1] == nil {
+		logs.WithEF(status, c.fields).Debug("Check changed")
+	}
+
 }
 
 func (c *CheckCommon) CommonRun(checker Checker, statusChange chan<- Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
