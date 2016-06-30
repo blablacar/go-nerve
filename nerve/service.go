@@ -12,33 +12,37 @@ import (
 )
 
 type Service struct {
-	Name                 string
-	Port                 int
-	Host                 string
-	PreferIpv4           bool
-	Weight               uint8
-	Checks               []json.RawMessage
-	Reporters            []json.RawMessage
-	ReportReplayInMilli  int
-	HaproxyServerOptions string
-	Labels               map[string]string
+	Name                                 string
+	Port                                 int
+	Host                                 string
+	PreferIpv4                           bool
+	Weight                               uint8
+	Checks                               []json.RawMessage
+	Reporters                            []json.RawMessage
+	ReportReplayInMilli                  int
+	HaproxyServerOptions                 string
+	Labels                               map[string]string
 
-	EnableCheckStableCommand       []string
-	EnableWarmupIntervalInMilli    int
-	EnableWarmupMaxDurationInMilli int
+	EnableCheckStableCommand             []string
+	EnableWarmupIntervalInMilli          int
+	EnableWarmupMaxDurationInMilli       int
 
-	DisableGracefulCheckCommand         []string
-	DisableGracefulCheckIntervalInMilli int
-	DisableMaxDurationInMilli           int
+	DisableGracefullyDoneCommand         []string
+	DisableGracefullyDoneIntervalInMilli int
+	DisableMaxDurationInMilli            int
+	DisableMinDurationInMilli            int
 
-	nerve                      *Nerve
-	disabled                   error
-	currentWarmupGiveUp        chan struct{}
-	currentWeightIndex         int
-	currentStatus              *error
-	typedCheckersWithStatus    map[Checker]*error
-	typedReportersWithReported map[Reporter]bool
-	fields                     data.Fields
+	nerve                                *Nerve
+	disabled                             error
+
+	warmupGiveUp                         chan struct{}
+	warmupMutex                          sync.Mutex
+	warmupGiveUpMutex                    sync.Mutex
+	currentWeightIndex                   int
+	currentStatus                        *error
+	typedCheckersWithStatus              map[Checker]*error
+	typedReportersWithReported           map[Reporter]bool
+	fields                               data.Fields
 }
 
 var weights = []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233}
@@ -62,10 +66,20 @@ func (s *Service) Init(n *Nerve) error {
 		s.EnableWarmupMaxDurationInMilli = 2 * 60 * 1000
 	}
 
+	if s.DisableGracefullyDoneIntervalInMilli == 0 {
+		s.DisableGracefullyDoneIntervalInMilli = 1000
+	}
+	if s.DisableMinDurationInMilli == 0 {
+		s.DisableMinDurationInMilli = 3000
+	}
+	if s.DisableMaxDurationInMilli == 0 {
+		s.DisableMaxDurationInMilli = 60 * 1000
+	}
+
 	s.typedReportersWithReported = make(map[Reporter]bool)
 	s.typedCheckersWithStatus = make(map[Checker]*error)
 
-	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
+	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
 	for _, data := range s.Checks {
 		checker, err := CheckerFromJson(data, s)
 		if err != nil {
@@ -146,19 +160,15 @@ func (s *Service) processStatus(check Check) {
 	}
 
 	if s.currentStatus == nil ||
-		(*s.currentStatus == nil && combinedStatus != nil) ||
-		(*s.currentStatus != nil && combinedStatus == nil) {
+	(*s.currentStatus == nil && combinedStatus != nil) ||
+	(*s.currentStatus != nil && combinedStatus == nil) {
 		s.currentStatus = &combinedStatus
 
-		if s.currentWarmupGiveUp != nil {
-			close(s.currentWarmupGiveUp)
-			s.currentWarmupGiveUp = nil
-		}
+		s.giveUpWarmup()
 
 		if combinedStatus == nil {
 			logs.WithF(s.fields).Info("Service is available")
-			s.currentWarmupGiveUp = make(chan struct{})
-			go s.Warmup(s.currentWarmupGiveUp)
+			s.warmup()
 		} else {
 			s.currentWeightIndex = 0
 			logs.WithEF(combinedStatus, s.fields).Warn("Service is not available")
@@ -168,6 +178,25 @@ func (s *Service) processStatus(check Check) {
 	} else {
 		logs.WithF(s.fields).Debug("Combined status is same as previous, no report required")
 	}
+}
+
+func (s *Service) giveUpWarmup() {
+	s.warmupGiveUpMutex.Lock()
+	defer s.warmupGiveUpMutex.Unlock()
+
+	if s.warmupGiveUp != nil {
+		close(s.warmupGiveUp)
+		s.warmupGiveUp = nil
+	}
+}
+
+func (s *Service) warmup() {
+	s.warmupMutex.Lock()
+	defer s.warmupMutex.Unlock()
+
+	s.giveUpWarmup()
+	s.warmupGiveUp = make(chan struct{})
+	go s.Warmup(s.warmupGiveUp)
 }
 
 func (s *Service) Warmup(giveUp <-chan struct{}) {
@@ -191,7 +220,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 			s.currentWeightIndex = 0
 		}
 
-		if s.currentWeightIndex > postFullWeightMax+len(weights) {
+		if s.currentWeightIndex > postFullWeightMax + len(weights) {
 			logs.WithF(s.fields).Debug("Service is fully stable")
 			return
 		}
@@ -240,24 +269,46 @@ func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 
 func (s *Service) CurrentWeight() uint8 {
 	index := s.currentWeightIndex
-	if s.currentWeightIndex > len(weights)-1 {
+	if s.currentWeightIndex > len(weights) - 1 {
 		index = len(weights) - 1
 	}
-	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights)-1]))
+	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights) - 1]))
 	if res == 0 {
 		res++
 	}
 	return res
 }
 
-func (s *Service) Disable() {
+func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
+	defer doneWaiter.Done()
+	s.giveUpWarmup()
+
+	start := time.Now()
 	s.disabled = errs.With("Service is disabled")
 	s.reportAndTellIfAtLeastOneReported(true)
+
+	if len(s.DisableGracefullyDoneCommand) > 0 {
+		for {
+			var err error
+			if err = execCommand(s.DisableGracefullyDoneCommand, s.DisableGracefullyDoneIntervalInMilli); err == nil {
+				logs.WithF(s.fields).Debug("Gracefull check succeed")
+				break
+			}
+			logs.WithEF(err, s.fields).Debug("Gracefull check command fail")
+
+			select {
+			case <-time.After(start.Add(time.Duration(s.DisableMaxDurationInMilli) * time.Millisecond).Sub(time.Now())):
+				logs.WithF(s.fields).Debug("Disable max duration reached")
+				return
+			case <-time.After(time.Duration(s.DisableGracefullyDoneIntervalInMilli) * time.Millisecond):
+			}
+		}
+	}
+
+	time.Sleep(start.Add(time.Duration(s.DisableMinDurationInMilli) * time.Millisecond).Sub(time.Now()))
 }
 
 func (s *Service) Enable() {
 	s.disabled = nil
-	for reporter := range s.typedReportersWithReported {
-		s.typedReportersWithReported[reporter] = false
-	}
+	s.warmup()
 }

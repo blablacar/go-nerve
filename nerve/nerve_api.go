@@ -11,16 +11,19 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 	"unsafe"
 )
 
 func (n *Nerve) DisableServices() error {
+	allWait := sync.WaitGroup{}
 	for _, service := range n.Services {
-		service.Disable()
+		allWait.Add(1)
+		go service.Disable(&allWait)
 	}
-	time.Sleep(time.Duration(*n.DisableWaitInMilli) * time.Millisecond)
+	allWait.Wait()
 	return nil
 }
 
