@@ -1,10 +1,13 @@
 package nerve
 
 import (
+	"bytes"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"net"
+	"os/exec"
+	"time"
 )
 
 func IpLookupNoError(host string, preferIPv4 bool) net.IP {
@@ -41,4 +44,26 @@ func max(val1 int, val2 int) int {
 		return val1
 	}
 	return val2
+}
+
+func execCommand(cmd []string, timeoutInMilli int) error {
+	command := exec.Command(cmd[0], cmd[1:]...)
+	var b bytes.Buffer
+	command.Stdout = &b
+	command.Stderr = &b
+
+	if err := command.Start(); err != nil {
+		return errs.WithEF(err, data.WithField("cmd", cmd), "Failed to start command")
+	}
+
+	timer := time.AfterFunc(time.Duration(timeoutInMilli)*time.Millisecond, func() {
+		command.Process.Kill()
+	})
+
+	err := command.Wait()
+	timer.Stop()
+	if err != nil {
+		return errs.WithEF(err, data.WithField("cmd", cmd).WithField("output", string(b.Bytes())), "Command failed")
+	}
+	return nil
 }

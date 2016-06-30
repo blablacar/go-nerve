@@ -5,39 +5,61 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"math"
 	"strconv"
 	"sync"
 	"time"
 )
 
 type Service struct {
-	Name                   string
-	Port                   int
-	Host                   string
-	PreferIpv4             bool
-	PreEnableCommand       []string
-	PreEnableFailureIgnore bool
-	PostDisableCommand     []string
-	Checks                 []json.RawMessage
-	Reporters              []json.RawMessage
-	ReportReplayInMilli    int
-	HaproxyServerOptions   string
-	Labels                 map[string]string
+	Name                 string
+	Port                 int
+	Host                 string
+	PreferIpv4           bool
+	Weight               uint8
+	Checks               []json.RawMessage
+	Reporters            []json.RawMessage
+	ReportReplayInMilli  int
+	HaproxyServerOptions string
+	Labels               map[string]string
+
+	EnableCheckStableCommand       []string
+	EnableWarmupIntervalInMilli    int
+	EnableWarmupMaxDurationInMilli int
+
+	DisableGracefulCheckCommand         []string
+	DisableGracefulCheckIntervalInMilli int
+	DisableMaxDurationInMilli           int
 
 	nerve                      *Nerve
 	disabled                   error
+	currentWarmupGiveUp        chan struct{}
+	currentWeightIndex         int
 	currentStatus              *error
 	typedCheckersWithStatus    map[Checker]*error
 	typedReportersWithReported map[Reporter]bool
 	fields                     data.Fields
 }
 
+var weights = []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233}
+
+const postFullWeightMax = 10
+
 func (s *Service) Init(n *Nerve) error {
 	logs.WithField("data", s).Info("service loaded") // todo rewrite with conf only
 	s.nerve = n
 
+	if s.Weight == 0 {
+		s.Weight = 255
+	}
 	if s.ReportReplayInMilli == 0 {
 		s.ReportReplayInMilli = 1000
+	}
+	if s.EnableWarmupIntervalInMilli == 0 {
+		s.EnableWarmupIntervalInMilli = 1000
+	}
+	if s.EnableWarmupMaxDurationInMilli == 0 {
+		s.EnableWarmupMaxDurationInMilli = 2 * 60 * 1000
 	}
 
 	s.typedReportersWithReported = make(map[Reporter]bool)
@@ -101,7 +123,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 			}
 			return
 		case <-time.After(time.Duration(s.ReportReplayInMilli) * time.Millisecond):
-			s.report(false)
+			s.reportAndTellIfAtLeastOneReported(false)
 		}
 	}
 }
@@ -126,27 +148,81 @@ func (s *Service) processStatus(check Check) {
 	if s.currentStatus == nil ||
 		(*s.currentStatus == nil && combinedStatus != nil) ||
 		(*s.currentStatus != nil && combinedStatus == nil) {
+		s.currentStatus = &combinedStatus
+
+		if s.currentWarmupGiveUp != nil {
+			close(s.currentWarmupGiveUp)
+			s.currentWarmupGiveUp = nil
+		}
+
 		if combinedStatus == nil {
 			logs.WithF(s.fields).Info("Service is available")
+			s.currentWarmupGiveUp = make(chan struct{})
+			go s.Warmup(s.currentWarmupGiveUp)
 		} else {
+			s.currentWeightIndex = 0
 			logs.WithEF(combinedStatus, s.fields).Warn("Service is not available")
+			s.reportAndTellIfAtLeastOneReported(true)
 		}
-		s.currentStatus = &combinedStatus
-		s.report(true)
+
 	} else {
 		logs.WithF(s.fields).Debug("Combined status is same as previous, no report required")
 	}
 }
 
-func (s *Service) report(required bool) {
+func (s *Service) Warmup(giveUp <-chan struct{}) {
+	start := time.Now()
+	s.currentWeightIndex = 0
+	s.reportAndTellIfAtLeastOneReported(true)
+	for {
+		if len(s.EnableCheckStableCommand) > 0 {
+			if err := execCommand(s.EnableCheckStableCommand, s.EnableWarmupIntervalInMilli); err != nil {
+				logs.WithEF(err, s.fields).Warn("Check stable command failed. Reset weight")
+				s.currentWeightIndex = 0
+			} else {
+				s.currentWeightIndex++
+			}
+		} else {
+			s.currentWeightIndex++
+		}
+
+		if s.currentWeightIndex < len(weights) && !s.reportAndTellIfAtLeastOneReported(true) {
+			logs.WithF(s.fields).Debug("No report succeed. Reset weight")
+			s.currentWeightIndex = 0
+		}
+
+		if s.currentWeightIndex > postFullWeightMax+len(weights) {
+			logs.WithF(s.fields).Debug("Service is fully stable")
+			return
+		}
+
+		if time.Now().After(start.Add(time.Duration(s.EnableWarmupMaxDurationInMilli) * time.Millisecond)) {
+			logs.WithF(s.fields).Warn("Warmup reach max duration. set Full Weight")
+			s.currentWeightIndex = len(weights) - 1
+			s.reportAndTellIfAtLeastOneReported(true)
+			return
+		}
+
+		select {
+		case <-giveUp:
+			logs.WithF(s.fields).Debug("Warmup giveup requested")
+			return
+		case <-time.After(time.Duration(s.EnableWarmupIntervalInMilli) * time.Millisecond):
+		}
+	}
+
+}
+
+func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 	if s.currentStatus == nil {
-		return // no status yet
+		return false // no status yet
 	}
 	status := *s.currentStatus
 	if s.disabled != nil {
 		status = s.disabled
 	}
 	report := toReport(status, s)
+	globalReported := 0
 	for reporter, reported := range s.typedReportersWithReported {
 		if required || !reported {
 			logs.WithFields(s.fields).WithField("reporter", reporter).WithField("report", report).Debug("Sending report")
@@ -155,14 +231,28 @@ func (s *Service) report(required bool) {
 				s.typedReportersWithReported[reporter] = false
 			} else {
 				s.typedReportersWithReported[reporter] = true
+				globalReported++
 			}
 		}
 	}
+	return globalReported > 0
+}
+
+func (s *Service) CurrentWeight() uint8 {
+	index := s.currentWeightIndex
+	if s.currentWeightIndex > len(weights)-1 {
+		index = len(weights) - 1
+	}
+	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights)-1]))
+	if res == 0 {
+		res++
+	}
+	return res
 }
 
 func (s *Service) Disable() {
 	s.disabled = errs.With("Service is disabled")
-	s.report(true)
+	s.reportAndTellIfAtLeastOneReported(true)
 }
 
 func (s *Service) Enable() {

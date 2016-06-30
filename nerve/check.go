@@ -84,8 +84,8 @@ func (c *CheckCommon) saveStatus(status error) {
 	}
 
 	if len(c.latestStatuses) == 1 ||
-	c.latestStatuses[0] == nil && c.latestStatuses[1] != nil ||
-	c.latestStatuses[0] != nil && c.latestStatuses[1] == nil {
+		c.latestStatuses[0] == nil && c.latestStatuses[1] != nil ||
+		c.latestStatuses[0] != nil && c.latestStatuses[1] == nil {
 		logs.WithEF(status, c.fields).Debug("Check changed")
 	}
 

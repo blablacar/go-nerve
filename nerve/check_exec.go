@@ -2,7 +2,6 @@ package nerve
 
 import (
 	"github.com/n0rad/go-erlog/errs"
-	"os/exec"
 	"sync"
 )
 
@@ -32,10 +31,8 @@ func (x *CheckExec) Init(s *Service) error {
 }
 
 func (x *CheckExec) Check() error {
-	command := exec.Command(x.Command[0], x.Command[1:]...)
-	data, err := command.CombinedOutput()
-	if err != nil {
-		return errs.WithEF(err, x.fields.WithField("output", data), "Command failed")
+	if err := execCommand(x.Command, x.TimeoutInMilli); err != nil {
+		return errs.WithEF(err, x.fields, "Check command failed")
 	}
 	return nil
 }

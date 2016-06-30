@@ -1,28 +1,31 @@
 package nerve
 
 import (
+	"bytes"
 	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 	"github.com/streadway/amqp"
-	"strconv"
 	"sync"
+	"text/template"
 )
 
 const checkMessage = "nerve"
 
 type CheckAmqp struct {
 	CheckCommon
-	Vhost    string
-	Queue    string
-	Username string
-	Password string
+	Datasource string
+	Vhost      string
+	Queue      string
+	Username   string
+	Password   string
 
-	url string
+	templatedDatasource string
 }
 
 func NewCheckAmqp() *CheckAmqp {
 	return &CheckAmqp{
-		Vhost: "/",
-		Queue: "nerve",
+		Datasource: "amqp://{{.Username}}:{{.Password}}@{{.Host}}:{{.Port}}/{{.Vhost}}",
+		Queue:      "nerve",
 	}
 }
 
@@ -35,13 +38,22 @@ func (x *CheckAmqp) Init(s *Service) error {
 		return err
 	}
 
-	x.url = "amqp://" + x.Username + ":" + x.Password + "@" + x.Host + ":" + strconv.Itoa(x.Port) + "/" + x.Vhost
-	x.fields = x.fields.WithField("url", x.url).WithField("queue", x.Queue)
+	template, err := template.New("datasource").Parse(x.Datasource)
+	if err != nil {
+		return errs.WithEF(err, x.fields, "Failed to parse datasource template")
+	}
+
+	var buff bytes.Buffer
+	if err := template.Execute(&buff, x); err != nil {
+		return errs.WithEF(err, x.fields, "Datasource templating failed")
+	}
+	x.templatedDatasource = buff.String()
+	logs.WithF(x.fields.WithField("datasource", x.templatedDatasource)).Debug("datasource templated")
 	return nil
 }
 
 func (x *CheckAmqp) Check() error {
-	conn, err := amqp.Dial(x.url)
+	conn, err := amqp.Dial(x.Datasource)
 	if err != nil {
 		return errs.WithEF(err, x.fields, "Unable to connect to amqp server")
 	}

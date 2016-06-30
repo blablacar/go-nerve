@@ -10,8 +10,6 @@ import (
 )
 
 type Nerve struct {
-	LogLevel           string
-	IPv6               bool
 	ApiHost            string
 	ApiPort            int
 	Services           []*Service
