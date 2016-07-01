@@ -21,6 +21,7 @@ type Service struct {
 	Reporters                            []json.RawMessage
 	ReportReplayInMilli                  int
 	HaproxyServerOptions                 string
+	SetServiceAsDownOnShutdown           *bool
 	Labels                               map[string]string
 	EnableCheckStableCommand             []string
 	EnableWarmupIntervalInMilli          int
@@ -50,6 +51,11 @@ const postFullWeightMax = 10
 func (s *Service) Init(n *Nerve) error {
 	logs.WithField("data", s).Info("service loaded") // todo rewrite with conf only
 	s.nerve = n
+
+	if s.SetServiceAsDownOnShutdown == nil {
+		val := true
+		s.SetServiceAsDownOnShutdown = &val
+	}
 
 	if s.Weight == 0 {
 		s.Weight = 255
@@ -130,6 +136,12 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 			logs.WithFields(s.fields).Debug("Stop requested")
 			checkStopWait.Wait()
 			close(statusChange)
+			if *s.SetServiceAsDownOnShutdown {
+				wait := &sync.WaitGroup{}
+				wait.Add(1)
+				s.Disable(wait)
+				wait.Wait()
+			}
 			for reporter := range s.typedReportersWithReported {
 				reporter.Destroy()
 			}
