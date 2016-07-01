@@ -2,13 +2,13 @@ package nerve
 
 import (
 	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
-	"github.com/n0rad/go-erlog/logs"
-	"strings"
 )
 
 type CheckHttpProxy struct {
@@ -20,7 +20,7 @@ type CheckHttpProxy struct {
 	Urls                 []string
 	FailOnAnyUnreachable bool
 
-	client               http.Client
+	client http.Client
 }
 
 func (x *CheckHttpProxy) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
@@ -84,7 +84,7 @@ func (x *CheckHttpProxy) Check() error {
 	}
 
 	if (x.FailOnAnyUnreachable && failCount > 0) ||
-	(!x.FailOnAnyUnreachable && failCount == len(x.Urls)) {
+		(!x.FailOnAnyUnreachable && failCount == len(x.Urls)) {
 		logs.WithEF(oneErr, x.fields.WithField("count", failCount)).Trace("Enough failed received")
 		return errs.WithEF(oneErr, x.fields, "All urls are unreachable")
 	}
