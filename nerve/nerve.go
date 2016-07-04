@@ -15,13 +15,15 @@ type Nerve struct {
 	Services           []*Service
 	DisableWaitInMilli *int
 
-	nerveVersion     string
-	nerveBuildTime   string
-	failureCount     *prometheus.CounterVec
-	apiListener      net.Listener
-	fields           data.Fields
-	serviceStopper   chan struct{}
-	servicesStopWait sync.WaitGroup
+	nerveVersion         string
+	nerveBuildTime       string
+	checkerFailureCount  *prometheus.CounterVec
+	reporterFailureCount *prometheus.CounterVec
+	availableGauge       *prometheus.GaugeVec
+	apiListener          net.Listener
+	fields               data.Fields
+	serviceStopper       chan struct{}
+	servicesStopWait     sync.WaitGroup
 }
 
 func (n *Nerve) Init(version string, buildTime string) error {
@@ -35,15 +37,35 @@ func (n *Nerve) Init(version string, buildTime string) error {
 		n.DisableWaitInMilli = &val
 	}
 
-	n.failureCount = prometheus.NewCounterVec(
+	n.checkerFailureCount = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "nerve",
-			Name:      "check_failure_total",
+			Name:      "checker_failure_total",
 			Help:      "Counter of failed check",
-		}, []string{"check_type"})
+		}, []string{"name", "type"})
 
-	if err := prometheus.Register(n.failureCount); err != nil {
-		return errs.WithEF(err, n.fields, "Failed to register failure count metrics")
+	n.reporterFailureCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "nerve",
+			Name:      "reporter_failure_total",
+			Help:      "Counter of report failure",
+		}, []string{"name", "type"})
+
+	n.availableGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "nerve",
+			Name:      "service_available",
+			Help:      "service available status",
+		}, []string{"name"})
+
+	if err := prometheus.Register(n.checkerFailureCount); err != nil {
+		return errs.WithEF(err, n.fields, "Failed to register prometheus check_failure_total")
+	}
+	if err := prometheus.Register(n.reporterFailureCount); err != nil {
+		return errs.WithEF(err, n.fields, "Failed to register prometheus reporterFailureCount")
+	}
+	if err := prometheus.Register(n.availableGauge); err != nil {
+		return errs.WithEF(err, n.fields, "Failed to register prometheus service_available")
 	}
 
 	n.serviceStopper = make(chan struct{})

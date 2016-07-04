@@ -30,6 +30,7 @@ type Service struct {
 	DisableGracefullyDoneIntervalInMilli int
 	DisableMaxDurationInMilli            int
 	DisableMinDurationInMilli            int
+	NoMetricsReport                      bool
 
 	nerve                      *Nerve
 	disabled                   error
@@ -51,6 +52,13 @@ const postFullWeightMax = 10
 func (s *Service) Init(n *Nerve) error {
 	logs.WithField("data", s).Info("service loaded") // todo rewrite with conf only
 	s.nerve = n
+
+	if s.Host == "" {
+		s.Host = "127.0.0.1"
+	}
+	if s.Name == "" {
+		s.Name = s.Host + ":" + strconv.Itoa(s.Port)
+	}
 
 	if s.SetServiceAsDownOnShutdown == nil {
 		val := true
@@ -180,6 +188,9 @@ func (s *Service) processStatus(check Check) {
 			logs.WithF(s.fields).Info("Service is available")
 			s.warmup()
 		} else {
+			if !s.NoMetricsReport {
+				s.nerve.availableGauge.WithLabelValues(s.Name).Set(0)
+			}
 			s.currentWeightIndex = 0
 			logs.WithEF(combinedStatus, s.fields).Warn("Service is not available")
 			s.reportAndTellIfAtLeastOneReported(true)
@@ -223,6 +234,10 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 			}
 		} else {
 			s.currentWeightIndex++
+		}
+
+		if !s.NoMetricsReport {
+			s.nerve.availableGauge.WithLabelValues(s.Name).Set(float64(s.CurrentWeight()))
 		}
 
 		if s.currentWeightIndex < len(weights) && !s.reportAndTellIfAtLeastOneReported(true) {
@@ -270,6 +285,9 @@ func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 			logs.WithFields(s.fields).WithField("reporter", reporter).WithField("report", report).Debug("Sending report")
 			if err := reporter.Report(report); err != nil {
 				logs.WithEF(err, s.fields.WithFields(reporter.GetFields())).Error("Failed to report")
+				if !s.NoMetricsReport {
+					s.nerve.reporterFailureCount.WithLabelValues(s.Name, reporter.getCommon().Type).Inc()
+				}
 				s.typedReportersWithReported[reporter] = false
 			} else {
 				s.typedReportersWithReported[reporter] = true

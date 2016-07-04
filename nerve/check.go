@@ -5,7 +5,6 @@ import (
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"github.com/prometheus/client_golang/prometheus"
 	"net"
 	"sync"
 	"time"
@@ -32,10 +31,10 @@ type CheckCommon struct {
 	Fall                 int
 	CheckIntervalInMilli int
 
-	failureCount   *prometheus.CounterVec
 	fields         data.Fields
 	stableStatus   *error
 	latestStatuses []error
+	service        *Service
 }
 
 func (c *CheckCommon) GetFields() data.Fields {
@@ -43,7 +42,7 @@ func (c *CheckCommon) GetFields() data.Fields {
 }
 
 func (c *CheckCommon) CommonInit(s *Service) error {
-	c.failureCount = s.nerve.failureCount
+	c.service = s
 	if c.TimeoutInMilli == 0 {
 		c.TimeoutInMilli = 1000
 	}
@@ -101,8 +100,8 @@ func (c *CheckCommon) CommonRun(checker Checker, statusChange chan<- Check, stop
 		if logs.IsTraceEnabled() {
 			logs.WithEF(status, c.fields).Trace("Check done")
 		}
-		if status != nil {
-			c.failureCount.WithLabelValues(c.Type).Inc()
+		if status != nil && !c.service.NoMetricsReport {
+			c.service.nerve.checkerFailureCount.WithLabelValues(c.service.Name, c.Type).Inc()
 		}
 		c.saveStatus(status)
 

@@ -1,6 +1,7 @@
 
 services:
   - host: 127.0.0.1
+    NoMetricsReport: true
     port: 4242
     checks:
       - {type: http}
