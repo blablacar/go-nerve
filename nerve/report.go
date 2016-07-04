@@ -8,7 +8,7 @@ type Report struct {
 	Port                 int               `json:"port,omitempty"`
 	Name                 string            `json:"name,omitempty"`
 	HaProxyServerOptions string            `json:"haproxy_server_options,omitempty"`
-	Weight               uint8             `json:"weight,omitempty"`
+	Weight               uint8             `json:"weight"`
 	Labels               map[string]string `json:"labels,omitempty"`
 }
 

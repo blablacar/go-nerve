@@ -15,6 +15,7 @@ type ReporterZookeeper struct {
 	Path                   string
 	Hosts                  []string
 	RefreshIntervalInMilli int
+	ExposeOnUnavailable    bool
 
 	report      Report
 	reportMutex sync.Mutex
@@ -60,7 +61,7 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 	}
 
 	exists, _, _ := r.connection.Exists(r.currentNode)
-	if r.report.Available {
+	if r.report.Available || r.ExposeOnUnavailable {
 		content, err := r.report.toJson()
 		if err != nil {
 			return errs.WithEF(err, r.fields, "Failed to prepare report")
