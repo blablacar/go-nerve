@@ -6,7 +6,8 @@ import (
 )
 
 func TestCurrentWeight(t *testing.T) {
-	s := Service{currentWeightIndex: 0, Weight: 100}
+	var status error = nil
+	s := Service{currentWeightIndex: 0, Weight: 100, currentStatus: &status}
 	require.Equal(t, s.CurrentWeight(), uint8(1))
 	s.currentWeightIndex = 1
 	require.Equal(t, s.CurrentWeight(), uint8(1))
@@ -37,7 +38,8 @@ func TestCurrentWeight(t *testing.T) {
 }
 
 func TestCurrentWeight2(t *testing.T) {
-	s := Service{currentWeightIndex: 0, Weight: 1}
+	var status error = nil
+	s := Service{currentWeightIndex: 0, Weight: 1, currentStatus: &status}
 	require.Equal(t, s.CurrentWeight(), uint8(1))
 	s.currentWeightIndex = 1
 	require.Equal(t, s.CurrentWeight(), uint8(1))
