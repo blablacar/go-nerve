@@ -76,15 +76,12 @@ build() {
     for e in "${current[@]}"; do
         echo_green "Building $e"
 
-        GOOS="${e%-*}" GOARCH="${e#*-}" \
-        $(cd ${work_path} && godep go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.Version=${version}-`git rev-parse --short HEAD`" \
+        $(cd ${work_path} && GOOS="${e%-*}" GOARCH="${e#*-}" godep go build -ldflags "-s -w -X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.Version=${version}-`git rev-parse --short HEAD`" \
             -o ${target_name}/${app}-v${version}-${e}/${app})
 
         if [ ${upx} ]; then
-            if [ "${e%-*}" != "darwin" ]; then
-                echo_green "Compressing ${e}"
-                upx ${work_path}/${target_name}/${app}-v${version}-${e}/${app} &> /dev/null
-            fi
+            echo_green "Compressing ${e}"
+            upx ${work_path}/${target_name}/${app}-v${version}-${e}/${app} &> /dev/null
         fi
 
         if [ "${e%-*}" == "windows" ]; then
