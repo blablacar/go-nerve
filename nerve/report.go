@@ -4,6 +4,7 @@ import "encoding/json"
 
 type Report struct {
 	Available            bool              `json:"available"`
+	UnavailableReason    string            `json:"unavailable_reason,omitempty"`
 	Host                 string            `json:"host,omitempty"`
 	Port                 int               `json:"port,omitempty"`
 	Name                 string            `json:"name,omitempty"`
@@ -23,7 +24,7 @@ func (r *Report) toJson() ([]byte, error) {
 }
 
 func toReport(status error, s *Service) Report {
-	return Report{
+	r := Report{
 		Available:            status == nil,
 		Host:                 s.Host,
 		Port:                 s.Port,
@@ -32,4 +33,8 @@ func toReport(status error, s *Service) Report {
 		HaProxyServerOptions: s.HaproxyServerOptions,
 		Labels:               s.Labels,
 	}
+	if status != nil {
+		r.UnavailableReason = status.Error()
+	}
+	return r
 }

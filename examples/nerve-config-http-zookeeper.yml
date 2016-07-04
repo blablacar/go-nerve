@@ -9,7 +9,7 @@ services:
     checks:
       - {type: http, path: /version, timeoutInMilli: 1000}
     reporters:
-      - {type: zookeeper, path: /services/api/myapi, hosts : ['127.0.0.1:2181']} #  , exposeOnUnavailable: true
+      - {type: zookeeper, path: /services/api/myapi, hosts : ['127.0.0.1:2181'], exposeOnUnavailable: true} #  , exposeOnUnavailable: true
     haproxyServerOptions: backup
     labels:
       service: superApi
