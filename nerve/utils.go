@@ -46,7 +46,7 @@ func max(val1 int, val2 int) int {
 	return val2
 }
 
-func execCommand(cmd []string, timeoutInMilli int) error {
+func ExecCommand(cmd []string, timeoutInMilli int) error {
 	command := exec.Command(cmd[0], cmd[1:]...)
 	var b bytes.Buffer
 	command.Stdout = &b

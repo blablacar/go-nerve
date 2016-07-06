@@ -45,7 +45,7 @@ func (x *CheckHttp) Init(s *Service) error {
 
 func (x *CheckHttp) Check() error {
 	resp, err := x.client.Get(x.url)
-	if err != nil {
+	if err == nil {
 		resp.Body.Close()
 	}
 	if err != nil || (resp.StatusCode >= 500 && resp.StatusCode < 600) {

@@ -226,7 +226,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 	s.reportAndTellIfAtLeastOneReported(true)
 	for {
 		if len(s.EnableCheckStableCommand) > 0 {
-			if err := execCommand(s.EnableCheckStableCommand, s.EnableWarmupIntervalInMilli); err != nil {
+			if err := ExecCommand(s.EnableCheckStableCommand, s.EnableWarmupIntervalInMilli); err != nil {
 				logs.WithEF(err, s.fields).Warn("Check stable command failed. Reset weight")
 				s.currentWeightIndex = 0
 			} else {
@@ -328,7 +328,7 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
 	if len(s.DisableGracefullyDoneCommand) > 0 {
 		for {
 			var err error
-			if err = execCommand(s.DisableGracefullyDoneCommand, s.DisableGracefullyDoneIntervalInMilli); err == nil {
+			if err = ExecCommand(s.DisableGracefullyDoneCommand, s.DisableGracefullyDoneIntervalInMilli); err == nil {
 				logs.WithF(s.fields).Debug("Gracefull check succeed")
 				break
 			}
