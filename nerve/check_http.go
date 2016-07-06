@@ -46,9 +46,11 @@ func (x *CheckHttp) Init(s *Service) error {
 func (x *CheckHttp) Check() error {
 	resp, err := x.client.Get(x.url)
 	if err != nil {
-		return errs.WithEF(err, x.fields, "Call failed")
+		resp.Body.Close()
 	}
-	resp.Body.Close()
+	if err != nil || (resp.StatusCode >= 500 && resp.StatusCode < 600) {
+		return errs.WithEF(err, x.fields, "Url check failed")
+	}
 	return nil
 }
 

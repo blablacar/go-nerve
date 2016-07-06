@@ -63,11 +63,12 @@ func (x *CheckHttpProxy) Check() error {
 		go func(url string) {
 			var res error
 			resp, err := x.client.Get(url)
+			if err != nil {
+				resp.Body.Close()
+			}
 			if err != nil || (resp.StatusCode >= 500 && resp.StatusCode < 600) {
 				res = errs.WithEF(err, x.fields.WithField("url", url), "Url check failed")
 				logs.WithEF(err, x.fields).Trace("Url check failed")
-			} else {
-				resp.Body.Close()
 			}
 			result <- res
 		}(url)
