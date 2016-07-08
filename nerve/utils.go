@@ -47,10 +47,15 @@ func max(val1 int, val2 int) int {
 }
 
 func ExecCommand(cmd []string, timeoutInMilli int) error {
+	return ExecCommandFull(cmd, []string{}, timeoutInMilli)
+}
+
+func ExecCommandFull(cmd []string, env []string, timeoutInMilli int) error {
 	command := exec.Command(cmd[0], cmd[1:]...)
 	var b bytes.Buffer
 	command.Stdout = &b
 	command.Stderr = &b
+	command.Env = env
 
 	if err := command.Start(); err != nil {
 		return errs.WithEF(err, data.WithField("cmd", cmd), "Failed to start command")
