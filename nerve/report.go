@@ -9,7 +9,7 @@ type Report struct {
 	Port                 int               `json:"port,omitempty"`
 	Name                 string            `json:"name,omitempty"`
 	HaProxyServerOptions string            `json:"haproxy_server_options,omitempty"`
-	Weight               uint8             `json:"weight"`
+	Weight               *uint8            `json:"weight"`
 	Labels               map[string]string `json:"labels,omitempty"`
 }
 
@@ -24,12 +24,13 @@ func (r *Report) toJson() ([]byte, error) {
 }
 
 func toReport(status error, s *Service) Report {
+	weight := s.CurrentWeight()
 	r := Report{
 		Available:            status == nil,
 		Host:                 s.Host,
 		Port:                 s.Port,
 		Name:                 s.Name,
-		Weight:               s.CurrentWeight(),
+		Weight:               &weight,
 		HaProxyServerOptions: s.HaproxyServerOptions,
 		Labels:               s.Labels,
 	}

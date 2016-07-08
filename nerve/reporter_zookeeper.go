@@ -147,17 +147,17 @@ func (r *ReporterZookeeper) Connect() (zk.State, error) {
 		return zk.StateDisconnected, errs.WithEF(err, r.fields, "Unable to connect to ZooKeeper")
 	}
 	r.connection = conn
-	r.connection.SetLogger(zkLogger{r: r})
+	r.connection.SetLogger(ZKLogger{r: r})
 	r.connection = conn
 	state := r.connection.State()
 	return state, nil
 }
 
-type zkLogger struct {
+type ZKLogger struct {
 	r *ReporterZookeeper
 }
 
-func (zl zkLogger) Printf(format string, data ...interface{}) {
+func (zl ZKLogger) Printf(format string, data ...interface{}) {
 	logs.WithF(zl.r.fields).Debug("Zookeeper: " + fmt.Sprintf(format, data))
 }
 

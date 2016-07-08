@@ -10,9 +10,11 @@ import (
 	_ "github.com/n0rad/go-erlog/register"
 	"github.com/spf13/cobra"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var Version = "No Version Defined"
@@ -41,6 +43,7 @@ func waitForSignal() {
 }
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	var logLevel string
 	var version bool
 
