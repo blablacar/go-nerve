@@ -21,7 +21,7 @@ func init() {
 
 type SharedZkConnection struct {
 	hash       string
-	conn       *zk.Conn
+	Conn       *zk.Conn
 	err        error
 	syncMutex  sync.Mutex
 	recipients []chan zk.Event
@@ -50,7 +50,7 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 		conn.SetLogger(ZKLogger{})
 		zkConnections[hash] = &SharedZkConnection{
 			hash: hash,
-			conn: conn,
+			Conn: conn,
 			err: err,
 			sourceChan: channel,
 		}
@@ -66,7 +66,7 @@ func (z *SharedZkConnection) Close() {
 	defer z.syncMutex.Unlock()
 
 	if z.closed {
-		z.conn.Close()
+		z.Conn.Close()
 		for _, newChan := range z.recipients {
 			close(newChan)
 		}

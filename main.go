@@ -44,6 +44,7 @@ func waitForSignal() {
 
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
+
 	var logLevel string
 	var version bool
 
