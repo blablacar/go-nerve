@@ -56,32 +56,32 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 			sourceChan: channel,
 		}
 
+		go func(sharedZk *SharedZkConnection) {
+			events := sharedZk.Subscribe()
+			for {
+				select {
+				case e, ok := <-events:
+					if !ok {
+						return
+					}
+					if e.Type == zk.EventSession && e.State == zk.StateHasSession {
+						if sharedZk.connected == false {
+							logs.WithF(data.WithField("servers", hosts)).Info("Connected to zk")
+						}
+						sharedZk.connected = true
+					} else if (e.Type == zk.EventSession || e.Type == zk.EventType(0)) &&
+					(e.State == zk.StateDisconnected || e.State == zk.StateExpired) {
+						if sharedZk.connected == true {
+							logs.WithF(data.WithField("servers", hosts)).Warn("Connection lost to zk")
+						}
+						sharedZk.connected = false
+					}
+				}
+			}
+		}(zkConnections[hash])
 	}
 	go zkConnections[hash].recipientListPublish()
 
-	go func(sharedZk *SharedZkConnection) {
-		events := sharedZk.Subscribe()
-		for {
-			select {
-			case e, ok := <-events:
-				if !ok {
-					return
-				}
-				if e.Type == zk.EventSession && e.State == zk.StateHasSession {
-					if sharedZk.connected == false {
-						logs.WithF(data.WithField("servers", hosts)).Info("Connected to zk")
-					}
-					sharedZk.connected = true
-				} else if (e.Type == zk.EventSession || e.Type == zk.EventType(0)) &&
-				(e.State == zk.StateDisconnected || e.State == zk.StateExpired) {
-					if sharedZk.connected == true {
-						logs.WithF(data.WithField("servers", hosts)).Warn("Connection lost to zk")
-					}
-					sharedZk.connected = false
-				}
-			}
-		}
-	}(zkConnections[hash])
 
 	return zkConnections[hash], zkConnections[hash].err
 }
