@@ -284,12 +284,17 @@ func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 		if required || !reported {
 			logs.WithFields(s.fields).WithField("reporter", reporter).WithField("report", report).Debug("Sending report")
 			if err := reporter.Report(report); err != nil {
-				logs.WithEF(err, s.fields.WithFields(reporter.GetFields())).Error("Failed to report")
+				if reported == true {
+					logs.WithEF(err, s.fields.WithFields(reporter.GetFields())).Error("Failed to report")
+				}
 				if !s.NoMetrics {
 					s.nerve.reporterFailureCount.WithLabelValues(s.Name, reporter.getCommon().Type).Inc()
 				}
 				s.typedReportersWithReported[reporter] = false
 			} else {
+				if reported == false {
+					logs.WithF(s.fields).Info("Reported with success")
+				}
 				s.typedReportersWithReported[reporter] = true
 				globalReported++
 			}
