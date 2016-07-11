@@ -8,6 +8,7 @@ import (
 	"time"
 	"fmt"
 	"github.com/n0rad/go-erlog/logs"
+	"github.com/n0rad/go-erlog/data"
 )
 
 var zkConnectionsMutex sync.Mutex
@@ -17,9 +18,8 @@ func init() {
 	zkConnections = make(map[string]*SharedZkConnection)
 }
 
-
-
 type SharedZkConnection struct {
+	hosts      []string
 	hash       string
 	Conn       *zk.Conn
 	err        error
@@ -27,6 +27,7 @@ type SharedZkConnection struct {
 	recipients []chan zk.Event
 	sourceChan <-chan zk.Event
 	closed     bool
+	connected  bool
 }
 
 type ZKLogger struct {
@@ -57,6 +58,30 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 
 	}
 	go zkConnections[hash].recipientListPublish()
+
+	go func(sharedZk *SharedZkConnection) {
+		events := sharedZk.Subscribe()
+		for {
+			select {
+			case e, ok := <-events:
+				if !ok {
+					return
+				}
+				if e.Type == zk.EventSession && e.State == zk.StateHasSession {
+					if sharedZk.connected == false {
+						logs.WithF(data.WithField("servers", hosts)).Info("Connected to zk")
+					}
+					sharedZk.connected = true
+				} else if (e.Type == zk.EventSession || e.Type == zk.EventType(0)) &&
+				(e.State == zk.StateDisconnected || e.State == zk.StateExpired) {
+					if sharedZk.connected == true {
+						logs.WithF(data.WithField("servers", hosts)).Warn("Connection lost to zk")
+					}
+					sharedZk.connected = false
+				}
+			}
+		}
+	}(zkConnections[hash])
 
 	return zkConnections[hash], zkConnections[hash].err
 }
