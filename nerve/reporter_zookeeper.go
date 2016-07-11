@@ -1,7 +1,6 @@
 package nerve
 
 import (
-	"fmt"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/samuel/go-zookeeper/zk"
@@ -20,7 +19,7 @@ type ReporterZookeeper struct {
 	report      Report
 	reportMutex sync.Mutex
 	stopChecker chan struct{}
-	connection  *zk.Conn
+	connection  *SharedZkConnection
 	fullPath    string
 	currentNode string
 }
@@ -60,7 +59,7 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 		return errs.WithEF(err, r.fields.WithField("state", state), "Failed to connect to zookeeper")
 	}
 
-	exists, _, _ := r.connection.Exists(r.currentNode)
+	exists, _, _ := r.connection.conn.Exists(r.currentNode)
 	if r.report.Available || r.ExposeOnUnavailable {
 		content, err := r.report.toJson()
 		if err != nil {
@@ -77,13 +76,13 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 				return errs.WithEF(err, r.fields, "Cannot create static path")
 			}
 			//Don't use Create, as it's an ephemeral zk node, and there's some race condition to avoid
-			r.currentNode, err = r.connection.CreateProtectedEphemeralSequential(r.fullPath, content, acl)
+			r.currentNode, err = r.connection.conn.CreateProtectedEphemeralSequential(r.fullPath, content, acl)
 			if err != nil {
 				return errs.WithEF(err, r.fields.WithField("fullpath", r.fullPath), "Cannot create path")
 			}
 		} else {
 			logs.WithF(r.fields).Debug("writting data")
-			_, err := r.connection.Set(r.currentNode, content, -1)
+			_, err := r.connection.conn.Set(r.currentNode, content, -1)
 			if err != nil {
 				return errs.WithE(err, "Failed to write status")
 			}
@@ -91,7 +90,7 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 	} else {
 		if exists {
 			logs.WithF(r.fields).Debug("delete")
-			err = r.connection.Delete(r.currentNode, -1)
+			err = r.connection.conn.Delete(r.currentNode, -1)
 			if err != nil {
 				return errs.WithEF(err, r.fields.WithField("fullpath", r.fullPath), "Cannot delete node")
 			}
@@ -129,7 +128,7 @@ func (r *ReporterZookeeper) refresher() {
 
 func (r *ReporterZookeeper) Connect() (zk.State, error) {
 	if r.connection != nil {
-		state := r.connection.State()
+		state := r.connection.conn.State()
 		switch state {
 		case zk.StateUnknown, zk.StateConnectedReadOnly, zk.StateExpired, zk.StateAuthFailed, zk.StateConnecting:
 			logs.WithFields(r.fields).WithField("state", state).Warn("Connection is in bad state")
@@ -141,24 +140,14 @@ func (r *ReporterZookeeper) Connect() (zk.State, error) {
 			logs.WithFields(r.fields).Info("Reporter Connection is Disconnected -> Reconnection")
 		}
 	}
-	conn, _, err := zk.Connect(r.Hosts, 10*time.Second)
+	SharedConn, err := NewSharedZkConnection(r.Hosts, 10*time.Second)
 	if err != nil {
 		r.connection = nil
 		return zk.StateDisconnected, errs.WithEF(err, r.fields, "Unable to connect to ZooKeeper")
 	}
-	r.connection = conn
-	r.connection.SetLogger(ZKLogger{r: r})
-	r.connection = conn
-	state := r.connection.State()
+	r.connection = SharedConn
+	state := r.connection.conn.State()
 	return state, nil
-}
-
-type ZKLogger struct {
-	r *ReporterZookeeper
-}
-
-func (zl ZKLogger) Printf(format string, data ...interface{}) {
-	logs.WithF(zl.r.fields).Debug("Zookeeper: " + fmt.Sprintf(format, data))
 }
 
 func (r *ReporterZookeeper) mkdirStaticPath(acl []zk.ACL) error {
@@ -169,13 +158,13 @@ func (r *ReporterZookeeper) mkdirStaticPath(acl []zk.ACL) error {
 			full += "/"
 		}
 		full += path
-		if exists, _, _ := r.connection.Exists(full); exists {
+		if exists, _, _ := r.connection.conn.Exists(full); exists {
 			continue
 		}
 
 		logs.WithFields(r.fields.WithField("full", full)).Debug("Creating zk path")
 
-		_, err := r.connection.Create(full, []byte(""), int32(0), acl)
+		_, err := r.connection.conn.Create(full, []byte(""), int32(0), acl)
 		if err != nil {
 			return errs.WithEF(err, r.fields.WithField("path", full), "Cannot create path")
 		}
