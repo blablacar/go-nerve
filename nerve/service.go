@@ -256,6 +256,9 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 		if time.Now().After(start.Add(time.Duration(s.EnableWarmupMaxDurationInMilli) * time.Millisecond)) {
 			logs.WithF(s.fields).Warn("Warmup reach max duration. set Full Weight")
 			s.currentWeightIndex = len(weights) - 1
+			if !s.NoMetrics {
+				s.nerve.availableGauge.WithLabelValues(s.Name).Set(float64(s.CurrentWeight()))
+			}
 			s.reportAndTellIfAtLeastOneReported(true)
 			return
 		}
