@@ -17,17 +17,17 @@ type ReporterZookeeper struct {
 	RefreshIntervalInMilli   int
 	ExposeOnUnavailable      bool
 
-	report                   Report
-	reportMutex              sync.Mutex
-	stopChecker              chan struct{}
-	connection               *SharedZkConnection
-	fullPath                 string
-	currentNode              string
+	report      Report
+	reportMutex sync.Mutex
+	stopChecker chan struct{}
+	connection  *SharedZkConnection
+	fullPath    string
+	currentNode string
 }
 
 func NewReporterZookeeper() *ReporterZookeeper {
 	return &ReporterZookeeper{
-		RefreshIntervalInMilli: 5 * 60 * 1000, // 5min
+		RefreshIntervalInMilli:   5 * 60 * 1000, // 5min
 		ConnectionTimeoutInMilli: 2000,
 	}
 }
@@ -41,7 +41,7 @@ func (r *ReporterZookeeper) Init(s *Service) error {
 	r.fullPath = r.Path + "/" + s.Name + "_" + s.Host + "_"
 	r.currentNode = r.fullPath
 
-	conn, err := NewSharedZkConnection(r.Hosts, time.Duration(r.ConnectionTimeoutInMilli) * time.Millisecond)
+	conn, err := NewSharedZkConnection(r.Hosts, time.Duration(r.ConnectionTimeoutInMilli)*time.Millisecond)
 	if err != nil {
 		return errs.WithEF(err, r.fields, "Failed to prepare connection to zookeeper")
 	}

@@ -1,14 +1,14 @@
 package nerve
 
 import (
+	"fmt"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/logs"
 	"github.com/samuel/go-zookeeper/zk"
-	"sync"
 	"sort"
 	"strings"
+	"sync"
 	"time"
-	"fmt"
-	"github.com/n0rad/go-erlog/logs"
-	"github.com/n0rad/go-erlog/data"
 )
 
 var zkConnectionsMutex sync.Mutex
@@ -50,9 +50,9 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 		conn, channel, err := zk.Connect(hosts, timeout)
 		conn.SetLogger(ZKLogger{})
 		zkConnections[hash] = &SharedZkConnection{
-			hash: hash,
-			Conn: conn,
-			err: err,
+			hash:       hash,
+			Conn:       conn,
+			err:        err,
 			sourceChan: channel,
 		}
 
@@ -70,7 +70,7 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 						}
 						sharedZk.connected = true
 					} else if (e.Type == zk.EventSession || e.Type == zk.EventType(0)) &&
-					(e.State == zk.StateDisconnected || e.State == zk.StateExpired) {
+						(e.State == zk.StateDisconnected || e.State == zk.StateExpired) {
 						if sharedZk.connected == true {
 							logs.WithF(data.WithField("servers", hosts)).Warn("Connection lost to zk")
 						}
@@ -81,7 +81,6 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 		}(zkConnections[hash])
 	}
 	go zkConnections[hash].recipientListPublish()
-
 
 	return zkConnections[hash], zkConnections[hash].err
 }

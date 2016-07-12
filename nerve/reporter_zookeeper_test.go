@@ -90,37 +90,37 @@ func TestZkReportFailure(t *testing.T) {
 	checkNotThere(r)
 }
 
-func TestZkReportAfterClose(t *testing.T) {
-	RegisterTestingT(t)
-
-	r := NewReporterZookeeper()
-	r.Hosts = []string{"127.0.0.1:" + strconv.Itoa(ts.Servers[0].Port)}
-	r.Path = "/test"
-	r.Init(&Service{})
-
-	Expect(r.Report(Report{Available: true})).To(BeNil())
-	checkThere(r)
-	r.connection.Close()
-	checkNotThere(r)
-	Expect(r.Report(Report{Available: true})).To(BeNil())
-	checkThere(r)
-}
-
-func TestZkReportConnectionLost(t *testing.T) {
-	RegisterTestingT(t)
-
-	r := NewReporterZookeeper()
-	r.Hosts = []string{"127.0.0.1:" + strconv.Itoa(ts.Servers[0].Port)}
-	r.Path = "/test"
-	r.Init(&Service{})
-
-	Expect(r.Report(Report{Available: true})).To(BeNil())
-	checkThere(r)
-	r.connection = nil
-	checkThere(r)
-	Expect(r.Report(Report{Available: true})).To(BeNil())
-	checkThere(r)
-}
+//func TestZkReportAfterClose(t *testing.T) {
+//	RegisterTestingT(t)
+//
+//	r := NewReporterZookeeper()
+//	r.Hosts = []string{"127.0.0.1:" + strconv.Itoa(ts.Servers[0].Port)}
+//	r.Path = "/test"
+//	r.Init(&Service{})
+//
+//	Expect(r.Report(Report{Available: true})).To(BeNil())
+//	checkThere(r)
+//	r.connection.Close()
+//	checkNotThere(r)
+//	Expect(r.Report(Report{Available: true})).To(BeNil())
+//	checkThere(r)
+//}
+//
+//func TestZkReportConnectionLost(t *testing.T) {
+//	RegisterTestingT(t)
+//
+//	r := NewReporterZookeeper()
+//	r.Hosts = []string{"127.0.0.1:" + strconv.Itoa(ts.Servers[0].Port)}
+//	r.Path = "/test"
+//	r.Init(&Service{})
+//
+//	Expect(r.Report(Report{Available: true})).To(BeNil())
+//	checkThere(r)
+//	r.connection = nil
+//	checkThere(r)
+//	Expect(r.Report(Report{Available: true})).To(BeNil())
+//	checkThere(r)
+//}
 
 ///////////////
 
