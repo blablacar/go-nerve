@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 	"unsafe"
+	"strings"
 )
 
 func (n *Nerve) DisableServices() error {
@@ -27,9 +28,16 @@ func (n *Nerve) DisableServices() error {
 	return nil
 }
 
-func (n *Nerve) EnableServices() error {
+func (n *Nerve) EnableServices(ctx *macaron.Context) error {
 	for _, service := range n.Services {
-		service.Enable()
+		forceStr := ctx.QueryTrim("force")
+		forceStr = strings.ToUpper(forceStr)
+
+		force := false
+		if strings.HasPrefix(forceStr, "Y") || strings.HasPrefix(forceStr, "1") {
+			force = true
+		}
+		service.Enable(force)
 	}
 	return nil
 }
@@ -38,7 +46,9 @@ func (n *Nerve) ServiceStatus() string {
 	var statuses string
 	for _, service := range n.Services {
 		state := service.Host + ":" + strconv.Itoa(service.Port) + " "
-		if service.disabled == nil {
+		if service.forceEnable {
+			state += "forced"
+		} else if service.disabled == nil {
 			state += "enabled"
 		} else {
 			state += "disabled"
@@ -91,7 +101,7 @@ func (n *Nerve) startApi() error {
 	m.Get("/status", n.ServiceStatus)
 	m.Get("/metrics", prometheus.Handler())
 	m.Get("/", func() string {
-		return `/enable
+		return `/enable[?force=true]
 /disable
 /status
 /metrics

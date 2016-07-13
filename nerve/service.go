@@ -32,17 +32,18 @@ type Service struct {
 	DisableMinDurationInMilli            int
 	NoMetrics                            bool
 
-	nerve                      *Nerve
-	disabled                   error
-	disableMutex               sync.Mutex
-	warmupGiveUp               chan struct{}
-	warmupMutex                sync.Mutex
-	warmupGiveUpMutex          sync.Mutex
-	currentWeightIndex         int
-	currentStatus              *error
-	typedCheckersWithStatus    map[Checker]*error
-	typedReportersWithReported map[Reporter]bool
-	fields                     data.Fields
+	nerve                                *Nerve
+	forceEnable                          bool
+	disabled                             error
+	disableMutex                         sync.Mutex
+	warmupGiveUp                         chan struct{}
+	warmupMutex                          sync.Mutex
+	warmupGiveUpMutex                    sync.Mutex
+	currentWeightIndex                   int
+	currentStatus                        *error
+	typedCheckersWithStatus              map[Checker]*error
+	typedReportersWithReported           map[Reporter]bool
+	fields                               data.Fields
 }
 
 var weights = []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233}
@@ -91,7 +92,7 @@ func (s *Service) Init(n *Nerve) error {
 	s.typedReportersWithReported = make(map[Reporter]bool)
 	s.typedCheckersWithStatus = make(map[Checker]*error)
 
-	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
+	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
 	for _, data := range s.Checks {
 		checker, err := CheckerFromJson(data, s)
 		if err != nil {
@@ -178,8 +179,8 @@ func (s *Service) processStatus(check Check) {
 	}
 
 	if s.currentStatus == nil ||
-		(*s.currentStatus == nil && combinedStatus != nil) ||
-		(*s.currentStatus != nil && combinedStatus == nil) {
+	(*s.currentStatus == nil && combinedStatus != nil) ||
+	(*s.currentStatus != nil && combinedStatus == nil) {
 		s.currentStatus = &combinedStatus
 
 		s.giveUpWarmup()
@@ -245,7 +246,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 			s.currentWeightIndex = 0
 		}
 
-		if s.currentWeightIndex > postFullWeightMax+len(weights) {
+		if s.currentWeightIndex > postFullWeightMax + len(weights) {
 			logs.WithF(s.fields).Debug("Service is fully stable")
 			s.warmupMutex.Lock()
 			defer s.warmupMutex.Unlock()
@@ -278,7 +279,10 @@ func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 		return false // no status yet
 	}
 	status := *s.currentStatus
-	if s.disabled != nil {
+	if s.forceEnable {
+		var e error
+		status = e
+	} else  if s.disabled != nil {
 		status = s.disabled
 	}
 	report := toReport(status, s)
@@ -312,10 +316,10 @@ func (s *Service) CurrentWeight() uint8 {
 	}
 
 	index := s.currentWeightIndex
-	if s.currentWeightIndex > len(weights)-1 {
+	if s.currentWeightIndex > len(weights) - 1 {
 		index = len(weights) - 1
 	}
-	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights)-1]))
+	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights) - 1]))
 	if res == 0 {
 		res++
 	}
@@ -330,6 +334,7 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
 	s.giveUpWarmup()
 
 	start := time.Now()
+	s.forceEnable = false
 	s.disabled = errs.With("Service is disabled")
 	s.reportAndTellIfAtLeastOneReported(true)
 
@@ -354,9 +359,11 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
 	time.Sleep(start.Add(time.Duration(s.DisableMinDurationInMilli) * time.Millisecond).Sub(time.Now()))
 }
 
-func (s *Service) Enable() {
+func (s *Service) Enable(force bool) {
+	logs.WithF(s.fields.WithField("force", force)).Info("Enabling service")
 	s.disableMutex.Lock()
 	defer s.disableMutex.Unlock()
+	s.forceEnable = force
 	s.disabled = nil
 	if s.warmupGiveUp == nil {
 		s.warmup()
