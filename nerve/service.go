@@ -32,18 +32,18 @@ type Service struct {
 	DisableMinDurationInMilli            int
 	NoMetrics                            bool
 
-	nerve                                *Nerve
-	forceEnable                          bool
-	disabled                             error
-	disableMutex                         sync.Mutex
-	warmupGiveUp                         chan struct{}
-	warmupMutex                          sync.Mutex
-	warmupGiveUpMutex                    sync.Mutex
-	currentWeightIndex                   int
-	currentStatus                        *error
-	typedCheckersWithStatus              map[Checker]*error
-	typedReportersWithReported           map[Reporter]bool
-	fields                               data.Fields
+	nerve                      *Nerve
+	forceEnable                bool
+	disabled                   error
+	runNotifyMutex             sync.Mutex
+	warmupGiveUp               chan struct{}
+	warmupMutex                sync.Mutex
+	warmupGiveUpMutex          sync.Mutex
+	currentWeightIndex         int
+	currentStatus              *error
+	typedCheckersWithStatus    map[Checker]*error
+	typedReportersWithReported map[Reporter]bool
+	fields                     data.Fields
 }
 
 var weights = []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233}
@@ -92,7 +92,7 @@ func (s *Service) Init(n *Nerve) error {
 	s.typedReportersWithReported = make(map[Reporter]bool)
 	s.typedCheckersWithStatus = make(map[Checker]*error)
 
-	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
+	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
 	for _, data := range s.Checks {
 		checker, err := CheckerFromJson(data, s)
 		if err != nil {
@@ -140,7 +140,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 		select {
 		case status := <-statusChange:
 			logs.WithF(s.fields.WithField("status", status)).Debug("New status received")
-			s.processStatus(status)
+			s.processCheckResult(status)
 		case <-stopper:
 			logs.WithFields(s.fields).Debug("Stop requested")
 			checkStopWait.Wait()
@@ -161,7 +161,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 	}
 }
 
-func (s *Service) processStatus(check Check) {
+func (s *Service) processCheckResult(check Check) {
 	s.typedCheckersWithStatus[check.Checker] = &check.Status
 	var combinedStatus error
 	for _, status := range s.typedCheckersWithStatus {
@@ -179,26 +179,35 @@ func (s *Service) processStatus(check Check) {
 	}
 
 	if s.currentStatus == nil ||
-	(*s.currentStatus == nil && combinedStatus != nil) ||
-	(*s.currentStatus != nil && combinedStatus == nil) {
+		(*s.currentStatus == nil && combinedStatus != nil) ||
+		(*s.currentStatus != nil && combinedStatus == nil) {
 		s.currentStatus = &combinedStatus
-
-		s.giveUpWarmup()
-
-		if combinedStatus == nil {
-			logs.WithF(s.fields).Info("Service is available")
-			s.warmup()
-		} else {
-			if !s.NoMetrics {
-				s.nerve.availableGauge.WithLabelValues(s.Name).Set(0)
-			}
-			s.currentWeightIndex = 0
-			logs.WithEF(combinedStatus, s.fields).Warn("Service is not available")
-			s.reportAndTellIfAtLeastOneReported(true)
-		}
-
+		s.runNotify()
 	} else {
 		logs.WithF(s.fields).Debug("Combined status is same as previous, no report required")
+	}
+}
+
+func (s *Service) runNotify() {
+	s.runNotifyMutex.Lock()
+	defer s.runNotifyMutex.Unlock()
+
+	s.giveUpWarmup()
+	if s.currentStatus == nil {
+		logs.WithF(s.fields).Info("No status to notify")
+		return
+	}
+
+	if (*s.currentStatus == nil && s.disabled == nil) || s.forceEnable {
+		logs.WithF(s.fields).Info("Service is available")
+		s.warmup()
+	} else {
+		if !s.NoMetrics {
+			s.nerve.availableGauge.WithLabelValues(s.Name).Set(0)
+		}
+		s.currentWeightIndex = 0
+		logs.WithEF(*s.currentStatus, s.fields).Warn("Service is not available")
+		s.reportAndTellIfAtLeastOneReported(true)
 	}
 }
 
@@ -224,8 +233,12 @@ func (s *Service) warmup() {
 func (s *Service) Warmup(giveUp <-chan struct{}) {
 	start := time.Now()
 	s.currentWeightIndex = 0
-	s.reportAndTellIfAtLeastOneReported(true)
 	for {
+		if s.currentWeightIndex < len(weights) && !s.reportAndTellIfAtLeastOneReported(true) {
+			logs.WithF(s.fields).Debug("No report succeed. Reset weight")
+			s.currentWeightIndex = 0
+		}
+
 		if len(s.EnableCheckStableCommand) > 0 {
 			if err := ExecCommand(s.EnableCheckStableCommand, s.EnableWarmupIntervalInMilli); err != nil {
 				logs.WithEF(err, s.fields).Warn("Check stable command failed. Reset weight")
@@ -237,16 +250,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 			s.currentWeightIndex++
 		}
 
-		if !s.NoMetrics {
-			s.nerve.availableGauge.WithLabelValues(s.Name).Set(float64(s.CurrentWeight()))
-		}
-
-		if s.currentWeightIndex < len(weights) && !s.reportAndTellIfAtLeastOneReported(true) {
-			logs.WithF(s.fields).Debug("No report succeed. Reset weight")
-			s.currentWeightIndex = 0
-		}
-
-		if s.currentWeightIndex > postFullWeightMax + len(weights) {
+		if s.currentWeightIndex > postFullWeightMax+len(weights) {
 			logs.WithF(s.fields).Debug("Service is fully stable")
 			s.warmupMutex.Lock()
 			defer s.warmupMutex.Unlock()
@@ -257,9 +261,6 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 		if time.Now().After(start.Add(time.Duration(s.EnableWarmupMaxDurationInMilli) * time.Millisecond)) {
 			logs.WithF(s.fields).Warn("Warmup reach max duration. set Full Weight")
 			s.currentWeightIndex = len(weights) - 1
-			if !s.NoMetrics {
-				s.nerve.availableGauge.WithLabelValues(s.Name).Set(float64(s.CurrentWeight()))
-			}
 			s.reportAndTellIfAtLeastOneReported(true)
 			return
 		}
@@ -275,6 +276,9 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 }
 
 func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
+	if !s.NoMetrics {
+		s.nerve.availableGauge.WithLabelValues(s.Name).Set(float64(s.CurrentWeight()))
+	}
 	if s.currentStatus == nil {
 		return false // no status yet
 	}
@@ -282,7 +286,7 @@ func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 	if s.forceEnable {
 		var e error
 		status = e
-	} else  if s.disabled != nil {
+	} else if s.disabled != nil {
 		status = s.disabled
 	}
 	report := toReport(status, s)
@@ -311,15 +315,15 @@ func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 }
 
 func (s *Service) CurrentWeight() uint8 {
-	if s.currentStatus == nil || *s.currentStatus != nil {
+	if s.currentStatus == nil || *s.currentStatus != nil || s.disabled != nil {
 		return 0
 	}
 
 	index := s.currentWeightIndex
-	if s.currentWeightIndex > len(weights) - 1 {
+	if s.currentWeightIndex > len(weights)-1 {
 		index = len(weights) - 1
 	}
-	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights) - 1]))
+	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights)-1]))
 	if res == 0 {
 		res++
 	}
@@ -327,16 +331,13 @@ func (s *Service) CurrentWeight() uint8 {
 }
 
 func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
-	defer doneWaiter.Done()
-	s.disableMutex.Lock()
-	defer s.disableMutex.Unlock()
-
-	s.giveUpWarmup()
-
 	start := time.Now()
+	logs.WithF(s.fields).Info("Disabling service")
+	defer doneWaiter.Done()
+
 	s.forceEnable = false
 	s.disabled = errs.With("Service is disabled")
-	s.reportAndTellIfAtLeastOneReported(true)
+	s.runNotify()
 
 	if len(s.DisableGracefullyDoneCommand) > 0 {
 		for {
@@ -361,11 +362,7 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
 
 func (s *Service) Enable(force bool) {
 	logs.WithF(s.fields.WithField("force", force)).Info("Enabling service")
-	s.disableMutex.Lock()
-	defer s.disableMutex.Unlock()
 	s.forceEnable = force
 	s.disabled = nil
-	if s.warmupGiveUp == nil {
-		s.warmup()
-	}
+	s.runNotify()
 }
