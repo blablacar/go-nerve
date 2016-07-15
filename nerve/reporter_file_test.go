@@ -23,11 +23,11 @@ func TestCanReport(t *testing.T) {
 	reporter := NewReporterFile()
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(Report{Available: true})
+	reporter.Report(Report{Available: &btrue})
 
 	res, _ := ioutil.ReadFile(reporter.Path)
 	r, _ := NewReport(res)
-	Expect(r.Available).Should(BeTrue())
+	Expect(*r.Available).Should(BeTrue())
 }
 
 func TestReportReplace(t *testing.T) {
@@ -35,12 +35,12 @@ func TestReportReplace(t *testing.T) {
 	reporter := NewReporterFile()
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(Report{Available: true})
+	reporter.Report(Report{Available: &btrue})
 	res, _ := ioutil.ReadFile(reporter.Path)
 	r, _ := NewReport(res)
-	Expect(r.Available).Should(BeTrue())
+	Expect(*r.Available).Should(BeTrue())
 
-	reporter.Report(Report{Available: false})
+	reporter.Report(Report{Available: &bfalse})
 	res, _ = ioutil.ReadFile(reporter.Path)
 	Expect(res).Should(HaveLen(0))
 }
@@ -52,8 +52,8 @@ func TestReportAppend(t *testing.T) {
 	reporter.Mode = Append
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(Report{Available: true})
-	reporter.Report(Report{Available: false})
+	reporter.Report(Report{Available: &btrue})
+	reporter.Report(Report{Available: &bfalse})
 
 	res, _ := ioutil.ReadFile(reporter.Path)
 	lines := strings.Split(string(res), "\n")
@@ -61,7 +61,7 @@ func TestReportAppend(t *testing.T) {
 	r1, _ := NewReport([]byte(lines[0]))
 	r2, _ := NewReport([]byte(lines[1]))
 
-	Expect(r1.Available).Should(BeTrue())
-	Expect(r2.Available).Should(BeFalse())
+	Expect(*r1.Available).Should(BeTrue())
+	Expect(*r2.Available).Should(BeFalse())
 	Expect(lines[2]).Should(Equal(""))
 }

@@ -8,6 +8,9 @@ import (
 	"testing"
 )
 
+var btrue = true
+var bfalse = false
+
 func TestReportConsole(t *testing.T) {
 	RegisterTestingT(t)
 	var b bytes.Buffer
@@ -15,8 +18,8 @@ func TestReportConsole(t *testing.T) {
 	write := bufio.NewWriter(&b)
 	reporter.writer = write
 
-	reporter.Report(Report{Available: true})
-	reporter.Report(Report{Available: false})
+	reporter.Report(Report{Available: &btrue})
+	reporter.Report(Report{Available: &bfalse})
 
 	write.Flush()
 
@@ -25,7 +28,7 @@ func TestReportConsole(t *testing.T) {
 	r1, _ := NewReport([]byte(lines[0]))
 	r2, _ := NewReport([]byte(lines[1]))
 
-	Expect(r1.Available).Should(BeTrue())
-	Expect(r2.Available).Should(BeFalse())
+	Expect(*r1.Available).Should(BeTrue())
+	Expect(*r2.Available).Should(BeFalse())
 	Expect(lines[2]).Should(Equal(""))
 }

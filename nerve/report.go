@@ -3,7 +3,7 @@ package nerve
 import "encoding/json"
 
 type Report struct {
-	Available            *bool              `json:"available"`
+	Available            *bool             `json:"available"`
 	UnavailableReason    string            `json:"unavailable_reason,omitempty"`
 	Host                 string            `json:"host,omitempty"`
 	Port                 int               `json:"port,omitempty"`

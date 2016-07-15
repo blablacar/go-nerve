@@ -36,7 +36,7 @@ func TestZkReport(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(Report{Available: true})).To(BeNil())
+	Expect(r.Report(Report{Available: &btrue})).To(BeNil())
 	checkThere(r)
 }
 
@@ -49,7 +49,7 @@ func TestZkRefresh(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(Report{Available: true})).To(BeNil())
+	Expect(r.Report(Report{Available: &btrue})).To(BeNil())
 	checkThere(r)
 	remove(r)
 	checkNotThere(r)
@@ -66,7 +66,7 @@ func TestZkRefreshClosed(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	r.Report(Report{Available: true})
+	r.Report(Report{Available: &btrue})
 	r.Destroy()
 	time.Sleep(3 * time.Second)
 
@@ -85,8 +85,8 @@ func TestZkReportFailure(t *testing.T) {
 	r.Path = "/test"
 	r.Init(&Service{})
 
-	Expect(r.Report(Report{Available: true})).To(BeNil())
-	Expect(r.Report(Report{Available: false})).To(BeNil())
+	Expect(r.Report(Report{Available: &btrue})).To(BeNil())
+	Expect(r.Report(Report{Available: &bfalse})).To(BeNil())
 	checkNotThere(r)
 }
 

@@ -1,6 +1,7 @@
 package nerve
 
 import (
+	"encoding/json"
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
@@ -16,7 +17,6 @@ import (
 	"sync/atomic"
 	"time"
 	"unsafe"
-	"encoding/json"
 )
 
 func (n *Nerve) DisableServices(ctx *macaron.Context) (string, error) {
@@ -68,13 +68,13 @@ func (n *Nerve) ServicesStatus(ctx *macaron.Context) (string, error) {
 }
 
 type ServiceStatus struct {
-	Name string
-	Host string
-	Port int
-	Status string
-	MaxWeight int
+	Name          string
+	Host          string
+	Port          int
+	Status        string
+	MaxWeight     int
 	CurrentWeight int
-	Available bool
+	Available     bool
 }
 
 func (n *Nerve) ServiceStatus(service *Service) ServiceStatus {
