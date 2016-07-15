@@ -315,7 +315,7 @@ func (s *Service) reportAndTellIfAtLeastOneReported(required bool) bool {
 }
 
 func (s *Service) CurrentWeight() uint8 {
-	if s.currentStatus == nil || *s.currentStatus != nil || s.disabled != nil {
+	if (!s.forceEnable && (s.currentStatus == nil || *s.currentStatus != nil)) || s.disabled != nil {
 		return 0
 	}
 
