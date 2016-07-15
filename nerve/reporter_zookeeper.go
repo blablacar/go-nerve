@@ -63,7 +63,7 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 	defer r.reportMutex.Unlock()
 
 	exists, _, err := r.connection.Conn.Exists(r.currentNode)
-	if r.report.Available || r.ExposeOnUnavailable {
+	if *r.report.Available || r.ExposeOnUnavailable {
 		content, err := r.report.toJson()
 		if err != nil {
 			return errs.WithEF(err, r.fields, "Failed to prepare report")

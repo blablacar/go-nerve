@@ -73,7 +73,7 @@ func (s *Service) Init(n *Nerve) error {
 		s.ReportReplayInMilli = 1000
 	}
 	if s.EnableWarmupIntervalInMilli == 0 {
-		s.EnableWarmupIntervalInMilli = 1000
+		s.EnableWarmupIntervalInMilli = 2000
 	}
 	if s.EnableWarmupMaxDurationInMilli == 0 {
 		s.EnableWarmupMaxDurationInMilli = 2 * 60 * 1000

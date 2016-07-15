@@ -61,7 +61,7 @@ func (r *ReporterFile) Report(report Report) error {
 	defer file.Close()
 
 	var res string
-	if r.Mode == Replace && !report.Available {
+	if r.Mode == Replace && !*report.Available {
 		res = ""
 	} else {
 		content, err := report.toJson()

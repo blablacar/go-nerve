@@ -3,7 +3,7 @@ package nerve
 import "encoding/json"
 
 type Report struct {
-	Available            bool              `json:"available"`
+	Available            *bool              `json:"available"`
 	UnavailableReason    string            `json:"unavailable_reason,omitempty"`
 	Host                 string            `json:"host,omitempty"`
 	Port                 int               `json:"port,omitempty"`
@@ -25,8 +25,9 @@ func (r *Report) toJson() ([]byte, error) {
 
 func toReport(status error, s *Service) Report {
 	weight := s.CurrentWeight()
+	boolStatus := status == nil
 	r := Report{
-		Available:            status == nil,
+		Available:            &boolStatus,
 		Host:                 s.Host,
 		Port:                 s.Port,
 		Name:                 s.Name,
