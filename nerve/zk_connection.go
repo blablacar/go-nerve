@@ -58,6 +58,7 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 
 		go func(sharedZk *SharedZkConnection) {
 			events := sharedZk.Subscribe()
+			connectingCount := 0
 			for {
 				select {
 				case e, ok := <-events:
@@ -67,14 +68,25 @@ func NewSharedZkConnection(hosts []string, timeout time.Duration) (*SharedZkConn
 					if e.Type == zk.EventSession && e.State == zk.StateHasSession {
 						if sharedZk.connected == false {
 							logs.WithF(data.WithField("servers", hosts)).Info("Connected to zk")
+							connectingCount = 0
 						}
 						sharedZk.connected = true
 					} else if (e.Type == zk.EventSession || e.Type == zk.EventType(0)) &&
 						(e.State == zk.StateDisconnected || e.State == zk.StateExpired) {
 						if sharedZk.connected == true {
 							logs.WithF(data.WithField("servers", hosts)).Warn("Connection lost to zk")
+							connectingCount = 0
 						}
 						sharedZk.connected = false
+					} else if (e.Type == zk.EventSession || e.Type == zk.EventType(0)) &&
+						(e.State == zk.StateAuthFailed) {
+						logs.WithF(data.WithField("servers", hosts)).Error("Authentication failure on zk")
+					} else if (e.Type == zk.EventSession || e.Type == zk.EventType(0)) &&
+						(e.State == zk.StateConnecting) {
+						if connectingCount == 1 {
+							logs.WithF(data.WithField("server", conn.Server())).Warn("Failed to connect to zk. Not reporting nexts servers try until connected")
+						}
+						connectingCount++
 					}
 				}
 			}
