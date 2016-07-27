@@ -9,9 +9,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"io/ioutil"
 )
 
-type CheckHttpProxy struct {
+type CheckProxyHttp struct {
 	CheckCommon
 	ProxyHost            string
 	ProxyPort            int
@@ -23,15 +24,15 @@ type CheckHttpProxy struct {
 	client http.Client
 }
 
-func (x *CheckHttpProxy) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
+func (x *CheckProxyHttp) Run(statusChange chan Check, stop <-chan struct{}, doneWait *sync.WaitGroup) {
 	x.CommonRun(x, statusChange, stop, doneWait)
 }
 
-func NewCheckProxyHttp() *CheckHttpProxy {
-	return &CheckHttpProxy{}
+func NewCheckProxyHttp() *CheckProxyHttp {
+	return &CheckProxyHttp{}
 }
 
-func (x *CheckHttpProxy) Init(s *Service) error {
+func (x *CheckProxyHttp) Init(s *Service) error {
 	if err := x.CheckCommon.CommonInit(s); err != nil {
 		return err
 	}
@@ -57,18 +58,26 @@ func (x *CheckHttpProxy) Init(s *Service) error {
 	return nil
 }
 
-func (x *CheckHttpProxy) Check() error {
+func (x *CheckProxyHttp) Check() error {
 	result := make(chan error)
 	for _, url := range x.Urls {
 		go func(url string) {
 			var res error
 			resp, err := x.client.Get(url)
+			if err != nil || (resp.StatusCode >= 500 && resp.StatusCode < 600) {
+				ff := x.fields.WithField("url", url)
+				if err == nil {
+					ff = ff.WithField("status_code", resp.StatusCode)
+					if content, err := ioutil.ReadAll(resp.Body); err == nil {
+						ff = ff.WithField("content", content)
+					}
+					resp.Body.Close()
+				}
+				res = errs.WithEF(err, ff, "Url check failed")
+				logs.WithEF(err, x.fields).Trace("Url check failed")
+			}
 			if err == nil {
 				resp.Body.Close()
-			}
-			if err != nil || (resp.StatusCode >= 500 && resp.StatusCode < 600) {
-				res = errs.WithEF(err, x.fields.WithField("url", url), "Url check failed")
-				logs.WithEF(err, x.fields).Trace("Url check failed")
 			}
 			result <- res
 		}(url)
