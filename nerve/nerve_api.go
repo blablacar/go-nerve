@@ -182,7 +182,7 @@ func Logger() macaron.Handler {
 			if rw.Status() >= 500 && rw.Status() < 600 {
 				lvl = logs.ERROR
 			} else {
-				lvl = logs.INFO
+				lvl = logs.DEBUG
 			}
 
 			logs.LogEntry(&logs.Entry{
