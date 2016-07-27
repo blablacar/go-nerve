@@ -1,0 +1,10 @@
+services:
+  - port: 3128
+    host: 10.20.135.174
+    checks:
+      - type: proxyhttp
+        urls:
+          - https://www.google.com
+          - https://developers.facebook.com/status/
+          - https://newrelic.com/
+          - http://status.aws.amazon.com/

@@ -37,6 +37,13 @@ func (x *CheckProxyHttp) Init(s *Service) error {
 		return err
 	}
 
+	if x.ProxyHost == "" {
+		x.ProxyHost = s.Host
+	}
+	if x.ProxyPort == 0 {
+		x.ProxyPort = s.Port
+	}
+
 	proxyUrl, err := url.Parse("http://" + x.ProxyUsername + ":" + x.ProxyPassword + "@" + x.ProxyHost + ":" + strconv.Itoa(x.ProxyPort))
 	if err != nil {
 		return errs.WithEF(err, x.fields, "failed to prepare proxy url")
@@ -83,20 +90,17 @@ func (x *CheckProxyHttp) Check() error {
 		}(url)
 	}
 
-	failCount := 0
-	var oneErr error
+	errors := errs.WithF(x.fields, "Url(s) unreachable")
 	for i := 0; i < len(x.Urls); i++ {
 		res := <-result
 		if res != nil {
-			failCount++
-			oneErr = res
+			errors.WithErr(res)
 		}
 	}
 
-	if (x.FailOnAnyUnreachable && failCount > 0) ||
-		(!x.FailOnAnyUnreachable && failCount == len(x.Urls)) {
-		logs.WithEF(oneErr, x.fields.WithField("count", failCount)).Trace("Enough failed received")
-		return errs.WithEF(oneErr, x.fields, "All urls are unreachable")
+	if (x.FailOnAnyUnreachable && len(errors.Errs) > 0) || (!x.FailOnAnyUnreachable && len(errors.Errs) == len(x.Urls)) {
+		logs.WithEF(errors, x.fields).Trace("Enough failed received")
+		return errs.WithEF(errors, x.fields, "Enough failed received")
 	}
 	return nil
 }
