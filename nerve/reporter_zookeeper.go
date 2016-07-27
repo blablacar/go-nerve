@@ -38,7 +38,7 @@ func (r *ReporterZookeeper) Init(s *Service) error {
 	}
 
 	r.fields = r.fields.WithField("path", r.Path)
-	r.fullPath = r.Path + "/" + s.Name + "_" + s.Host + "_"
+	r.fullPath = r.Path + "/" + s.Name + "_" + s.Host
 	r.currentNode = r.fullPath
 
 	conn, err := NewSharedZkConnection(r.Hosts, time.Duration(r.ConnectionTimeoutInMilli)*time.Millisecond)
@@ -76,7 +76,7 @@ func (r *ReporterZookeeper) sendReportToZk() error {
 				return errs.WithEF(err, r.fields, "Cannot create static path")
 			}
 
-			if r.currentNode, err = r.connection.Conn.CreateProtectedEphemeralSequential(r.fullPath, content, acl); err != nil {
+			if r.currentNode, err = r.connection.CreateEphemeral(r.fullPath, content, acl); err != nil {
 				return errs.WithEF(err, r.fields.WithField("fullpath", r.fullPath), "Cannot create path")
 			}
 		} else {
