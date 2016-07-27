@@ -119,7 +119,7 @@ func (e *EntryError) Error() string {
 		buffer.WriteString("Caused by : ")
 		for i, err := range e.Errs {
 			if i > 0 {
-				buffer.WriteString("AND\n")
+				buffer.WriteString("And\n")
 			}
 			buffer.WriteString(err.Error())
 			buffer.WriteString("\n")

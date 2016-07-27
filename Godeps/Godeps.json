@@ -119,23 +119,23 @@
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog",
-			"Rev": "31fcbc877963c78e5d0a3998309607ad40084f8b"
+			"Rev": "968672186b194b0c054bb6e245c3788de8328bdf"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/data",
-			"Rev": "31fcbc877963c78e5d0a3998309607ad40084f8b"
+			"Rev": "968672186b194b0c054bb6e245c3788de8328bdf"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/errs",
-			"Rev": "31fcbc877963c78e5d0a3998309607ad40084f8b"
+			"Rev": "968672186b194b0c054bb6e245c3788de8328bdf"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/logs",
-			"Rev": "31fcbc877963c78e5d0a3998309607ad40084f8b"
+			"Rev": "968672186b194b0c054bb6e245c3788de8328bdf"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/register",
-			"Rev": "31fcbc877963c78e5d0a3998309607ad40084f8b"
+			"Rev": "968672186b194b0c054bb6e245c3788de8328bdf"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
