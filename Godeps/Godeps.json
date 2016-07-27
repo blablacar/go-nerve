@@ -52,13 +52,13 @@
 		},
 		{
 			"ImportPath": "github.com/blablacar/dgr/bin-dgr/common",
-			"Comment": "70-1-g20796f2",
-			"Rev": "20796f28e5c4a830d8423b006e55211a6d1a8e08"
+			"Comment": "72-1-g1756bcf",
+			"Rev": "1756bcffca4edded8f50fd2a3e5e3cef4ba1c5c4"
 		},
 		{
 			"ImportPath": "github.com/blablacar/dgr/bin-templater/template",
-			"Comment": "70-1-g20796f2",
-			"Rev": "20796f28e5c4a830d8423b006e55211a6d1a8e08"
+			"Comment": "72-1-g1756bcf",
+			"Rev": "1756bcffca4edded8f50fd2a3e5e3cef4ba1c5c4"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-semver/semver",
@@ -76,6 +76,11 @@
 			"ImportPath": "github.com/go-sql-driver/mysql",
 			"Comment": "v1.2-112-gfb72997",
 			"Rev": "fb7299726d2e68745a8805b14f2ff44b5c2cfa84"
+		},
+		{
+			"ImportPath": "github.com/gogo/protobuf/proto",
+			"Comment": "v0.2-54-g545ec3b",
+			"Rev": "545ec3b6c2e4da8fb48978f361987c1fb8fdb693"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
@@ -114,23 +119,23 @@
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog",
-			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+			"Rev": "1fa49fb11a3c1249b265e6c43e0426c9b477fc38"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/data",
-			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+			"Rev": "1fa49fb11a3c1249b265e6c43e0426c9b477fc38"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/errs",
-			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+			"Rev": "1fa49fb11a3c1249b265e6c43e0426c9b477fc38"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/logs",
-			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+			"Rev": "1fa49fb11a3c1249b265e6c43e0426c9b477fc38"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/register",
-			"Rev": "5d115df10702be00f951040b7d67a02f002f36b2"
+			"Rev": "1fa49fb11a3c1249b265e6c43e0426c9b477fc38"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
@@ -249,12 +254,21 @@
 			"Rev": "03efcb870d84809319ea509714dd6d19a1498483"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "5bcd134fee4dd1475da17714aac19c0aa0142e2f"
+		},
+		{
 			"ImportPath": "golang.org/x/net/html",
 			"Rev": "0c607074acd38c5f23d1344dfe74c977464d1257"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html/atom",
 			"Rev": "0c607074acd38c5f23d1344dfe74c977464d1257"
+		},
+		{
+			"ImportPath": "gopkg.in/inf.v0",
+			"Comment": "v0.9.0",
+			"Rev": "3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4"
 		},
 		{
 			"ImportPath": "gopkg.in/ini.v1",
@@ -272,8 +286,8 @@
 		},
 		{
 			"ImportPath": "k8s.io/kubernetes/pkg/api/resource",
-			"Comment": "v1.1.0-alpha.1-152-g77e2d4f",
-			"Rev": "77e2d4f9185ecbedab327f228960d4ba33703025"
+			"Comment": "v1.4.0-alpha.1-826-g03fe6b9",
+			"Rev": "03fe6b962cd5bb36ca9186eff033fa4914a65fed"
 		},
 		{
 			"ImportPath": "speter.net/go/exp/math/dec/inf",
