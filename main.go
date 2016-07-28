@@ -13,10 +13,10 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
+	"runtime"
+	"strconv"
 	"syscall"
 	"time"
-	"strconv"
-	"runtime"
 )
 
 var Version = "No Version Defined"
