@@ -16,7 +16,9 @@ Go-Nerve is a go rewrite of Airbnb's [Nerve](https://github.com/airbnb/nerve) wi
 ## Installation
 
 Download the latest version on the [release page](https://github.com/blablacar/go-nerve/releases).
+
 Create a configuration file base on the doc or [examples](https://github.com/blablacar/go-nerve/tree/master/examples).
+
 Run with `./nerve nerve-config.yml`
 
 ### Building
@@ -25,15 +27,30 @@ Just clone the repository and run `./gomake`
 
 ## Configuration
 
-Go-Nerve depends on a single configuration file, in json format.
-It is usually called `nerve.conf.json`.
-An example config file is available in `example/nerve.conf.json`.
-The config file is composed of four main sections:
+It's a YAML file. You can find examples [here](https://github.com/blablacar/go-nerve/tree/master/examples)
 
-* `instance_id` (required): the name nerve will submit when registering services; makes debugging easier
-* `log-level` (optional): The log level (any valid value from DEBUG, INFO, WARN, FATAL) (default to 'WARN')
-* `ipv6` (optional): Whether to enable ipv6 management (if you pass a host instead of an IP, the resolution can be an ipv6 address or not)
-* `services` (required): the array of the services nerve will be monitoring
+Very minimal configuration file : 
+```
+services:
+  - port: 80
+  
+# nerve will assume it's localhost
+# nerve will add tcp check
+# nerve will add console report
+```
+
+
+Root attributes :
+
+```
+apiHost: 127.0.0.1
+apiPort: 3454
+disableWaitInMilli: 3000 # minimum shutdown time, just to be sure status is reported
+services: # more complete description below
+  - name: my-api 
+    port: 80
+
+```
 
 ### Services Config
 
