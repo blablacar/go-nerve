@@ -12,17 +12,21 @@ import (
 )
 
 type Service struct {
-	Name                                 string
-	Port                                 int
-	Host                                 string
-	PreferIpv4                           bool
-	Weight                               uint8
-	Checks                               []json.RawMessage
-	Reporters                            []json.RawMessage
-	ReportReplayInMilli                  int
-	HaproxyServerOptions                 string
-	SetServiceAsDownOnShutdown           *bool
-	Labels                               map[string]string
+	Name                       string
+	Port                       int
+	Host                       string
+	PreferIpv4                 bool
+	Weight                     uint8
+	Checks                     []json.RawMessage
+	Reporters                  []json.RawMessage
+	ReportReplayInMilli        int
+	HaproxyServerOptions       string
+	SetServiceAsDownOnShutdown *bool
+	Labels                     map[string]string
+
+	PreAvailableCommand            []string
+	PreAvailableMaxDurationInMilli int
+
 	EnableCheckStableCommand             []string
 	EnableWarmupIntervalInMilli          int
 	EnableWarmupMaxDurationInMilli       int
@@ -79,6 +83,10 @@ func (s *Service) Init(n *Nerve) error {
 		s.EnableWarmupMaxDurationInMilli = 2 * 60 * 1000
 	}
 
+	if s.PreAvailableMaxDurationInMilli == 0 {
+		s.PreAvailableMaxDurationInMilli = 1000
+	}
+
 	if s.DisableGracefullyDoneIntervalInMilli == 0 {
 		s.DisableGracefullyDoneIntervalInMilli = 1000
 	}
@@ -131,7 +139,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 	defer stopWait.Done()
 	checkStopWait := &sync.WaitGroup{}
 
-	statusChange := make(chan Check)
+	statusChange := make(chan Check, 2)
 	for checker := range s.typedCheckersWithStatus {
 		go checker.Run(statusChange, stopper, checkStopWait)
 	}
@@ -141,7 +149,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 		case status := <-statusChange:
 			logs.WithF(s.fields.WithField("status", status)).Debug("New status received")
 			s.processCheckResult(status)
-		case <-stopper:
+		case <-stopper: //TODO since stop is the same everywhere, statusChange chan may stay stuck on shutdown
 			logs.WithFields(s.fields).Debug("Stop requested")
 			checkStopWait.Wait()
 			close(statusChange)
@@ -200,6 +208,14 @@ func (s *Service) runNotify() {
 
 	if (*s.currentStatus == nil && s.disabled == nil) || s.forceEnable {
 		logs.WithF(s.fields).Info("Service is available")
+
+		if len(s.PreAvailableCommand) > 0 {
+			if err := ExecCommand(s.PreAvailableCommand, s.PreAvailableMaxDurationInMilli); err != nil {
+				s.nerve.execFailureCount.WithLabelValues(s.Name, "pre-available").Inc()
+				logs.WithEF(err, s.fields).Warn("Pre available command failed")
+			}
+		}
+
 		s.warmup()
 	} else {
 		if !s.NoMetrics {
@@ -241,6 +257,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 
 		if len(s.EnableCheckStableCommand) > 0 {
 			if err := ExecCommand(s.EnableCheckStableCommand, s.EnableWarmupIntervalInMilli); err != nil {
+				s.nerve.execFailureCount.WithLabelValues(s.Name, "check-stable").Inc()
 				logs.WithEF(err, s.fields).Warn("Check stable command failed. Reset weight")
 				s.currentWeightIndex = 0
 			} else {
@@ -346,6 +363,8 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
 				logs.WithF(s.fields).Debug("Gracefull check succeed")
 				break
 			}
+
+			s.nerve.execFailureCount.WithLabelValues(s.Name, "disable-grace").Inc()
 			logs.WithEF(err, s.fields).Debug("Gracefull check command fail")
 
 			select {

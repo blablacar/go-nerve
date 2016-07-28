@@ -15,6 +15,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"strconv"
+	"runtime"
 )
 
 var Version = "No Version Defined"
@@ -42,8 +44,23 @@ func waitForSignal() {
 	logs.Debug("Stop signal received")
 }
 
+func sigQuitThreadDump() {
+	sigChan := make(chan os.Signal)
+	go func() {
+		for range sigChan {
+			stacktrace := make([]byte, 10<<10)
+			length := runtime.Stack(stacktrace, true)
+			fmt.Println(string(stacktrace[:length]))
+
+			ioutil.WriteFile("/tmp/"+strconv.Itoa(os.Getpid())+".dump", stacktrace[:length], 0644)
+		}
+	}()
+	signal.Notify(sigChan, syscall.SIGQUIT)
+}
+
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
+	sigQuitThreadDump()
 
 	var logLevel string
 	var version bool
