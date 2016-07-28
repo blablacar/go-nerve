@@ -11,12 +11,12 @@ At BlaBlaCar, we use a nerve process for each service instance as the control po
 
 ## Airbnb
 
-Go-Nerve is a go rewrite of Airbnb's [Nerve](https://github.com/airbnb/nerve) with additionnal feature to meet our needs.
+Go-Nerve is a go rewrite of Airbnb's [Nerve](https://github.com/airbnb/nerve) with additional feature to meet our needs.
 
 ## Installation
 
 Download the latest version on the [release page](https://github.com/blablacar/go-nerve/releases).
-Create a configuration file base on the doc or [examples}(https://github.com/blablacar/go-nerve/tree/master/examples).
+Create a configuration file base on the doc or [examples](https://github.com/blablacar/go-nerve/tree/master/examples).
 Run with `./nerve nerve-config.yml`
 
 ### Building
