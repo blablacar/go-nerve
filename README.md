@@ -1,21 +1,20 @@
 [![Build Status](https://travis-ci.org/blablacar/go-nerve.png?branch=master)](https://travis-ci.org/blablacar/go-nerve)
 
-___/!\ This Software is in Alpha Stage! Don't use it in production, until it's considered Stable /!\___
 
-# Go-Nerve #
+# Go-Nerve
 
 Go-Nerve is a utility for tracking the status of machines and services, a Go rewritten work of Airbnb's [Nerve](https://github.com/airbnb/nerve)
 It runs locally on the boxes which make up a distributed system, and reports state information to a distributed key-value store.
 At BlaBlaCar, we use Zookeeper as our key-value store (same story as Airbnb'a one).
 The combination of Nerve and [Synapse](https://github.com/airbnb/synapse) make service discovery in the cloud easy!
 
-## Airbnb ##
+## Airbnb
 
 Thank you guy to write a so nice piece of software with nerve. But we really want to stop deploying a full ruby stack on our containers ! Our first thoughts were to ask you to rewrote it in C/C++/Java/Go. But our team convince ourself that it was not the best behavior to have at first. So we rewrote it in Go (See more explanations in the Motivation section below).
 
 We want to thanks the huge work made by Airbnb's engineering team. We love you guy's ! Your tools are in the center of our infrastructure at BlaBlaCar. Even if we fork Nerve to rewrote in Go, we will continue to follow your repository, and consider it as the reference. Big Up to YOU! We send you all love and kisses you deserve (and even more).
 
-## Motivation ##
+## Motivation
 
 Why rewrote the Airbnb's software ? Firt of all, well, we're not as easy as it seems in Ruby! And, we need to add new features to the tool. 2 choices: learning Ruby, and propose PR, or rewrote in a language we know. We choose the second option. By the way why Go (because we're also easy with Java) ? After compilation, we have a single binary which is easier to deploy on our full container infrastructure! No need to deploy the full ruby stack, nor java one.
 
@@ -27,13 +26,13 @@ It does so by factoring out the boilerplate into it's own application, which ind
 Beyond those benefits, nerve also acts as a general watchdog on systems.
 The information it reports can be used to take action from a centralized automation center: action like scaling distributed systems up or down or alerting ops or engineering about downtime.
 
-## Installation ##
+## Installation
 
-### Pre-requisite ###
+### Pre-requisite
 
 go-nerve depend on `godep`, `golint` but they will be fetched if not present during build
 
-### Build ###
+### Build
 
 Clone the repository where you want to have it:
 
@@ -44,7 +43,7 @@ Build the Nerve Binary for your arch, or for a list of arch :
 	./build.sh
 	./build.sh windows-amd64,darwin-amd64
 	
-## Configuration ##
+## Configuration
 
 Go-Nerve depends on a single configuration file, in json format.
 It is usually called `nerve.conf.json`.
@@ -56,7 +55,7 @@ The config file is composed of four main sections:
 * `ipv6` (optional): Whether to enable ipv6 management (if you pass a host instead of an IP, the resolution can be an ipv6 address or not)
 * `services` (required): the array of the services nerve will be monitoring
 
-### Services Config ###
+### Services Config
 
 Each service that nerve will be monitoring is specified in the `services` hash.
 This is a configuration hash telling nerve how to monitor the service.
@@ -68,7 +67,7 @@ The configuration contains the following options:
 * `reporter` (required): a hash containing all information to report if the service is up or down
 * `watcher` (required): a hash containing the configuration to check if the service is up or down
 
-### Reporter Config ###
+### Reporter Config
 
 * `type` (required): the mechanism used to report up/down information; depending on the reporter you choose, additional parameters may be required. Defaults to `console`
 * `weight` (optional): a positive integer weight value which can be used to affect the haproxy backend weighting in synapse.
@@ -77,19 +76,19 @@ The configuration contains the following options:
 * `fall` (optional): how many consecutive checks must fail before the check is reported; defaults to 1
 * `tags` (optional): an array of strings to pass to the reporter.
 
-#### Zookeeper Reporter ####
+#### Zookeeper Reporter
 
 If you set your reporter `type` to `"zookeeper"` you should also set these parameters:
 
 * `hosts` (required): a list of the zookeeper hosts comprising the [ensemble](https://zookeeper.apache.org/doc/r3.1.2/zookeeperAdmin.html#sc_zkMulitServerSetup) that nerve will submit registration to
 * `path` (required): the path (or [znode](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#sc_zkDataModel_znodes)) where the registration will be created; nerve will create the [ephemeral node](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#Ephemeral+Nodes) that is the registration as a child of this path, and the name of this ephemeral node is created with the function CreateProtectedEphemeralSequential from the libray Golang Zookeeper [github.com/samuel/go-zookeeper/zk](https://github.com/samuel/go-zookeeper/)
 
-#### Console Reporter ####
+#### Console Reporter
 
 If you set your reporter `type` to `"console"`, no more parameters are available.
 All data will be reported as JSON and printed directly on the std output.
 
-#### File Reporter ####
+#### File Reporter
 
 If you set your reporter `type` to `"file"` you should also set these parameters:
 
@@ -97,12 +96,12 @@ If you set your reporter `type` to `"file"` you should also set these parameters
 * `filename` (optional): the filename (default to 'nerve.report')
 * `mode` (optional): whether to open the file in 'write' mode (override the whole content), or in 'append' mode (default to 'write' mode).
 
-### Watcher Config ###
+### Watcher Config
 
 * `checks` (required): an array of checks that nerve will perform; if all of the pass, the service will be registered; otherwise, it will be un-registered
 * `maintenance_checks` (optional): an array of checks that nerve will perform; if one failed, the service will have the maintenance tag set to true; otherwise, it will be set to false
 
-### Checks ###
+### Checks
 
 The core of nerve is a set of service checks.
 Each service can define a number of checks, and all of them must pass for the service to be registered.
@@ -114,17 +113,17 @@ Although the exact parameters passed to each check are different, all take a num
 * `port`: (optional) the port on which the check will be performed; like `host`, it defaults to the `port` of the service
 * `timeout`: (optional) maximum time the check can take; defaults to `100ms`
 
-#### TCP Check ####
+#### TCP Check
 
 If you set your check `type` to `"tcp"`, no more parameters are available.
 
-#### HTTP Check ####
+#### HTTP Check
 
 If you set your check `type` to `"http"` you should also set these parameters:
 
 * `uri` (required): the URI to check
 
-#### HTTP Proxy Check ####
+#### HTTP Proxy Check
 
 If you set your check `type` to `"httpproxy"` you should also set these parameters:
 
@@ -134,7 +133,7 @@ If you set your check `type` to `"httpproxy"` you should also set these paramete
 * `user` (optional): the proxy username
 * `password` (optional): the proxy password
 
-#### RabbitMQ Check ####
+#### RabbitMQ Check
 
 If you set your check `type` to `"rabbitmq"` you should also set these parameters:
 
@@ -143,7 +142,7 @@ If you set your check `type` to `"rabbitmq"` you should also set these parameter
 * `vhost` (optional): the vhost to check (default to /)
 * `queue` (optional): the queue in which get test message (default to 'nerve') 
 
-#### Mysql Check ####
+#### Mysql Check
 
 If you set your check `type` to `"mysql"` you should also set these parameters:
 
@@ -151,14 +150,14 @@ If you set your check `type` to `"mysql"` you should also set these parameters:
 * `password` (optional): the password to connect to msqla (default to 'nerve')
 * `sql_request` (optional): the SQL Request used to check the Mysql availability (default to "SELECT 1")
 
-#### Zookeeper Flag Check ####
+#### Zookeeper Flag Check
 
 At BlaBlaCar, we use this Check as a maintenance check. Typically if a defined flag exist in Zookeeper, then the check fail, and the reporter report a failed service. If you want to use it, put the `type` to `"zkflag"`, and you should also set these parameters:
 
 * `hosts` (required): an array of string of ZK nodes
 * `path` (required): the key to verify. If it exists, then the check fail
 
-## Contributing ##
+## Contributing
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
