@@ -2,11 +2,11 @@ package nerve
 
 import (
 	"github.com/n0rad/go-erlog/errs"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
-	"io/ioutil"
 )
 
 type CheckHttp struct {

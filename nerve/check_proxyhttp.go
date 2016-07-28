@@ -3,13 +3,13 @@ package nerve
 import (
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"io/ioutil"
 )
 
 type CheckProxyHttp struct {

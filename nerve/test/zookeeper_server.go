@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"github.com/blablacar/dgr/bin-dgr/common"
 	"io"
 	"net/http"
 	"os"
@@ -148,7 +147,14 @@ func (srv *Server) Start() error {
 		if err := downloadZookeeper(); err != nil {
 			return err
 		}
-		if err := common.ExecCmd("tar", "xf", zooTarPath, "-C", "/tmp"); err != nil {
+
+		cmd := exec.Command("tar", "xf", zooTarPath, "-C", "/tmp")
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+
+		if err != nil {
 			os.Remove(zooTarPath)
 			return err
 		}
