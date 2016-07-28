@@ -1,48 +1,28 @@
 [![Build Status](https://travis-ci.org/blablacar/go-nerve.png?branch=master)](https://travis-ci.org/blablacar/go-nerve)
 
 
-# Go-Nerve
+# Nerve
 
-Go-Nerve is a utility for tracking the status of machines and services, a Go rewritten work of Airbnb's [Nerve](https://github.com/airbnb/nerve)
-It runs locally on the boxes which make up a distributed system, and reports state information to a distributed key-value store.
-At BlaBlaCar, we use Zookeeper as our key-value store (same story as Airbnb'a one).
-The combination of Nerve and [Synapse](https://github.com/airbnb/synapse) make service discovery in the cloud easy!
+Nerve is a utility to tracking the status of services. It run different checks against the service, and can report the status to different system.
+Though the api, you can also manually control what is reported (disabled, enabled, forced enabled).
+Beyond checking and reporting, nerve can execute different command against the service to control warmup, or prepare the service before announcing it.
+
+At BlaBlaCar, we use a nerve process for each service instance as the control point of it. Reporting the status in Zookeeper, and [Synapse](https://github.com/blablacar/go-synapse) on the other side to control access to the service instance.
 
 ## Airbnb
 
-Thank you guy to write a so nice piece of software with nerve. But we really want to stop deploying a full ruby stack on our containers ! Our first thoughts were to ask you to rewrote it in C/C++/Java/Go. But our team convince ourself that it was not the best behavior to have at first. So we rewrote it in Go (See more explanations in the Motivation section below).
-
-We want to thanks the huge work made by Airbnb's engineering team. We love you guy's ! Your tools are in the center of our infrastructure at BlaBlaCar. Even if we fork Nerve to rewrote in Go, we will continue to follow your repository, and consider it as the reference. Big Up to YOU! We send you all love and kisses you deserve (and even more).
-
-## Motivation
-
-Why rewrote the Airbnb's software ? Firt of all, well, we're not as easy as it seems in Ruby! And, we need to add new features to the tool. 2 choices: learning Ruby, and propose PR, or rewrote in a language we know. We choose the second option. By the way why Go (because we're also easy with Java) ? After compilation, we have a single binary which is easier to deploy on our full container infrastructure! No need to deploy the full ruby stack, nor java one.
-
-We already use [Synapse](https://github.com/airbnb/synapse) to discover remote services.
-However, those services needed boilerplate code to register themselves in [Zookeeper](http://zookeeper.apache.org/).
-Nerve simplifies underlying services, enables code reuse, and allows us to create a more composable system.
-It does so by factoring out the boilerplate into it's own application, which independenly handles monitoring and reporting.
-
-Beyond those benefits, nerve also acts as a general watchdog on systems.
-The information it reports can be used to take action from a centralized automation center: action like scaling distributed systems up or down or alerting ops or engineering about downtime.
+Go-Nerve is a go rewrite of Airbnb's [Nerve](https://github.com/airbnb/nerve) with additionnal feature to meet our needs.
 
 ## Installation
 
-### Pre-requisite
+Download the latest version on the [release page](https://github.com/blablacar/go-nerve/releases).
+Create a configuration file base on the doc or [examples}(https://github.com/blablacar/go-nerve/tree/master/examples).
+Run with `./nerve nerve-config.yml`
 
-go-nerve depend on `godep`, `golint` but they will be fetched if not present during build
+### Building
 
-### Build
+Just clone the repository and run `./gomake`
 
-Clone the repository where you want to have it:
-
-    git clone https://github.com/blablacar/go-nerve
-
-Build the Nerve Binary for your arch, or for a list of arch :
-
-	./build.sh
-	./build.sh windows-amd64,darwin-amd64
-	
 ## Configuration
 
 Go-Nerve depends on a single configuration file, in json format.
