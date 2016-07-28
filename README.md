@@ -46,10 +46,17 @@ Root attributes :
 apiHost: 127.0.0.1
 apiPort: 3454
 disableWaitInMilli: 3000 # minimum shutdown time, just to be sure status is reported
-services: # more complete description below
-  - name: my-api 
-    port: 80
+services:
+  - port: 80
+    ... # see complete example below
+    
+    checks: 
+      - type: tcp
+        ... # see complete example below
 
+    Reporters:
+      - type: console
+        ... # see complete example below
 ```
 
 ### Services Config
