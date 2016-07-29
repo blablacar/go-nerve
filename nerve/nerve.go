@@ -10,10 +10,9 @@ import (
 )
 
 type Nerve struct {
-	ApiHost            string
-	ApiPort            int
-	Services           []*Service
-	DisableWaitInMilli *int
+	ApiHost  string
+	ApiPort  int
+	Services []*Service
 
 	nerveVersion         string
 	nerveBuildTime       string
@@ -32,10 +31,6 @@ func (n *Nerve) Init(version string, buildTime string) error {
 	n.nerveBuildTime = buildTime
 	if n.ApiPort == 0 {
 		n.ApiPort = 3454
-	}
-	if n.DisableWaitInMilli == nil {
-		val := 3000
-		n.DisableWaitInMilli = &val
 	}
 
 	n.checkerFailureCount = prometheus.NewCounterVec(

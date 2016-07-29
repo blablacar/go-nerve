@@ -29,8 +29,8 @@ Just clone the repository and run `./gomake`
 
 It's a YAML file. You can find examples [here](https://github.com/blablacar/go-nerve/tree/master/examples)
 
-Very minimal configuration file : 
-```
+Very minimal configuration file with only one service :
+```yaml
 services:
   - port: 80
   
@@ -42,13 +42,12 @@ services:
 
 Root attributes :
 
-```
+```yaml
 apiHost: 127.0.0.1
 apiPort: 3454
-disableWaitInMilli: 3000 # minimum shutdown time, just to be sure status is reported
 services:
   - port: 80
-    ... # see complete example below
+    ...     # see complete example below
     
     checks: 
       - type: tcp
@@ -61,110 +60,195 @@ services:
 
 ### Services Config
 
-Each service that nerve will be monitoring is specified in the `services` hash.
-This is a configuration hash telling nerve how to monitor the service.
-The configuration contains the following options:
+Only **port** is mandatory
+All commands are an array of string (ex: [/bin/bash, -c, 'echo "salut!" > /tmp/yop'])
 
-* `host` (required): the default host on which to make service checks; you should make this your *public* ip to ensure your service is publically accessible
-* `port` (required): the default port for service checks; nerve will report the `ip`:`port` combo via your chosen reporter (if you give a real hostname, it will be translated into an IP)
-* `check_interval` (optional): the frequency with which service checks (and report) will be initiated in milliseconds; defaults to `500`
-* `reporter` (required): a hash containing all information to report if the service is up or down
-* `watcher` (required): a hash containing the configuration to check if the service is up or down
+```yaml
+...
+services: 
+  - name: '127.0.0.1:80'                          # name of the service. Default to host:port
+    host: 127.0.0.1                               # ip of the service
+    port: 80                                      # what port is using the service
+    PreferIpv4: false                             # if using dns instead of ip in checks & dns resolving gives ipv4 & ipv6 results
+    weight: 255                                   # service weight when fully available (not on warmup)
+    checks: ...
+    reporters: ...
+    reportReplayInMilli: 1000                     # time wait before replaying failed report
+    haproxyServerOptions:                         # a string, to be retrocompatible with airbnb's nerve. Attributes to pushed to synapse's haproxy
+    setServiceAsDownOnShutdown: true              #
+    labels: {host: r110-srv10}                    # key-value labels to add to the report
+
+    preAvailableCommand:                          # command to run when checks are ok, but service not reported yet (ex: sync queues)
+    preAvailableMaxDurationInMilli:               #
+
+    enableCheckStableCommand:                     # command to check that the service is stable with current load during warmup (ex : too many cache missed)
+    enableWarmupIntervalInMilli: 2000             # interval between weight going to next value (see below)
+    enableWarmupMaxDurationInMilli: 2 * 60 * 1000 # max warmup duration. if reached, warmup is stopped and weight is set as weight value
+    disableGracefullyDoneCommand:                 # command to check if the service is gracefully stopped. Usually check if there is still connections
+    disableGracefullyDoneIntervalInMilli: 1000    # time wait before relaunching graceful done command
+    disableMaxDurationInMilli: 60 * 1000          # maximum service disable time if graceful done is never reached
+    disableMinDurationInMilli: 3000               # minimum service disable time, to give at lease some time to users to stop using the service
+    noMetrics: false                              # do not include this service in api /metrics report
+
+```
+
+**disable*** are used when calling the api to disable the service.
+It's not acting (stopping) directly on the service but more handling what is on the other side of the reporter.
+It's useful to consider the service as stoppable when the API /disable reply.
+
+**Enable*** handle the way the service is going up.
+As soon as checks are ok, the service is reported with a weight of **1** and the warmup is triggered.
+weight is increased following a weighted fibonacci suite until reaching the **weight**.
+If **enableCheckStableCommand** is set, the command is run at each increase and if returning != 0, weight restart from 1
+until reaching **weight** or **enableWarmupMaxDurationInMilli**.
 
 ### Reporter Config
 
-* `type` (required): the mechanism used to report up/down information; depending on the reporter you choose, additional parameters may be required. Defaults to `console`
-* `weight` (optional): a positive integer weight value which can be used to affect the haproxy backend weighting in synapse.
-* `haproxy_server_options` (optional): a string containing any special haproxy server options for this service instance. For example if you wanted to set a service instance as a backup.
-* `rise` (optional): how many consecutive checks must pass before the check is reported; defaults to 1
-* `fall` (optional): how many consecutive checks must fail before the check is reported; defaults to 1
-* `tags` (optional): an array of strings to pass to the reporter.
+#### Reporter Zookeeper
 
-#### Zookeeper Reporter
+only hosts and path are mandatory
 
-If you set your reporter `type` to `"zookeeper"` you should also set these parameters:
+```yaml
+...
+services: 
+  - ... 
+    reporters:
+        - type: zookeeper
+          hosts: ['127.0.0.1:2181', '127.0.0.1:2182']   # list of zk servers
+          path: /services/cassandra/messages            # path to push the key 
+          connectionTimeoutInMilli: 2000
+          refreshIntervalInMilli: 5 * 60 * 1000         # just in case zookeeper restart from scratch
+          exposeOnUnavailable: false                    # insert in zookeeper even if not available. false to be compatible with airbnb's nerve
+```
 
-* `hosts` (required): a list of the zookeeper hosts comprising the [ensemble](https://zookeeper.apache.org/doc/r3.1.2/zookeeperAdmin.html#sc_zkMulitServerSetup) that nerve will submit registration to
-* `path` (required): the path (or [znode](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#sc_zkDataModel_znodes)) where the registration will be created; nerve will create the [ephemeral node](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#Ephemeral+Nodes) that is the registration as a child of this path, and the name of this ephemeral node is created with the function CreateProtectedEphemeralSequential from the libray Golang Zookeeper [github.com/samuel/go-zookeeper/zk](https://github.com/samuel/go-zookeeper/)
+#### Reporter Console
 
-#### Console Reporter
+```yaml
+...
+services: 
+  - ... 
+    reporters:
+        - type: console
+```
 
-If you set your reporter `type` to `"console"`, no more parameters are available.
-All data will be reported as JSON and printed directly on the std output.
+#### Reporter File
 
-#### File Reporter
-
-If you set your reporter `type` to `"file"` you should also set these parameters:
-
-* `path` (optional): the full path where stand the file to report to (default to '/tmp')
-* `filename` (optional): the filename (default to 'nerve.report')
-* `mode` (optional): whether to open the file in 'write' mode (override the whole content), or in 'append' mode (default to 'write' mode).
-
-### Watcher Config
-
-* `checks` (required): an array of checks that nerve will perform; if all of the pass, the service will be registered; otherwise, it will be un-registered
-* `maintenance_checks` (optional): an array of checks that nerve will perform; if one failed, the service will have the maintenance tag set to true; otherwise, it will be set to false
+```yaml
+...
+services: 
+  - ... 
+    reporters:
+        - type: file
+          path: /tmp/nerve.report   # this is the default value
+          append: false             # Replace file content, or just append to it
+```
 
 ### Checks
 
-The core of nerve is a set of service checks.
-Each service can define a number of checks, and all of them must pass for the service to be registered.
-Although the exact parameters passed to each check are different, all take a number of common arguments:
+All checks have those attributes in common. None are mandatory
 
-* `type`: (required) the kind of check; you can see available check types (for now 'tcp', 'http' and 'rabbitmq')
-* `name`: (optional) a descriptive, human-readable name for the check; it will be auto-generated based on the other parameters if not specified
-* `host`: (optional) the host on which the check will be performed; defaults to the `host` of the service to which the check belongs
-* `port`: (optional) the port on which the check will be performed; like `host`, it defaults to the `port` of the service
-* `timeout`: (optional) maximum time the check can take; defaults to `100ms`
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: XXX
+          host: 127.0.0.1            # default is same as service
+          port: 80                   # default is same as service
+          TimeoutInMilli: 1000       # check timeout, and consider as failed
+          Rise: 3                    # number of check run to consider it's OK
+          Fall: 3                    # number of check run to consider it's KO
+          CheckIntervalInMilli: 1000
+          ...
 
-#### TCP Check
+```
 
-If you set your check `type` to `"tcp"`, no more parameters are available.
+#### TCP
 
-#### HTTP Check
+This check is automatically added if none specified
 
-If you set your check `type` to `"http"` you should also set these parameters:
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: tcp
+          ...
+```
 
-* `uri` (required): the URI to check
+#### exec
 
-#### HTTP Proxy Check
+To implement your own custom check
 
-If you set your check `type` to `"httpproxy"` you should also set these parameters:
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: exec
+          ...
+          command: [/bin/bash, -c, 'echo "salut!" > /tmp/yop']      # mandatory
+```
 
-* `urls` (required): an array of string containing the full url to tests
-* `port` (required): the proxy port to use
-* `host` (required): the proxy host to use
-* `user` (optional): the proxy username
-* `password` (optional): the proxy password
+#### HTTP
 
-#### RabbitMQ Check
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: http
+          ...
+          path: /       # combined with host and port to create the full url
+```
 
-If you set your check `type` to `"rabbitmq"` you should also set these parameters:
+Check fail if cannot connect or if status code is in >= 500 && < 600
 
-* `user` (optional): the user to connect to rabbitmq (default to 'nerve')
-* `password` (optional): the password to connect to rabbitmq (default to 'nerve')
-* `vhost` (optional): the vhost to check (default to /)
-* `queue` (optional): the queue in which get test message (default to 'nerve') 
+#### Proxy http
 
-#### Mysql Check
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: proxyhttp
+          ...
+          proxyHost: 127.0.0.1        # default to service host 
+          proxyPort: 80               # default to service port
+          proxyUsername:
+          proxyPassword:
+          urls:                       # list of url to check (ex: ['https://www.google.com/', 'http://status.aws.amazon.com/'])
+          failOnAnyUnreachable: false # fail on any unavailable, or fail on all unavailable 
+```
 
-If you set your check `type` to `"mysql"` you should also set these parameters:
+#### AMQP
 
-* `user` (optional): the user to connect to mysql (default to 'nerve')
-* `password` (optional): the password to connect to msqla (default to 'nerve')
-* `sql_request` (optional): the SQL Request used to check the Mysql availability (default to "SELECT 1")
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: amqp
+          ...
+          datasource: "amqp://{{.Username}}:{{.Password}}@{{.Host}}:{{.Port}}/{{.Vhost}}" # a template. This is the default value
+          vhost:                                                                          # default is empty, which in template result in /
+          queue: nerve
+          username:
+          password: 
+```
 
-#### Zookeeper Flag Check
+#### SQL
 
-At BlaBlaCar, we use this Check as a maintenance check. Typically if a defined flag exist in Zookeeper, then the check fail, and the reporter report a failed service. If you want to use it, put the `type` to `"zkflag"`, and you should also set these parameters:
-
-* `hosts` (required): an array of string of ZK nodes
-* `path` (required): the key to verify. If it exists, then the check fail
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: sql
+          ...
+          datasource: "{{.Username}}:{{.Password}}@tcp([{{.Host}}]:{{.Port}})/?timeout={{.TimeoutInMilli}}ms"
+          driver:  mysql                                                                      
+          request: select 1
+          username: root
+          password: 
+```

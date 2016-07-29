@@ -49,7 +49,7 @@ func TestReportAppend(t *testing.T) {
 	RegisterTestingT(t)
 	reporter := NewReporterFile()
 	os.Remove(reporter.Path)
-	reporter.Mode = Append
+	reporter.Append = true
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
 	reporter.Report(Report{Available: &btrue})

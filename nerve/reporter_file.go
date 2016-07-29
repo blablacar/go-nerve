@@ -6,21 +6,16 @@ import (
 	"path"
 )
 
-type FileMode bool
-
-const Replace FileMode = false
-const Append FileMode = true
-
 type ReporterFile struct {
 	ReporterCommon
-	Path string
-	Mode FileMode
+	Path   string
+	Append bool
 }
 
 func NewReporterFile() *ReporterFile {
 	return &ReporterFile{
-		Path: "/tmp/nerve.report",
-		Mode: Replace,
+		Path:   "/tmp/nerve.report",
+		Append: false,
 	}
 }
 
@@ -43,7 +38,7 @@ func (r *ReporterFile) Init(s *Service) error {
 
 func (r *ReporterFile) openReport() (*os.File, error) {
 	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	if r.Mode == Append {
+	if r.Append {
 		flags = os.O_APPEND | os.O_CREATE | os.O_WRONLY
 	}
 	file, err := os.OpenFile(r.Path, flags, 0644)
@@ -61,7 +56,7 @@ func (r *ReporterFile) Report(report Report) error {
 	defer file.Close()
 
 	var res string
-	if r.Mode == Replace && !*report.Available {
+	if !r.Append && !*report.Available {
 		res = ""
 	} else {
 		content, err := report.toJson()
