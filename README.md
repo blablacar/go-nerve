@@ -53,7 +53,7 @@ services:
       - type: tcp
         ... # see complete example below
 
-    Reporters:
+    reporters:
       - type: console
         ... # see complete example below
 ```
@@ -69,7 +69,7 @@ services:
   - name: '127.0.0.1:80'                          # name of the service. Default to host:port
     host: 127.0.0.1                               # ip of the service
     port: 80                                      # what port is using the service
-    PreferIpv4: false                             # if using dns instead of ip in checks & dns resolving gives ipv4 & ipv6 results
+    preferIpv4: false                             # if using dns instead of ip in checks & dns resolving gives ipv4 & ipv6 results
     weight: 255                                   # service weight when fully available (not on warmup)
     checks: ...
     reporters: ...
@@ -155,10 +155,10 @@ services:
         - type: XXX
           host: 127.0.0.1            # default is same as service
           port: 80                   # default is same as service
-          TimeoutInMilli: 1000       # check timeout, and consider as failed
-          Rise: 3                    # number of check run to consider it's OK
-          Fall: 3                    # number of check run to consider it's KO
-          CheckIntervalInMilli: 1000
+          timeoutInMilli: 1000       # check timeout, and consider as failed
+          rise: 3                    # number of check run to consider it's OK
+          fall: 3                    # number of check run to consider it's KO
+          checkIntervalInMilli: 1000
           ...
 
 ```
@@ -176,7 +176,7 @@ services:
           ...
 ```
 
-#### exec
+#### Exec
 
 To implement your own custom check
 
@@ -238,6 +238,8 @@ services:
 ```
 
 #### SQL
+
+Only `mysql` and `postgres` drivers are embedded. Fill a request if you want more.
 
 ```yaml
 ...
