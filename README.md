@@ -97,9 +97,9 @@ It's not acting (stopping) directly on the service but more handling what is on 
 It's useful to consider the service as stoppable when the API /disable reply.
 
 **Enable*** handle the way the service is going up.
-As soon as checks are ok, the service is reported with a weight of **1** and the warmup is triggered.
-weight is increased following a weighted fibonacci suite until reaching the **weight**.
-If **enableCheckStableCommand** is set, the command is run at each increase and if returning != 0, weight restart from 1
+As soon as checks are ok, the service is reported with a current weight of **1** and the warmup is triggered.
+current weight is increased following a weighted fibonacci suite until reaching **weight** value.
+If **enableCheckStableCommand** is set, the command is run at each increase and if returning != 0, current weight restart from 1
 until reaching **weight** or **enableWarmupMaxDurationInMilli**.
 
 ### Reporter Config
