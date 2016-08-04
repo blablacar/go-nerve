@@ -76,7 +76,7 @@ func (x *CheckProxyHttp) Check() error {
 				if err == nil {
 					ff = ff.WithField("status_code", resp.StatusCode)
 					if content, err := ioutil.ReadAll(resp.Body); err == nil {
-						ff = ff.WithField("content", content)
+						ff = ff.WithField("content", string(content))
 					}
 					resp.Body.Close()
 				}
