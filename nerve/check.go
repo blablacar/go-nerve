@@ -100,6 +100,9 @@ func (c *CheckCommon) CommonRun(checker Checker, statusChange chan<- Check, stop
 		if logs.IsTraceEnabled() {
 			logs.WithEF(status, c.fields).Trace("Check done")
 		}
+		if status != nil {
+			logs.WithEF(status, c.fields).Debug("Failed check")
+		}
 		if status != nil && !c.service.NoMetrics {
 			c.service.nerve.checkerFailureCount.WithLabelValues(c.service.Name, c.Type).Inc()
 		}
