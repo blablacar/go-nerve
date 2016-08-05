@@ -50,7 +50,7 @@ func (x *CheckProxyHttp) Init(s *Service) error {
 	}
 
 	for i, url := range x.Urls {
-		if !strings.HasPrefix(url, "http://") {
+		if !(strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")) {
 			x.Urls[i] = "http://" + url
 		}
 	}

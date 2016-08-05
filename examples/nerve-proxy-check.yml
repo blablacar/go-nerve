@@ -8,3 +8,4 @@ services:
           - https://developers.facebook.com/status/
           - https://newrelic.com/
           - http://status.aws.amazon.com/
+          - google.fr
