@@ -32,14 +32,14 @@ func WithF(fields data.Fields, msg string) *EntryError {
 
 func WithE(err error, msg string) *EntryError {
 	return fill(&EntryError{
-		Errs:    []error{err},
+		Errs:     []error{err},
 		Message: msg,
 	})
 }
 
 func WithEF(err error, fields data.Fields, msg string) *EntryError {
 	return fill(&EntryError{
-		Errs:    []error{err},
+		Errs:     []error{err},
 		Fields:  fields,
 		Message: msg,
 	})
@@ -118,6 +118,9 @@ func (e *EntryError) Error() string {
 	if e.Errs != nil {
 		buffer.WriteString("Caused by : ")
 		for i, err := range e.Errs {
+			if err == nil {
+				continue
+			}
 			if i > 0 {
 				buffer.WriteString("And\n")
 			}
