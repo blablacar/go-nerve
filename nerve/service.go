@@ -369,7 +369,7 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
 
 			select {
 			case <-time.After(start.Add(time.Duration(s.DisableMaxDurationInMilli) * time.Millisecond).Sub(time.Now())):
-				logs.WithF(s.fields).Debug("Disable max duration reached")
+				logs.WithEF(err, s.fields).Warn("Disable max duration reached")
 				return
 			case <-time.After(time.Duration(s.DisableGracefullyDoneIntervalInMilli) * time.Millisecond):
 			}
