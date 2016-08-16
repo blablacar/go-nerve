@@ -47,6 +47,17 @@ func NewReport(content []byte) (*Report, error) {
 	return &r, err
 }
 
+func (r *Report) UnmarshalJSON(b []byte) error {
+	if err := json.Unmarshal(b, r); err != nil {
+		return err
+	}
+	if r.Available != nil && *r.Available == false {
+		w := uint8(0)
+		r.Weight = &w
+	}
+	return nil
+}
+
 func (r *Report) toJson() ([]byte, error) {
 	return json.Marshal(r)
 }
