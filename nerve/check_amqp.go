@@ -53,7 +53,7 @@ func (x *CheckAmqp) Init(s *Service) error {
 }
 
 func (x *CheckAmqp) Check() error {
-	conn, err := amqp.Dial(x.Datasource)
+	conn, err := amqp.Dial(x.templatedDatasource)
 	if err != nil {
 		return errs.WithEF(err, x.fields, "Unable to connect to amqp server")
 	}
