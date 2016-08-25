@@ -7,7 +7,7 @@ Nerve is a utility to tracking the status of services. It run different checks a
 Though the api, you can also manually control what is reported (disabled, enabled, forced enabled).
 Beyond checking and reporting, nerve can execute different command against the service to control warmup, or prepare the service before announcing it.
 
-At BlaBlaCar, we use a nerve process for each service instance as the control point of it. Reporting the status in Zookeeper, and [Synapse](https://github.com/blablacar/go-synapse) on the other side to control access to the service instance.
+At BlaBlaCar, we use a nerve process for each service instance (> 2000) as the control point of it. Reporting the status in Zookeeper, and [Synapse](https://github.com/blablacar/go-synapse) on the other side to control access to the service instance.
 
 ## Airbnb
 
