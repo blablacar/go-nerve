@@ -30,6 +30,8 @@ type Service struct {
 	EnableCheckStableCommand             []string
 	EnableWarmupIntervalInMilli          int
 	EnableWarmupMaxDurationInMilli       int
+	DisableShutdownCommand               []string
+	DisableShutdownMaxDurationInMilli    int
 	DisableGracefullyDoneCommand         []string
 	DisableGracefullyDoneIntervalInMilli int
 	DisableMaxDurationInMilli            int
@@ -85,6 +87,10 @@ func (s *Service) Init(n *Nerve) error {
 
 	if s.PreAvailableMaxDurationInMilli == 0 {
 		s.PreAvailableMaxDurationInMilli = 1000
+	}
+
+	if s.DisableShutdownMaxDurationInMilli == 0 {
+		s.DisableShutdownMaxDurationInMilli = 30000
 	}
 
 	if s.DisableGracefullyDoneIntervalInMilli == 0 {
@@ -156,7 +162,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 			if *s.SetServiceAsDownOnShutdown {
 				wait := &sync.WaitGroup{}
 				wait.Add(1)
-				s.Disable(wait)
+				s.Disable(wait, false)
 				wait.Wait()
 			}
 			for reporter := range s.typedReportersWithReported {
@@ -347,7 +353,7 @@ func (s *Service) CurrentWeight() uint8 {
 	return res
 }
 
-func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
+func (s *Service) Disable(doneWaiter *sync.WaitGroup, shutdown bool) {
 	start := time.Now()
 	logs.WithF(s.fields).Info("Disabling service")
 	defer doneWaiter.Done()
@@ -355,6 +361,14 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup) {
 	s.forceEnable = false
 	s.disabled = errs.With("Service is disabled")
 	s.runNotify()
+
+	if len(s.DisableShutdownCommand) > 0 && shutdown {
+		logs.WithF(s.fields).Debug("Run disableShutdown command")
+		if err := ExecCommand(s.DisableShutdownCommand, s.DisableShutdownMaxDurationInMilli); err != nil {
+			logs.WithEF(err, s.fields).Error("Shutdown result")
+			s.nerve.execFailureCount.WithLabelValues(s.Name, s.Host, strconv.Itoa(s.Port), "disable-shutdown").Inc()
+		}
+	}
 
 	if len(s.DisableGracefullyDoneCommand) > 0 {
 		for {

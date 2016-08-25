@@ -21,9 +21,17 @@ import (
 
 func (n *Nerve) DisableServices(ctx *macaron.Context) (string, error) {
 	allWait := sync.WaitGroup{}
+	shutdownStr := ctx.QueryTrim("shutdown")
+	shutdownStr = strings.ToUpper(shutdownStr)
+
+	shutdown := false
+	if strings.HasPrefix(shutdownStr, "Y") || strings.HasPrefix(shutdownStr, "T") || strings.HasPrefix(shutdownStr, "1") {
+		shutdown = true
+	}
+
 	for _, service := range n.Services {
 		allWait.Add(1)
-		go service.Disable(&allWait)
+		go service.Disable(&allWait, shutdown)
 	}
 	allWait.Wait()
 	return n.ServicesStatus(ctx)
@@ -42,14 +50,15 @@ func (n *Nerve) Weight(ctx *macaron.Context) (string, error) {
 }
 
 func (n *Nerve) EnableServices(ctx *macaron.Context) (string, error) {
-	for _, service := range n.Services {
-		forceStr := ctx.QueryTrim("force")
-		forceStr = strings.ToUpper(forceStr)
+	forceStr := ctx.QueryTrim("force")
+	forceStr = strings.ToUpper(forceStr)
 
-		force := false
-		if strings.HasPrefix(forceStr, "Y") || strings.HasPrefix(forceStr, "T") || strings.HasPrefix(forceStr, "1") {
-			force = true
-		}
+	force := false
+	if strings.HasPrefix(forceStr, "Y") || strings.HasPrefix(forceStr, "T") || strings.HasPrefix(forceStr, "1") {
+		force = true
+	}
+
+	for _, service := range n.Services {
 		service.Enable(force)
 	}
 	return n.ServicesStatus(ctx)
@@ -141,8 +150,8 @@ func (n *Nerve) startApi() error {
 	m.Get("/weight/:weight", n.Weight)
 	m.Get("/", func() string {
 		return `/enable[?force=true]
+/disable[?shutdown=true]
 /weight/:weight
-/disable
 /status
 /metrics
 /version`

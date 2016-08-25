@@ -3,5 +3,6 @@ services:
   - host: 127.0.0.1
     NoMetricsReport: true
     port: 4242
+    disableShutdownCommand: [/bin/bash, -c, /bin/false]
     checks:
       - {type: http}
