@@ -88,6 +88,8 @@ services:
     disableGracefullyDoneIntervalInMilli: 1000    # time wait before relaunching graceful done command
     disableMaxDurationInMilli: 60 * 1000          # maximum service disable time if graceful done is never reached
     disableMinDurationInMilli: 3000               # minimum service disable time, to give at lease some time to users to stop using the service
+    disableShutdownCommand:                       # command to execute on /disable?shutdown=true api call
+    disableShutdownMaxDurationInMilli: 30000      # max command duration
     noMetrics: false                              # do not include this service in api /metrics report
 
 ```
