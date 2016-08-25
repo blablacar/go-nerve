@@ -1,6 +1,7 @@
 package nerve
 
 import (
+	_ "github.com/n0rad/go-erlog/register"
 	"github.com/blablacar/go-nerve/nerve/test"
 	"github.com/n0rad/go-erlog/logs"
 	. "github.com/onsi/gomega"

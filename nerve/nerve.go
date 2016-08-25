@@ -10,6 +10,7 @@ import (
 )
 
 type Nerve struct {
+	LogLevel *logs.Level
 	ApiHost  string
 	ApiPort  int
 	Services []*Service
@@ -26,11 +27,15 @@ type Nerve struct {
 	servicesStopWait     sync.WaitGroup
 }
 
-func (n *Nerve) Init(version string, buildTime string) error {
+func (n *Nerve) Init(version string, buildTime string, logLevelIsSet bool) error {
 	n.nerveVersion = version
 	n.nerveBuildTime = buildTime
 	if n.ApiPort == 0 {
 		n.ApiPort = 3454
+	}
+
+	if !logLevelIsSet && n.LogLevel != nil {
+		logs.SetLevel(*n.LogLevel)
 	}
 
 	n.checkerFailureCount = prometheus.NewCounterVec(

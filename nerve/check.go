@@ -6,9 +6,9 @@ import (
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"net"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
 )
 
 type Check struct {
