@@ -43,6 +43,7 @@ services:
 Root attributes :
 
 ```yaml
+logLevel: info
 apiHost: 127.0.0.1
 apiPort: 3454
 services:
