@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/blablacar/go-nerve",
-	"GoVersion": "go1.6",
+	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
 	"Packages": [
 		"././..."
@@ -57,23 +57,23 @@
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog",
-			"Rev": "4cee8549653d35d8d46038309afa2e0ec5027627"
+			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/data",
-			"Rev": "4cee8549653d35d8d46038309afa2e0ec5027627"
+			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/errs",
-			"Rev": "4cee8549653d35d8d46038309afa2e0ec5027627"
+			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/logs",
-			"Rev": "4cee8549653d35d8d46038309afa2e0ec5027627"
+			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/register",
-			"Rev": "4cee8549653d35d8d46038309afa2e0ec5027627"
+			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",

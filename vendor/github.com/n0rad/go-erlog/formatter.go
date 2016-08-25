@@ -46,6 +46,10 @@ func init() {
 	paths := strings.Split(file, "/")
 	for i := 0; i < len(paths); i++ {
 		if paths[i] == "github.com" {
+			if paths[i-1] == "vendor" {
+				pathSkip = i - 2
+				break
+			}
 			pathSkip = i + 2
 			break
 		}
@@ -229,7 +233,7 @@ func (f *ErlogWriterAppender) reduceFilePath(path string, max int) string {
 	reducedSize := len(path)
 	var buffer bytes.Buffer
 	for i, e := range split {
-		if reducedSize > max && i+1 < splitlen {
+		if len(e) > 0 && reducedSize > max && i+1 < splitlen {
 			buffer.WriteByte(e[0])
 			reducedSize -= len(e) - 1
 		} else {
