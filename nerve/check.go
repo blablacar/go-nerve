@@ -8,6 +8,7 @@ import (
 	"net"
 	"sync"
 	"time"
+	"strconv"
 )
 
 type Check struct {
@@ -104,7 +105,7 @@ func (c *CheckCommon) CommonRun(checker Checker, statusChange chan<- Check, stop
 			logs.WithEF(status, c.fields).Debug("Failed check")
 		}
 		if status != nil && !c.service.NoMetrics {
-			c.service.nerve.checkerFailureCount.WithLabelValues(c.service.Name, c.Type).Inc()
+			c.service.nerve.checkerFailureCount.WithLabelValues(c.service.Name, c.Host, strconv.Itoa(c.Port), c.Type).Inc()
 		}
 		c.saveStatus(status)
 
