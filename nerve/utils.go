@@ -7,6 +7,7 @@ import (
 	"github.com/n0rad/go-erlog/logs"
 	"net"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -61,14 +62,20 @@ func ExecCommandFull(cmd []string, env []string, timeoutInMilli int) error {
 		return errs.WithEF(err, data.WithField("cmd", cmd), "Failed to start command")
 	}
 
+	var after *errs.EntryError
 	timer := time.AfterFunc(time.Duration(timeoutInMilli)*time.Millisecond, func() {
+		data := data.WithField("command", strings.Join(cmd, " ")).WithField("timeout", timeoutInMilli)
+		logs.WithF(data).Debug("Command timeout")
+		after = errs.WithF(data, "Exec command timeout")
 		command.Process.Kill()
 	})
 
 	err := command.Wait()
 	timer.Stop()
 	if err != nil {
-		return errs.WithEF(err, data.WithField("cmd", cmd).WithField("output", string(b.Bytes())), "Command failed")
+		return errs.WithEF(err, data.WithField("cmd", cmd).
+			WithField("output", string(b.Bytes())), "Command failed").
+			WithErr(after)
 	}
 	return nil
 }
