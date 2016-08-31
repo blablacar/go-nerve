@@ -84,10 +84,10 @@ services:
 
     enableCheckStableCommand: [..., ...]          # command to check that the service is stable with current load during warmup (ex : too many cache missed)
     enableWarmupIntervalInMilli: 2000             # interval between weight going to next value (see below)
-    enableWarmupMaxDurationInMilli: 2 * 60 * 1000 # max warmup duration. if reached, warmup is stopped and weight is set as weight value
+    enableWarmupMaxDurationInMilli: 120000        # max warmup duration. if reached, warmup is stopped and weight is set as weight value
     disableGracefullyDoneCommand: [..., ...]      # command to check if the service is gracefully stopped. Usually check if there is still connections
     disableGracefullyDoneIntervalInMilli: 1000    # time wait before relaunching graceful done command
-    disableMaxDurationInMilli: 60 * 1000          # maximum service disable time if graceful done is never reached
+    disableMaxDurationInMilli: 60000              # maximum service disable time if graceful done is never reached
     disableMinDurationInMilli: 3000               # minimum service disable time, to give at lease some time to users to stop using the service
     disableShutdownCommand: [..., ...]            # command to execute on /disable?shutdown=true api call
     disableShutdownMaxDurationInMilli: 30000      # max command duration
@@ -120,7 +120,7 @@ services:
           hosts: ['127.0.0.1:2181', '127.0.0.1:2182']   # list of zk servers
           path: /services/cassandra/messages            # path to push the key 
           connectionTimeoutInMilli: 2000
-          refreshIntervalInMilli: 5 * 60 * 1000         # just in case zookeeper restart from scratch
+          refreshIntervalInMilli: 300000                # just in case zookeeper restart from scratch
           exposeOnUnavailable: false                    # insert in zookeeper even if not available. false to be compatible with airbnb's nerve
 ```
 
