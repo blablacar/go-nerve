@@ -30,6 +30,9 @@ func (n *Nerve) DisableServices(ctx *macaron.Context) (string, error) {
 	}
 
 	for _, service := range n.Services {
+		if service.ExcludeFromGlobalDisable {
+			continue
+		}
 		allWait.Add(1)
 		go service.Disable(&allWait, shutdown)
 	}
