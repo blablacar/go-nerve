@@ -200,10 +200,12 @@ func (n *Nerve) startApi() error {
 
 	m.Get("/metrics", prometheus.Handler())
 	m.Get("/", func() string {
-		return `PUT /enable[?force=true]
-PUT /disable[?shutdown=true]
-PUT /services/:service/disable
+		return `PUT /services/:service/disable
 PUT /services/:service/enable[?force=true]
+GET /services/:service/weight/:weight
+GET /services/:service/status
+PUT /disable[?shutdown=true]
+PUT /enable[?force=true]
 PUT /weight/:weight
 GET /status
 GET /metrics
@@ -221,12 +223,10 @@ GET /version`
 	m.Put("/weight/:weight", n.ServicesWeight)
 	m.Get("/status", n.ServicesStatus)
 
-
 	// TODO remove at some point
 	m.Get("/enable", n.EnableServices)
 	m.Get("/disable", n.DisableServices)
 	m.Get("/weight/:weight", n.ServicesWeight)
-
 
 	logs.WithF(n.fields.WithField("url", url)).Info("Starting api")
 	go http.Serve(n.apiListener, m)
