@@ -3,7 +3,7 @@
 
 # Nerve
 
-Nerve is a utility to tracking the status of services. It run different checks against the service, and can report the status to different system.
+Nerve is a utility to track services's status. It run different checks against the service, and can report it to different system.
 Though the api, you can also manually control what is reported (disabled, enabled, forced enabled).
 Beyond checking and reporting, nerve can execute different command against the service to control warmup, or prepare the service before announcing it.
 
