@@ -67,7 +67,7 @@ build() {
     [ ! -z ${version+x} ] || version="0"
 
     [ -f ${GOPATH}/bin/godep ] || go get github.com/tools/godep
-    [ -f /usr/bin/upx ] || (echo "upx is required to build" && exit 1)
+    [ -f $(which upx) ] || (echo "upx is required to build" && exit 1)
 
     echo_green "Save Dependencies"
     godep save ./${work_path}/... || echo_yellow "Cannot save dependencies. Continuing"
