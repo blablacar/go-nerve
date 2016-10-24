@@ -73,7 +73,7 @@ func toReport(status error, s *Service) Report {
 		Available:            &boolStatus,
 		Host:                 s.Host,
 		Port:                 Port(s.Port),
-		Name:                 s.Name,
+		Name:                 s.ReporterServiceName,
 		Weight:               &weight,
 		HaProxyServerOptions: s.HaproxyServerOptions,
 		Labels:               s.Labels,
