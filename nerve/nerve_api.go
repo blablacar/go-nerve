@@ -19,7 +19,7 @@ import (
 	"unsafe"
 )
 
-func (n *Nerve) ServiceDisable(ctx *macaron.Context)  {
+func (n *Nerve) ServiceDisable(ctx *macaron.Context) {
 	s, err := n.getService(ctx.Params(":service"))
 	if err != nil {
 		ctx.Resp.WriteHeader(404)
@@ -66,7 +66,7 @@ func (n *Nerve) EnableServices(ctx *macaron.Context) {
 	n.ServicesStatus(ctx)
 }
 
-func (n *Nerve) ServicesWeight(ctx *macaron.Context)  {
+func (n *Nerve) ServicesWeight(ctx *macaron.Context) {
 	weight := uint8(ctx.ParamsInt(":weight"))
 	if weight <= 0 || weight > 255 {
 		ctx.Resp.WriteHeader(400)
@@ -211,7 +211,6 @@ GET /status
 GET /metrics
 GET /version`
 	})
-
 
 	m.Put("/services/:service/disable", n.ServiceDisable)
 	m.Put("/services/:service/enable", n.ServiceEnable)
