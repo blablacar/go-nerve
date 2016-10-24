@@ -80,12 +80,18 @@ func (e *EntryError) WithFields(data data.Fields) *EntryError {
 }
 
 func (e *EntryError) WithErr(err error) *EntryError {
-	e.Errs = append(e.Errs, err)
+	if err != nil {
+		e.Errs = append(e.Errs, err)
+	}
 	return e
 }
 
-func (e *EntryError) WithErrs(err ...error) *EntryError {
-	e.Errs = append(e.Errs, err...)
+func (e *EntryError) WithErrs(errs ...error) *EntryError {
+	for _, err := range errs {
+		if err != nil {
+			e.Errs = append(e.Errs, err)
+		}
+	}
 	return e
 }
 
@@ -104,6 +110,10 @@ func (e *EntryError) WithMessage(msg string) *EntryError {
 }
 
 func (e *EntryError) Error() string {
+	if e == nil {
+		return ""
+	}
+
 	var buffer bytes.Buffer
 	buffer.WriteString(e.Message)
 	if e.Fields != nil {

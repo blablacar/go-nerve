@@ -16,6 +16,11 @@
 			"Rev": "3ac7bf7a47d159a033b107610db8a1b6575507a4"
 		},
 		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Comment": "v1.0.0-3-g6d21280",
+			"Rev": "6d212800a42e8ab5c146b8ace3490ee17e5225f9"
+		},
+		{
 			"ImportPath": "github.com/ghodss/yaml",
 			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
 		},
@@ -57,23 +62,23 @@
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog",
-			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
+			"Rev": "4b041df7334d6008f8ceaa9e6ed03d43aa9c1356"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/data",
-			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
+			"Rev": "4b041df7334d6008f8ceaa9e6ed03d43aa9c1356"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/errs",
-			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
+			"Rev": "4b041df7334d6008f8ceaa9e6ed03d43aa9c1356"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/logs",
-			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
+			"Rev": "4b041df7334d6008f8ceaa9e6ed03d43aa9c1356"
 		},
 		{
 			"ImportPath": "github.com/n0rad/go-erlog/register",
-			"Rev": "263d1c5c2375a836c0cf61582f1879551fded927"
+			"Rev": "4b041df7334d6008f8ceaa9e6ed03d43aa9c1356"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
@@ -136,6 +141,11 @@
 			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
 		},
 		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Comment": "v1.0.0",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
+		},
+		{
 			"ImportPath": "github.com/prometheus/client_golang/prometheus",
 			"Comment": "0.7.0-81-g488edd0",
 			"Rev": "488edd04dc224ba64c401747cd0a4b5f05dfb234"
@@ -190,6 +200,10 @@
 		{
 			"ImportPath": "golang.org/x/crypto/ssh/terminal",
 			"Rev": "5bcd134fee4dd1475da17714aac19c0aa0142e2f"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "c200b10b5d5e122be351b67af224adc6128af5bf"
 		},
 		{
 			"ImportPath": "gopkg.in/ini.v1",
