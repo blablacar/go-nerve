@@ -27,6 +27,15 @@ type Nerve struct {
 	servicesStopWait     sync.WaitGroup
 }
 
+func (n *Nerve) getService(name string) (*Service, error) {
+	for _, s := range n.Services {
+		if s.Name == name {
+			return s, nil
+		}
+	}
+	return nil, errs.WithF(n.fields.WithField("name", name), "No service found with this name")
+}
+
 func (n *Nerve) Init(version string, buildTime string, logLevelIsSet bool) error {
 	n.nerveVersion = version
 	n.nerveBuildTime = buildTime
@@ -83,6 +92,14 @@ func (n *Nerve) Init(version string, buildTime string, logLevelIsSet bool) error
 	for _, service := range n.Services {
 		if err := service.Init(n); err != nil {
 			return errs.WithE(err, "Failed to init service")
+		}
+	}
+
+	m := make(map[string]*Service)
+	for i, service := range n.Services {
+		m[service.Name] = service
+		if len(m) != i+1 {
+			return errs.WithF(n.fields.WithField("name", service.Name), "Duplicate service name")
 		}
 	}
 

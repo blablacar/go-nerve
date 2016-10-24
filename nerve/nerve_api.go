@@ -19,16 +19,34 @@ import (
 	"unsafe"
 )
 
-func (n *Nerve) DisableServices(ctx *macaron.Context) (string, error) {
-	allWait := sync.WaitGroup{}
-	shutdownStr := ctx.QueryTrim("shutdown")
-	shutdownStr = strings.ToUpper(shutdownStr)
-
-	shutdown := false
-	if strings.HasPrefix(shutdownStr, "Y") || strings.HasPrefix(shutdownStr, "T") || strings.HasPrefix(shutdownStr, "1") {
-		shutdown = true
+func (n *Nerve) ServiceDisable(ctx *macaron.Context)  {
+	s, err := n.getService(ctx.Params(":service"))
+	if err != nil {
+		ctx.Resp.WriteHeader(404)
+		ctx.Write([]byte(errs.WithEF(err, n.fields, "Not found").Error()))
+		return
 	}
 
+	w := sync.WaitGroup{}
+	w.Add(1)
+	s.Disable(&w, false)
+	n.ServiceStatus(ctx)
+}
+
+func (n *Nerve) ServiceEnable(ctx *macaron.Context) {
+	s, err := n.getService(ctx.Params(":service"))
+	if err != nil {
+		ctx.Resp.WriteHeader(404)
+		ctx.Write([]byte(errs.WithEF(err, n.fields, "Not found").Error()))
+		return
+	}
+	s.Enable(ParseBoolFlag(ctx.QueryTrim("force")))
+	n.ServiceStatus(ctx)
+}
+
+func (n *Nerve) DisableServices(ctx *macaron.Context) {
+	allWait := sync.WaitGroup{}
+	shutdown := ParseBoolFlag(ctx.QueryTrim("shutdown"))
 	for _, service := range n.Services {
 		if service.ExcludeFromGlobalDisable {
 			continue
@@ -37,46 +55,80 @@ func (n *Nerve) DisableServices(ctx *macaron.Context) (string, error) {
 		go service.Disable(&allWait, shutdown)
 	}
 	allWait.Wait()
-	return n.ServicesStatus(ctx)
+	n.ServicesStatus(ctx)
 }
 
-func (n *Nerve) Weight(ctx *macaron.Context) (string, error) {
+func (n *Nerve) EnableServices(ctx *macaron.Context) {
+	force := ParseBoolFlag(ctx.QueryTrim("force"))
+	for _, service := range n.Services {
+		service.Enable(force)
+	}
+	n.ServicesStatus(ctx)
+}
+
+func (n *Nerve) ServicesWeight(ctx *macaron.Context)  {
 	weight := uint8(ctx.ParamsInt(":weight"))
 	if weight <= 0 || weight > 255 {
-		return "", errs.WithF(n.fields.WithField("weight", weight), "Invalid weight value")
+		ctx.Resp.WriteHeader(400)
+		ctx.Write([]byte(errs.WithF(n.fields.WithField("weight", weight), "Invalid weight value").Error()))
+		return
 	}
 	for _, service := range n.Services {
 		service.Weight = weight
 		service.runNotify()
 	}
-	return n.ServicesStatus(ctx)
+	n.ServicesStatus(ctx)
 }
 
-func (n *Nerve) EnableServices(ctx *macaron.Context) (string, error) {
-	forceStr := ctx.QueryTrim("force")
-	forceStr = strings.ToUpper(forceStr)
-
-	force := false
-	if strings.HasPrefix(forceStr, "Y") || strings.HasPrefix(forceStr, "T") || strings.HasPrefix(forceStr, "1") {
-		force = true
+func (n *Nerve) ServiceWeight(ctx *macaron.Context) {
+	weight := uint8(ctx.ParamsInt(":weight"))
+	if weight <= 0 || weight > 255 {
+		ctx.Resp.WriteHeader(400)
+		ctx.Write([]byte(errs.WithF(n.fields.WithField("weight", weight), "Invalid weight value").Error()))
+		return
 	}
 
-	for _, service := range n.Services {
-		service.Enable(force)
+	service, err := n.getService(ctx.Params(":service"))
+	if err != nil {
+		ctx.Resp.WriteHeader(404)
+		ctx.Write([]byte(errs.WithEF(err, n.fields, "Not found").Error()))
 	}
-	return n.ServicesStatus(ctx)
+
+	service.Weight = weight
+	service.runNotify()
+	n.ServiceStatus(ctx)
 }
 
-func (n *Nerve) ServicesStatus(ctx *macaron.Context) (string, error) {
+func (n *Nerve) ServicesStatus(ctx *macaron.Context) {
 	var statuses []ServiceStatus
 	for _, service := range n.Services {
-		statuses = append(statuses, n.ServiceStatus(service))
+		statuses = append(statuses, n.status(service))
 	}
 	res, err := json.Marshal(statuses)
 	if err != nil {
-		ctx.Req.Header.Set("Content-Type", "application/json")
+		ctx.Resp.WriteHeader(500)
+		ctx.Write([]byte(errs.WithEF(err, n.fields, "Failed to marshall services statuses").Error()))
+		return
 	}
-	return string(res), err
+	ctx.Req.Header.Set("Content-Type", "application/json")
+	ctx.Write(res)
+}
+
+func (n *Nerve) ServiceStatus(ctx *macaron.Context) {
+	s, err := n.getService(ctx.Params(":service"))
+	if err != nil {
+		ctx.Resp.WriteHeader(500)
+		ctx.Write([]byte(errs.WithEF(err, n.fields, "Not found").Error()))
+		return
+	}
+
+	res, err := json.Marshal(n.status(s))
+	if err != nil {
+		ctx.Resp.WriteHeader(500)
+		ctx.Write([]byte(errs.WithEF(err, n.fields.WithField("name", s.Name), "Failed to marshall service status").Error()))
+	}
+	ctx.Req.Header.Set("Content-Type", "application/json")
+	ctx.Write(res)
 }
 
 type ServiceStatus struct {
@@ -89,7 +141,7 @@ type ServiceStatus struct {
 	Available     bool
 }
 
-func (n *Nerve) ServiceStatus(service *Service) ServiceStatus {
+func (n *Nerve) status(service *Service) ServiceStatus {
 	s := ServiceStatus{}
 	s.Name = service.Name
 	s.Host = service.Host
@@ -146,19 +198,35 @@ func (n *Nerve) startApi() error {
 		resp.Write([]byte("\n"))
 	})
 
+	m.Get("/metrics", prometheus.Handler())
+	m.Get("/", func() string {
+		return `PUT /enable[?force=true]
+PUT /disable[?shutdown=true]
+PUT /services/:service/disable
+PUT /services/:service/enable[?force=true]
+PUT /weight/:weight
+GET /status
+GET /metrics
+GET /version`
+	})
+
+
+	m.Put("/services/:service/disable", n.ServiceDisable)
+	m.Put("/services/:service/enable", n.ServiceEnable)
+	m.Put("/services/:service/weight/:weight", n.ServiceWeight)
+	m.Get("/services/:service/status", n.ServiceStatus)
+
+	m.Put("/disable", n.DisableServices)
+	m.Put("/enable", n.EnableServices)
+	m.Put("/weight/:weight", n.ServicesWeight)
+	m.Get("/status", n.ServicesStatus)
+
+
+	// TODO remove at some point
 	m.Get("/enable", n.EnableServices)
 	m.Get("/disable", n.DisableServices)
-	m.Get("/status", n.ServicesStatus)
-	m.Get("/metrics", prometheus.Handler())
-	m.Get("/weight/:weight", n.Weight)
-	m.Get("/", func() string {
-		return `/enable[?force=true]
-/disable[?shutdown=true]
-/weight/:weight
-/status
-/metrics
-/version`
-	})
+	m.Get("/weight/:weight", n.ServicesWeight)
+
 
 	logs.WithF(n.fields.WithField("url", url)).Info("Starting api")
 	go http.Serve(n.apiListener, m)
@@ -205,4 +273,13 @@ func Logger() macaron.Handler {
 
 		}
 	}
+}
+
+func ParseBoolFlag(value string) bool {
+	forceStr := strings.ToUpper(value)
+	force := false
+	if strings.HasPrefix(forceStr, "Y") || strings.HasPrefix(forceStr, "T") || strings.HasPrefix(forceStr, "1") {
+		force = true
+	}
+	return force
 }
