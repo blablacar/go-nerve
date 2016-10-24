@@ -72,7 +72,9 @@ func ExecCommandFull(cmd []string, env []string, timeoutInMilli int) error {
 
 	err := command.Wait()
 	timer.Stop()
-	logs.WithField("ouptut", string(b.Bytes())).Debug("Command ouptut")
+	if logs.IsTraceEnabled() {
+		logs.WithField("cmd", cmd).WithField("output", string(b.Bytes())).Trace("Command output")
+	}
 	if err != nil {
 		return errs.WithEF(err, data.WithField("cmd", cmd).
 			WithField("output", string(b.Bytes())), "Command failed").
