@@ -23,6 +23,7 @@ type Service struct {
 	HaproxyServerOptions       string
 	SetServiceAsDownOnShutdown *bool
 	Labels                     map[string]string
+	ExcludeFromGlobalDisable   bool
 
 	PreAvailableCommand            []string
 	PreAvailableMaxDurationInMilli int

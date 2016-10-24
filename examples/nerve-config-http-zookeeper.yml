@@ -16,6 +16,7 @@ services:
       host: srv42
 
   - host: 127.0.0.1
+    excludeFromGlobalDisable: true
     port: 3454
     reporters:
       - {type: zookeeper, path: /monitoring/api/myapi, hosts : ['127.0.0.1:2181'], exposeOnUnavailable: true} #  , exposeOnUnavailable: true
