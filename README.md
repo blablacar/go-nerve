@@ -70,10 +70,12 @@ services:
   - name: '127.0.0.1:80'                          # name of the service. Default to host:port
     host: 127.0.0.1                               # ip of the service
     port: 80                                      # what port is using the service
+    excludeFromGlobalDisable: false               # do not disable this service when calling /disable endpoint
     preferIpv4: false                             # if using dns instead of ip in checks & dns resolving gives ipv4 & ipv6 results
     weight: 255                                   # service weight when fully available (not on warmup)
     checks: ...
     reporters: ...
+    reporterServiceName:                          # override 'name' inside report payload
     reportReplayInMilli: 1000                     # time wait before replaying failed report
     haproxyServerOptions:                         # a string, to be retrocompatible with airbnb's nerve. Attributes to pushed to synapse's haproxy
     setServiceAsDownOnShutdown: true              #
