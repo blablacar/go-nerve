@@ -107,6 +107,22 @@ current weight is increased following a weighted fibonacci suite until reaching 
 If **enableCheckStableCommand** is set, the command is run at each increase and if returning != 0, current weight restart from 1
 until reaching **weight** or **enableWarmupMaxDurationInMilli**.
 
+### API
+Use the API to monitor and manage your services (default port 65533), here is a quick list of usable routes:
+```
+curl http://127.0.0.1:65533
+PUT /services/:service/disable
+PUT /services/:service/enable[?force=true]
+GET /services/:service/weight/:weight
+GET /services/:service/status
+PUT /disable[?shutdown=true]
+PUT /enable[?force=true]
+PUT /weight/:weight
+GET /status
+GET /metrics
+GET /version
+```
+
 ### Reporter Config
 
 #### Reporter Zookeeper
