@@ -8,34 +8,34 @@ import (
 	"math"
 	"strconv"
 	"sync"
-	"time"
 	"sync/atomic"
+	"time"
 )
 
 type Service struct {
-	Name                                 string
-	Port                                 int
-	Host                                 string
-	PreferIpv4                           bool
-	Weight                               uint8
-	Checks                               []json.RawMessage
-	Reporters                            []json.RawMessage
-	ReporterServiceName                  string
-	ReportReplayInMilli                  int
-	HaproxyServerOptions                 string
-	SetServiceAsDownOnShutdown           *bool
-	Labels                               map[string]string
-	ExcludeFromGlobalDisable             bool
+	Name                       string
+	Port                       int
+	Host                       string
+	PreferIpv4                 bool
+	Weight                     uint8
+	Checks                     []json.RawMessage
+	Reporters                  []json.RawMessage
+	ReporterServiceName        string
+	ReportReplayInMilli        int
+	HaproxyServerOptions       string
+	SetServiceAsDownOnShutdown *bool
+	Labels                     map[string]string
+	ExcludeFromGlobalDisable   bool
 
-	PreAvailableCommand                  []string
-	PreAvailableMaxDurationInMilli       int
+	PreAvailableCommand            []string
+	PreAvailableMaxDurationInMilli int
 
-	EnableCheckStableCommand             []string
-	EnableCheckStableMaxDurationInMilli  int
-	EnableCheckStableIntervalInMilli     int
+	EnableCheckStableCommand            []string
+	EnableCheckStableMaxDurationInMilli int
+	EnableCheckStableIntervalInMilli    int
 
-	EnableWarmupIntervalInMilli          int
-	EnableWarmupMaxDurationInMilli       int
+	EnableWarmupIntervalInMilli    int
+	EnableWarmupMaxDurationInMilli int
 
 	DisableShutdownCommand               []string
 	DisableShutdownMaxDurationInMilli    int
@@ -45,18 +45,18 @@ type Service struct {
 	DisableMinDurationInMilli            int
 	NoMetrics                            bool
 
-	nerve                                *Nerve
-	forceEnable                          bool
-	disabled                             error
-	runNotifyMutex                       sync.Mutex
-	warmupGiveUp                         chan struct{}
-	warmupMutex                          sync.Mutex
-	warmupGiveUpMutex                    sync.Mutex
-	currentWeightIndex                   int32
-	currentStatus                        *error
-	typedCheckersWithStatus              map[Checker]*error
-	typedReportersWithReported           map[Reporter]bool
-	fields                               data.Fields
+	nerve                      *Nerve
+	forceEnable                bool
+	disabled                   error
+	runNotifyMutex             sync.Mutex
+	warmupGiveUp               chan struct{}
+	warmupMutex                sync.Mutex
+	warmupGiveUpMutex          sync.Mutex
+	currentWeightIndex         int32
+	currentStatus              *error
+	typedCheckersWithStatus    map[Checker]*error
+	typedReportersWithReported map[Reporter]bool
+	fields                     data.Fields
 }
 
 var weights = []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233}
@@ -120,13 +120,12 @@ func (s *Service) Init(n *Nerve) error {
 		s.DisableMaxDurationInMilli = 60 * 1000
 	}
 
-
-	s.fields = data.WithField("service", s.Host + ":" + strconv.Itoa(s.Port))
+	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
 
 	minDuration := s.EnableWarmupIntervalInMilli * (postFullWeightMax + len(weights))
 	if s.EnableWarmupMaxDurationInMilli < minDuration {
 		return errs.WithF(s.fields.WithField("minValue", minDuration),
-			"EnableWarmupMaxDurationInMilli must be at least " +  strconv.Itoa(postFullWeightMax + len(weights)) + " times EnableWarmupIntervalInMilli")
+			"EnableWarmupMaxDurationInMilli must be at least "+strconv.Itoa(postFullWeightMax+len(weights))+" times EnableWarmupIntervalInMilli")
 	}
 
 	s.typedReportersWithReported = make(map[Reporter]bool)
@@ -181,7 +180,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 			logs.WithF(s.fields.WithField("status", status)).Debug("New status received")
 			s.processCheckResult(status)
 		case <-stopper:
-		//TODO since stop is the same everywhere, statusChange chan may stay stuck on shutdown
+			//TODO since stop is the same everywhere, statusChange chan may stay stuck on shutdown
 			logs.WithFields(s.fields).Debug("Stop requested")
 			checkStopWait.Wait()
 			close(statusChange)
@@ -309,7 +308,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 
 		atomic.AddInt32(&s.currentWeightIndex, 1)
 
-		if atomic.LoadInt32(&s.currentWeightIndex) > int32(postFullWeightMax + len(weights)) {
+		if atomic.LoadInt32(&s.currentWeightIndex) > int32(postFullWeightMax+len(weights)) {
 			logs.WithF(s.fields).Debug("Service is fully stable")
 			s.warmupMutex.Lock()
 			s.warmupGiveUp = nil
@@ -319,7 +318,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 
 		if time.Now().After(start.Add(time.Duration(s.EnableWarmupMaxDurationInMilli) * time.Millisecond)) {
 			logs.WithF(s.fields).Warn("Warmup reach max duration. set Full Weight")
-			atomic.StoreInt32(&s.currentWeightIndex, int32(len(weights) - 1))
+			atomic.StoreInt32(&s.currentWeightIndex, int32(len(weights)-1))
 			s.reportAndTellIfAtLeastOneReported(true)
 			return
 		}
@@ -379,10 +378,10 @@ func (s *Service) CurrentWeight() uint8 {
 	}
 
 	index := atomic.LoadInt32(&s.currentWeightIndex)
-	if index > int32(len(weights) - 1) {
+	if index > int32(len(weights)-1) {
 		index = int32(len(weights) - 1)
 	}
-	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights) - 1]))
+	res := uint8(math.Ceil(weights[index] * float64(s.Weight) / weights[len(weights)-1]))
 	if res == 0 {
 		res++
 	}
