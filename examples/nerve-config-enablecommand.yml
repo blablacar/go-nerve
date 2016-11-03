@@ -1,0 +1,11 @@
+
+services:
+  - host: 127.0.0.1
+    NoMetricsReport: true
+    port: 4242
+    disableShutdownCommand: [/bin/bash, -c, /bin/false]
+    enableCheckStableCommand: [/bin/bash, -c, "cat /tmp/file"]
+    enableWarmupIntervalInMilli: 20000
+    enableMaxIntervalInMilli: 600000
+    checks:
+      - {type: http}

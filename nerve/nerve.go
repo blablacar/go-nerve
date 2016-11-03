@@ -91,7 +91,7 @@ func (n *Nerve) Init(version string, buildTime string, logLevelIsSet bool) error
 	n.serviceStopper = make(chan struct{})
 	for _, service := range n.Services {
 		if err := service.Init(n); err != nil {
-			return errs.WithE(err, "Failed to init service")
+			return errs.WithEF(err, data.WithField("service", service.Name), "Failed to init service")
 		}
 	}
 

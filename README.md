@@ -85,8 +85,12 @@ services:
     preAvailableMaxDurationInMilli:               #
 
     enableCheckStableCommand: [..., ...]          # command to check that the service is stable with current load during warmup (ex : too many cache missed)
+    enableCheckStableMaxDurationInMilli: 2000
+    enableCheckStableIntervalInMilli: 1000
+
     enableWarmupIntervalInMilli: 2000             # interval between weight going to next value (see below)
     enableWarmupMaxDurationInMilli: 120000        # max warmup duration. if reached, warmup is stopped and weight is set as weight value
+                                                  # default is enableWarmupIntervalInMilli * 30 and must be at least 27 times the interval
     disableGracefullyDoneCommand: [..., ...]      # command to check if the service is gracefully stopped. Usually check if there is still connections
     disableGracefullyDoneIntervalInMilli: 1000    # time wait before relaunching graceful done command
     disableMaxDurationInMilli: 60000              # maximum service disable time if graceful done is never reached
