@@ -5,7 +5,7 @@ services:
     port: 4242
     disableShutdownCommand: [/bin/bash, -c, /bin/false]
     enableCheckStableCommand: [/bin/bash, -c, "cat /tmp/file"]
-    enableWarmupIntervalInMilli: 20000
-    enableMaxIntervalInMilli: 600000
+    enableWarmupIntervalInMilli: 2000
+    enableMaxIntervalInMilli: 60000
     checks:
       - {type: http}

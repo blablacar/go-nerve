@@ -281,6 +281,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 	start := time.Now()
 	atomic.StoreInt32(&s.currentWeightIndex, 0)
 
+	done := make(chan struct{})
 	if len(s.EnableCheckStableCommand) > 0 {
 		go func() {
 			for {
@@ -293,6 +294,8 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 
 				select {
 				case <-giveUp:
+					return
+				case <-done:
 					return
 				case <-time.After(time.Duration(s.EnableCheckStableIntervalInMilli) * time.Millisecond):
 				}
@@ -310,6 +313,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 
 		if atomic.LoadInt32(&s.currentWeightIndex) > int32(postFullWeightMax+len(weights)) {
 			logs.WithF(s.fields).Debug("Service is fully stable")
+			done <- struct{}{}
 			s.warmupMutex.Lock()
 			s.warmupGiveUp = nil
 			s.warmupMutex.Unlock()
@@ -318,6 +322,10 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 
 		if time.Now().After(start.Add(time.Duration(s.EnableWarmupMaxDurationInMilli) * time.Millisecond)) {
 			logs.WithF(s.fields).Warn("Warmup reach max duration. set Full Weight")
+			done <- struct{}{}
+			s.warmupMutex.Lock()
+			s.warmupGiveUp = nil
+			s.warmupMutex.Unlock()
 			atomic.StoreInt32(&s.currentWeightIndex, int32(len(weights)-1))
 			s.reportAndTellIfAtLeastOneReported(true)
 			return
