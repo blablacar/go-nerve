@@ -46,19 +46,19 @@ func (x *CheckHttp) Init(s *Service) error {
 
 func (x *CheckHttp) Check() error {
 	resp, err := x.client.Get(x.url)
-	if err != nil || (resp.StatusCode >= 500 && resp.StatusCode < 600) {
-		ff := x.fields
-		if err == nil {
-			ff = ff.WithField("status_code", resp.StatusCode)
-			if content, err := ioutil.ReadAll(resp.Body); err == nil {
-				ff = ff.WithField("content", string(content))
-			}
-			resp.Body.Close()
-		}
-		return errs.WithEF(err, ff, "Url check failed")
+	if err != nil {
+		return errs.WithEF(err, x.fields, "Url check failed")
 	}
-	if err == nil {
+
+	content, bodyErr := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode >= 500 && resp.StatusCode < 600 {
+		ff := x.fields.WithField("status_code", resp.StatusCode)
+		if bodyErr == nil {
+			ff = ff.WithField("content", string(content))
+		}
 		resp.Body.Close()
+		return errs.WithEF(err, ff, "Url check failed")
 	}
 	return nil
 }
