@@ -137,6 +137,8 @@ func CheckerFromJson(data []byte, s *Service) (Checker, error) {
 	switch t.Type {
 	case "http":
 		typedCheck = NewCheckHttp()
+	case "https":
+		typedCheck = NewCheckHttps()
 	case "proxyhttp":
 		typedCheck = NewCheckProxyHttp()
 	case "tcp":

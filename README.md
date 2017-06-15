@@ -213,6 +213,20 @@ services:
 
 Check fail if cannot connect or if status code is in >= 500 && < 600
 
+#### HTTPS 
+
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: https
+          ...
+          path: /       # combined with host and port to create the full url
+```
+HTTPS check is done the insecure way for now (InsecureSkipVerify set to true), it is convenient for a development environment.
+
+
 #### Proxy http
 
 ```yaml
