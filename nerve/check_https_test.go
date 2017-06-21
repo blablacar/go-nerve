@@ -1,11 +1,11 @@
 package nerve
 
 import (
-	"github.com/stretchr/testify/require"
-	"testing"
-	"net/http/httptest"
-	"net/http"
 	"fmt"
+	"github.com/stretchr/testify/require"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 func TestHttpsServiceAvailable(t *testing.T) {

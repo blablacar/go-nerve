@@ -1,11 +1,11 @@
 package nerve
 
 import (
+	"crypto/tls"
 	"github.com/n0rad/go-erlog/errs"
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"crypto/tls"
 	"sync"
 	"time"
 )
@@ -13,7 +13,7 @@ import (
 type CheckHttps struct {
 	CheckCommon
 	Path string
-	url string
+	url  string
 
 	client http.Client
 }
@@ -34,11 +34,11 @@ func (x *CheckHttps) Init(s *Service) error {
 	}
 
 	tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
 
 	x.client = http.Client{
-		Timeout: time.Duration(x.TimeoutInMilli) * time.Millisecond,
+		Timeout:   time.Duration(x.TimeoutInMilli) * time.Millisecond,
 		Transport: tr,
 	}
 	if len(x.Path) == 0 || x.Path[0] != '/' {
