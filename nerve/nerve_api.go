@@ -103,6 +103,9 @@ func (n *Nerve) ServicesStatus(ctx *macaron.Context) {
 	var statuses []ServiceStatus
 	for _, service := range n.Services {
 		statuses = append(statuses, n.status(service))
+		if ! n.status(service).Available {
+			ctx.Resp.WriteHeader(503)
+		}
 	}
 	res, err := json.Marshal(statuses)
 	if err != nil {
@@ -127,6 +130,11 @@ func (n *Nerve) ServiceStatus(ctx *macaron.Context) {
 		ctx.Resp.WriteHeader(500)
 		ctx.Write([]byte(errs.WithEF(err, n.fields.WithField("name", s.Name), "Failed to marshall service status").Error()))
 	}
+
+	if ! n.status(s).Available {
+		ctx.Resp.WriteHeader(503)
+	}
+
 	ctx.Req.Header.Set("Content-Type", "application/json")
 	ctx.Write(res)
 }
