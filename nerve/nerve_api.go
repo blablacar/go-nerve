@@ -103,7 +103,7 @@ func (n *Nerve) ServicesStatus(ctx *macaron.Context) {
 	var statuses []ServiceStatus
 	for _, service := range n.Services {
 		statuses = append(statuses, n.status(service))
-		if ! n.status(service).Available {
+		if !n.status(service).Available {
 			ctx.Resp.WriteHeader(503)
 		}
 	}
@@ -131,7 +131,7 @@ func (n *Nerve) ServiceStatus(ctx *macaron.Context) {
 		ctx.Write([]byte(errs.WithEF(err, n.fields.WithField("name", s.Name), "Failed to marshall service status").Error()))
 	}
 
-	if ! n.status(s).Available {
+	if !n.status(s).Available {
 		ctx.Resp.WriteHeader(503)
 	}
 
