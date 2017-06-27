@@ -1,8 +1,9 @@
 package nerve
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestExecRequireCommand(t *testing.T) {

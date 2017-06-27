@@ -3,14 +3,15 @@ package nerve
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/logs"
-	"github.com/samuel/go-zookeeper/zk"
 	"io"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/logs"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 var zkConnectionsMutex sync.Mutex

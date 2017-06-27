@@ -1,9 +1,10 @@
 package nerve
 
 import (
-	"github.com/n0rad/go-erlog/errs"
 	"os"
 	"path"
+
+	"github.com/n0rad/go-erlog/errs"
 )
 
 type ReporterFile struct {

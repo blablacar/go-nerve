@@ -2,13 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/blablacar/go-nerve/nerve"
-	"github.com/ghodss/yaml"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
-	_ "github.com/n0rad/go-erlog/register"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -17,6 +10,14 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/blablacar/go-nerve/nerve"
+	"github.com/ghodss/yaml"
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
+	_ "github.com/n0rad/go-erlog/register"
+	"github.com/spf13/cobra"
 )
 
 var Version = "No Version Defined"

@@ -2,12 +2,13 @@ package nerve
 
 import (
 	"crypto/tls"
-	"github.com/n0rad/go-erlog/errs"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/n0rad/go-erlog/errs"
 )
 
 type CheckHttps struct {

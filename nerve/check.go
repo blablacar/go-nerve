@@ -2,13 +2,14 @@ package nerve
 
 import (
 	"encoding/json"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
 	"net"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 )
 
 type Check struct {

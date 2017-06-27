@@ -2,11 +2,12 @@ package nerve
 
 import (
 	"bytes"
+	"sync"
+	"text/template"
+
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/streadway/amqp"
-	"sync"
-	"text/template"
 )
 
 const checkMessage = "nerve"

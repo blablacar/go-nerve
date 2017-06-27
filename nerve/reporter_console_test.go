@@ -3,9 +3,10 @@ package nerve
 import (
 	"bufio"
 	"bytes"
-	. "github.com/onsi/gomega"
 	"strings"
 	"testing"
+
+	. "github.com/onsi/gomega"
 )
 
 var btrue = true

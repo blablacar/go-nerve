@@ -1,8 +1,9 @@
 package nerve
 
 import (
-	"github.com/n0rad/go-erlog/errs"
 	"sync"
+
+	"github.com/n0rad/go-erlog/errs"
 )
 
 type CheckExec struct {

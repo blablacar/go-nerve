@@ -1,11 +1,12 @@
 package nerve
 
 import (
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/tevino/tcp-shaker"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/tevino/tcp-shaker"
 )
 
 type CheckTcp struct {

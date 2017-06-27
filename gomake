@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -efo pipefail # TODO u
 
  : ${target_name:=dist}
  : ${work_path:=.}
@@ -9,7 +9,10 @@ set -e
  : ${release_osarchi:="linux-amd64,darwin-amd64,windows-amd64"}
  : ${version:=0}
  : ${token:=}
- : ${upx:=}
+ : ${upx:=false}
+ : ${build_packages:=}
+ : ${build_ldflags:="-s -w -X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.BuildVersion=\${version} -X main.BuildCommit=`git rev-parse --short HEAD`"}
+ : ${errcheck:=true}
 
 read -d '' helper <<EOF || true
 Usage: gomake [-v version][-t token] command...
@@ -20,6 +23,7 @@ Usage: gomake [-v version][-t token] command...
       build                 build (current platform only by default)
       quality               Format, Fix, check error handled, lint, vet, misspell, ineffassign, Gocyclo
       test                  run go tests
+      install               install release to \$GOPATH/bin
       release               clean, build all platform, test, check git is clean, tag, push tag & build ZIPs
       gomake_update         self updating by downloading and replacing with latest version
 
@@ -31,9 +35,21 @@ Usage: gomake [-v version][-t token] command...
   -W, --work-path=path      set working path, default is ./
 EOF
 
+go_files=`find . -name '*.go' 2> /dev/null | grep -v ${target_name}/ | grep -v vendor/ | grep -v .git`
+err_count=0
+
+#color_red() {
+#    echo -n -e "\e[0;31m"
+#}
+#
+#color_reset() {
+#    echo -n -e "\e[0m"
+#}
 
 echo_red() {
-    echo -e "\e[0;31m${@}\e[0m"
+    echo -n -e "\e[0;31m"
+    echo "${@}"
+    echo -n -e "\e[0m"
 }
 
 echo_purple() {
@@ -48,9 +64,16 @@ echo_yellow() {
     echo -e "\e[0;93m${@}\e[0m"
 }
 
+err_count() {
+    c=$(echo -e "${1}" | wc -l)
+    ((err_count+=${c}))
+}
+
 gomake_update() {
     echo_green "Downloading gomake"
-    wget -q -O ${work_path}/gomake.tmp https://raw.githubusercontent.com/n0rad/gomake/master/gomake
+    curl --fail --silent --show-error --location --remote-time --compressed \
+        -o ${work_path}/gomake.tmp \
+        https://raw.githubusercontent.com/n0rad/gomake/master/gomake
     chmod +x ${work_path}/gomake.tmp
     mv ${work_path}/gomake.tmp ${work_path}/$0
 }
@@ -61,47 +84,20 @@ clean() {
 }
 
 build() {
-    start=`date +%s`
+    start=$(date +%s)
 
     [ -z "$1" ] || osarchi="$1"
     [ ! -z ${version+x} ] || version="0"
 
-    [ -f ${GOPATH}/bin/godep ] || go get github.com/tools/godep
-    [ -f $(which upx) ] || (echo "upx is required to build" && exit 1)
+    mkdir -p ${work_path}/${target_name}/bindata
 
-    echo_green "Save Dependencies"
-    godep save ./${work_path}/... || echo_yellow "Cannot save dependencies. Continuing"
+    if [ `type -t pre-build`"" == 'function' ]; then
+        pre-build
+    fi
 
-    IFS=',' read -ra current <<< "$osarchi"
-    for e in "${current[@]}"; do
-        echo_green "Building $e"
-
-        $(cd ${work_path} && GOOS="${e%-*}" GOARCH="${e#*-}" godep go build -ldflags "-s -w -X main.BuildTime=`date -u '+%Y-%m-%d_%H:%M:%S_UTC'` -X main.Version=${version}-`git rev-parse --short HEAD`" \
-            -o ${target_name}/${app}-v${version}-${e}/${app})
-
-        if [ ${upx} ]; then
-            echo_green "Compressing ${e}"
-            upx ${work_path}/${target_name}/${app}-v${version}-${e}/${app} &> /dev/null
-        fi
-
-        if [ "${e%-*}" == "windows" ]; then
-            mv ${work_path}/${target_name}/${app}-v${version}-${e}/${app} ${work_path}/${target_name}/${app}-v${version}-${e}/${app}.exe
-        fi
-    done
-    echo_purple "Build duration : $((`date +%s`-${start}))s"
-}
-
-
-install() {
-    echo_green "Installing"
-    cp ${work_path}/${target_name}/${app}-v${version}-$(go env GOHOSTOS)-$(go env GOHOSTARCH)/${app}* ${GOPATH}/bin/
-}
-
-quality() {
-    start=`date +%s`
-    cd ${work_path}
-
-    go_files=`find . -name '*.go' 2> /dev/null | grep -v ${target_name}/ | grep -v vendor/ | grep -v .git`
+    echo_green "Goimports"
+    command -v goimports > /dev/null || go get -u golang.org/x/tools/cmd/goimports
+    goimports -w ${go_files}
 
     echo_green "Format"
     gofmt -w -s ${go_files}
@@ -109,12 +105,61 @@ quality() {
     echo_green "Fix"
     go tool fix ${go_files}
 
-    echo_green "Err check"
-    [ -f ${GOPATH}/bin/errcheck ] || go get -u github.com/kisielk/errcheck
-    errcheck ./... | grep -v 'vendor/' | grep -v 'Close(' | grep -v '_test.go'
+    if [ "$(ls -A ${work_path}/${target_name}/bindata)" ]; then
+        command -v go-bindata > /dev/null || go get -u github.com/jteeuwen/go-bindata/...
+        go-bindata -nomemcopy -pkg dist -prefix dist/bindata -o ${work_path}/${target_name}/bindata.go ${work_path}/${target_name}/bindata/...
+    fi
+
+    ldflags=$(eval echo ${build_ldflags})
+    IFS=',' read -ra current <<< "$osarchi"
+    for e in "${current[@]}"; do
+        echo_green "Building $e"
+
+        binaryPath=$(targetBinaryPath ${e})
+        $(cd ${work_path} && GOOS="${e%-*}" GOARCH="${e#*-}" go build -ldflags "${ldflags}" -o ${target_name}/${binaryPath} ${build_packages})
+
+        if [ "$upx" = true ]; then
+            if [ "${e%-*}" != "darwin" ]; then
+                echo_green "Compressing ${e}" # TODO compress on release only
+                command -v upx > /dev/null || (echo "upx is required to compress" && exit 1)
+                upx ${work_path}/${target_name}/${binaryPath} &> /dev/null
+            fi
+        fi
+
+        if [ "${e%-*}" == "windows" ]; then
+            mv ${work_path}/${target_name}/${binaryPath} ${work_path}/${target_name}/${binaryPath}.exe
+        fi
+    done
+    echo_purple "Build duration : $((`date +%s`-${start}))s"
+}
+
+targetBinaryPath() {
+    if [ "${1%-*}" == "windows" ]; then
+        echo ${app}-v${version}-${1}/${app}.exe
+    else
+        echo ${app}-v${version}-${1}/${app}
+    fi
+}
+
+install() {
+    echo_green "Installing"
+    cp ${work_path}/${target_name}/$(targetBinaryPath $(go env GOHOSTOS)-$(go env GOHOSTARCH)) ${GOPATH}/bin/
+}
+
+quality() {
+    start=$(date +%s)
+    cd ${work_path}
+
+    if [ "${errcheck}" = true ]; then
+        echo_green "Err check"
+        command -v errcheck > /dev/null || go get -u github.com/kisielk/errcheck
+        res=$(set +o pipefail; errcheck ./... | grep -v 'vendor/' | grep -v 'Close(' | grep -v '_test.go')
+        err_count "${res}"
+        echo_red "${res}"
+    fi
 
     echo_green "Lint"
-    [ -f ${GOPATH}/bin/golint ] || go get -u github.com/golang/lint/golint
+    command -v golint > /dev/null || go get -u github.com/golang/lint/golint
     for i in ${go_files}; do
         golint ${i} | grep -v 'should have comment ' || true
     done
@@ -123,17 +168,17 @@ quality() {
     go tool vet ${go_files} || true
 
     echo_green "Misspell"
-    [ -f ${GOPATH}/bin/misspell ] || go get -u github.com/client9/misspell/cmd/misspell
+    command -v misspell > /dev/null || go get -u github.com/client9/misspell/cmd/misspell
     misspell -source=text ${go_files}
 
     echo_green "Ineffassign"
-    [ -f ${GOPATH}/bin/ineffassign ] || go get -u github.com/gordonklaus/ineffassign
+    command -v ineffassign > /dev/null || go get -u github.com/gordonklaus/ineffassign
     for i in ${go_files}; do
         ineffassign -n ${i} || true
     done
 
     echo_green "Gocyclo"
-    [ -f ${GOPATH}/bin/gocyclo ] || go get -u github.com/fzipp/gocyclo
+    command -v gocyclo > /dev/null || go get -u github.com/fzipp/gocyclo
     gocyclo -over 15 ${go_files} || true
 
     cd -
@@ -169,7 +214,7 @@ require_clean_work_tree() {
 }
 
 release() {
-    start=`date +%s`
+    start=$(date +%s)
     if [ "${repo%%/*}" != "github.com" ]; then
         echo "Push to '${repo%%/*}' not implemented"
         exit 1
@@ -193,21 +238,19 @@ release() {
 
     echo_green "Compress release"
     cd ${work_path}/${target_name}
-    for i in *-* ; do
-        if [ -d "$i" ]; then
-            tar czf ${i}.tar.gz ${i}
-        fi
+    for i in $(find . -type d -name "*-v${version}-*-*" | sed 's|./||') ; do
+        tar czf ${i}.tar.gz ${i}
     done
     cd -
 
     git tag v${version} -a -m "Version $version"
-    git push --tags
+    git push origin v${version}
 
     sleep 5
 
     posturl=$(curl --data "{\"tag_name\": \"v${version}\",\"target_commitish\": \"master\",\"name\": \"v${version}\",\"body\": \"Release of version ${version}\",\"draft\": false,\"prerelease\": false}" https://api.github.com/repos/${github_repo}/releases?access_token=${token} | grep "\"upload_url\"" | sed -ne 's/.*\(http[^"]*\).*/\1/p')
 
-    for i in ${work_path}/${target_name}/*.tar.gz ; do
+    for i in $(find ${work_path}/${target_name} -type f -name "*.tar.gz") ; do
         fullpath=$(ls ${i})
         filename=${fullpath##*/}
         curl -i -X POST -H "Content-Type: application/x-gzip" --data-binary "@${fullpath}" "${posturl%\{?name,label\}}?name=${filename}&label=${filename}&access_token=${token}"
@@ -216,9 +259,13 @@ release() {
 }
 
 test() {
-    start=`date +%s`
+    start=$(date +%s)
     echo_green "Testing"
-    godep go test -cover $(go list ${work_path}/... | grep -v vendor/)
+    go test -cover $(go list ${work_path}/... | grep -v vendor/)
+
+    if [ `type -t extra-test`"" == 'function' ]; then
+        extra-test
+    fi
 
     echo_purple "Test duration : $((`date +%s`-${start}))s"
 }
@@ -226,7 +273,7 @@ test() {
 #########################################
 #########################################
 
-global_start=`date +%s`
+global_start=$(date +%s)
 
 commands=()
 while [ $# -gt 0 ]; do
@@ -253,7 +300,7 @@ fi
 command_count=0
 for i in "${commands[@]}"; do
     case ${i} in
-        test|build|release|clean|quality|gomake_update) ${i}; ((++command_count));;
+        test|build|release|clean|quality|install|gomake_update) ${i}; ((++command_count));;
         *)                                              echo_red "Unknown command '${i}'"; echo ${helper}; exit 1;;
     esac
 done

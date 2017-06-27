@@ -2,6 +2,7 @@ package nerve
 
 import (
 	"encoding/json"
+
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 )

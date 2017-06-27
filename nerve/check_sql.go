@@ -3,12 +3,13 @@ package nerve
 import (
 	"bytes"
 	"database/sql"
+	"sync"
+	"text/template"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
-	"sync"
-	"text/template"
 )
 
 type CheckSql struct {

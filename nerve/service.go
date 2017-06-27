@@ -2,14 +2,15 @@ package nerve
 
 import (
 	"encoding/json"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
 	"math"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 )
 
 type Service struct {

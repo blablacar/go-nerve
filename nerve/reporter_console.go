@@ -2,9 +2,10 @@ package nerve
 
 import (
 	"fmt"
-	"github.com/n0rad/go-erlog/errs"
 	"io"
 	"os"
+
+	"github.com/n0rad/go-erlog/errs"
 )
 
 type ReporterConsole struct {

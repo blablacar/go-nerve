@@ -1,12 +1,13 @@
 package nerve
 
 import (
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
-	"github.com/samuel/go-zookeeper/zk"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 type ReporterZookeeper struct {

@@ -1,12 +1,13 @@
 package nerve
 
 import (
+	"net"
+	"sync"
+
 	"github.com/n0rad/go-erlog/data"
 	"github.com/n0rad/go-erlog/errs"
 	"github.com/n0rad/go-erlog/logs"
 	"github.com/prometheus/client_golang/prometheus"
-	"net"
-	"sync"
 )
 
 type Nerve struct {

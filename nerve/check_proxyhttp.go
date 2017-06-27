@@ -1,8 +1,6 @@
 package nerve
 
 import (
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -10,6 +8,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 )
 
 type CheckProxyHttp struct {

@@ -2,13 +2,14 @@ package nerve
 
 import (
 	"bytes"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
 	"net"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
 )
 
 func IpLookupNoError(host string, preferIPv4 bool) net.IP {

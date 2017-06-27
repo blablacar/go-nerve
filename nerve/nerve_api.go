@@ -2,11 +2,6 @@ package nerve
 
 import (
 	"encoding/json"
-	"github.com/n0rad/go-erlog/data"
-	"github.com/n0rad/go-erlog/errs"
-	"github.com/n0rad/go-erlog/logs"
-	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/macaron.v1"
 	"log"
 	"net"
 	"net/http"
@@ -17,6 +12,12 @@ import (
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	"github.com/n0rad/go-erlog/data"
+	"github.com/n0rad/go-erlog/errs"
+	"github.com/n0rad/go-erlog/logs"
+	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/macaron.v1"
 )
 
 func (n *Nerve) ServiceDisable(ctx *macaron.Context) {

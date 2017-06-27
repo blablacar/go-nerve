@@ -1,11 +1,12 @@
 package nerve
 
 import (
-	. "github.com/onsi/gomega"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	. "github.com/onsi/gomega"
 )
 
 var s = &Service{}

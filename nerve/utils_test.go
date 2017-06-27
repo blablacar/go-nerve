@@ -1,9 +1,10 @@
 package nerve
 
 import (
-	. "github.com/onsi/gomega"
 	"net"
 	"testing"
+
+	. "github.com/onsi/gomega"
 )
 
 func TestLookup(t *testing.T) {
