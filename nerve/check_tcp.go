@@ -2,10 +2,10 @@ package nerve
 
 import (
 	"github.com/n0rad/go-erlog/errs"
-	"net"
 	"strconv"
 	"sync"
 	"time"
+	"github.com/tevino/tcp-shaker"
 )
 
 type CheckTcp struct {
@@ -33,10 +33,21 @@ func (x *CheckTcp) Init(s *Service) error {
 }
 
 func (x *CheckTcp) Check() error {
-	conn, err := net.DialTimeout("tcp", x.url, time.Duration(x.TimeoutInMilli)*time.Millisecond)
-	if err != nil {
-		return errs.WithEF(err, x.fields, "Check failed")
+	c := tcp.NewChecker(true)
+	if err := c.InitChecker(); err != nil {
+		return errs.WithEF(err, x.fields, "Checker init failed:")
 	}
-	conn.Close()
-	return nil
+	err := c.CheckAddr(x.url, time.Duration(x.TimeoutInMilli)*time.Millisecond)
+	switch err {
+	case tcp.ErrTimeout:
+		return errs.WithEF(err, x.fields, "Check failed (timeout)")
+	case nil:
+		return nil
+	default:
+		if e, ok := err.(*tcp.ErrConnect); ok {
+			return errs.WithEF(e, x.fields, "Check failed (tcp connect failed)")
+		} else {
+			return errs.WithEF(err, x.fields, "Check failed (error while connecting)")
+		}
+	}
 }
