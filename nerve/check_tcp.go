@@ -35,6 +35,7 @@ func (x *CheckTcp) Init(s *Service) error {
 
 func (x *CheckTcp) Check() error {
 	c := tcp.NewChecker(true)
+	defer c.Close()
 	if err := c.InitChecker(); err != nil {
 		return errs.WithEF(err, x.fields, "Checker init failed:")
 	}
