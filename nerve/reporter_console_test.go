@@ -9,9 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var btrue = true
-var bfalse = false
-
 func TestReportConsole(t *testing.T) {
 	RegisterTestingT(t)
 	var b bytes.Buffer
@@ -19,8 +16,8 @@ func TestReportConsole(t *testing.T) {
 	write := bufio.NewWriter(&b)
 	reporter.writer = write
 
-	reporter.Report(Report{Available: &btrue})
-	reporter.Report(Report{Available: &bfalse})
+	reporter.Report(reportAvailable)
+	reporter.Report(reportNotAvailable)
 
 	write.Flush()
 
