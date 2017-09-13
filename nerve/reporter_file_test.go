@@ -10,6 +10,23 @@ import (
 )
 
 var s = &Service{}
+var btrue = true
+var bfalse = false
+var reportAvailable = Report{
+	Available: &btrue,
+	Host:      "127.0.0.1",
+	Port:      80,
+	Name:      "reportAvailable",
+}
+var reportNotAvailable = Report{
+	Available: &bfalse,
+	Host:      "127.0.0.1",
+	Port:      80,
+	Name:      "reportNotAvailable",
+}
+var reportMissingOptions = Report{
+	Available: &btrue,
+}
 
 func TestCannotInitOnWrongPath(t *testing.T) {
 	RegisterTestingT(t)
@@ -24,11 +41,23 @@ func TestCanReport(t *testing.T) {
 	reporter := NewReporterFile()
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(Report{Available: &btrue})
+	reporter.Report(reportAvailable)
 
 	res, _ := ioutil.ReadFile(reporter.Path)
 	r, _ := NewReport(res)
 	Expect(*r.Available).Should(BeTrue())
+}
+
+func TestShouldErrWhenMissingOptionsReport(t *testing.T) {
+	RegisterTestingT(t)
+	reporter := NewReporterFile()
+	Expect(reporter.Init(s)).ToNot(HaveOccurred())
+
+	reporter.Report(reportMissingOptions)
+
+	res, _ := ioutil.ReadFile(reporter.Path)
+	_, err := NewReport(res)
+	Expect(err).ShouldNot(BeNil())
 }
 
 func TestReportReplace(t *testing.T) {
@@ -36,12 +65,12 @@ func TestReportReplace(t *testing.T) {
 	reporter := NewReporterFile()
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(Report{Available: &btrue})
+	reporter.Report(reportAvailable)
 	res, _ := ioutil.ReadFile(reporter.Path)
 	r, _ := NewReport(res)
 	Expect(*r.Available).Should(BeTrue())
 
-	reporter.Report(Report{Available: &bfalse})
+	reporter.Report(reportNotAvailable)
 	res, _ = ioutil.ReadFile(reporter.Path)
 	Expect(res).Should(HaveLen(0))
 }
@@ -53,8 +82,8 @@ func TestReportAppend(t *testing.T) {
 	reporter.Append = true
 	Expect(reporter.Init(s)).ToNot(HaveOccurred())
 
-	reporter.Report(Report{Available: &btrue})
-	reporter.Report(Report{Available: &bfalse})
+	reporter.Report(reportAvailable)
+	reporter.Report(reportNotAvailable)
 
 	res, _ := ioutil.ReadFile(reporter.Path)
 	lines := strings.Split(string(res), "\n")

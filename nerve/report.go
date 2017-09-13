@@ -55,6 +55,9 @@ func (r *Report) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &rr); err != nil {
 		return err
 	}
+	if rr.Port == 0 || rr.Host == "" || rr.Name == "" {
+		return errs.WithF(data.Fields{"report": rr}, "Missing Port or Host or Name in report.")
+	}
 	if rr.Available != nil && *rr.Available == false {
 		w := uint8(0)
 		rr.Weight = &w
