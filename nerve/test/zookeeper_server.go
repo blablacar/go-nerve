@@ -114,7 +114,7 @@ func findZookeeperFatJar() string {
 	return ""
 }
 
-const version = "3.4.8"
+const version = "3.4.10"
 const filename = "zookeeper-" + version + ".tar.gz"
 const zooTarPath = "/tmp/" + filename
 const jarPath = "/tmp/zookeeper-" + version + "/contrib/fatjar/zookeeper-*-fatjar.jar"
@@ -127,7 +127,7 @@ func downloadZookeeper() error {
 	}
 	defer out.Close()
 
-	resp, err := http.Get("http://apache.mirrors.ovh.net/ftp.apache.org/dist/zookeeper/zookeeper-" + version + "/" + filename)
+	resp, err := http.Get("https://archive.apache.org/dist/zookeeper/zookeeper-" + version + "/" + filename)
 	defer resp.Body.Close()
 
 	_, err = io.Copy(out, resp.Body)
@@ -166,6 +166,7 @@ func (srv *Server) Start() error {
 			return fmt.Errorf("zk: unable to find server jar")
 		}
 	}
+	println("java", "-jar", srv.JarPath, "server", srv.ConfigPath)
 	srv.cmd = exec.Command("java", "-jar", srv.JarPath, "server", srv.ConfigPath)
 	srv.cmd.Stdout = srv.Stdout
 	srv.cmd.Stderr = srv.Stderr

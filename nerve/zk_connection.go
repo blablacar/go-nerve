@@ -37,7 +37,7 @@ type ZKLogger struct {
 }
 
 func (zl ZKLogger) Printf(format string, data ...interface{}) {
-	logs.Debug("Zookeeper: " + fmt.Sprintf(format, data))
+	logs.Debug("Zookeeper: " + fmt.Sprintf(format, data...))
 }
 
 // this reuse zk connection if host list is the same
