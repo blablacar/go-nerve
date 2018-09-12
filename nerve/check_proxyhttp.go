@@ -3,6 +3,7 @@ package nerve
 import (
 	"io/ioutil"
 	"net/http"
+        "crypto/tls"
 	"net/url"
 	"strconv"
 	"strings"
@@ -59,6 +60,7 @@ func (x *CheckProxyHttp) Init(s *Service) error {
 	x.client = http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(proxyUrl),
+                        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 		Timeout: time.Duration(x.TimeoutInMilli) * time.Millisecond,
 	}
