@@ -1,17 +1,19 @@
 language: go
-
 sudo: required
-
 go:
- - 1.8
-
+- 1.11
 install:
-  - sudo rm -rf /var/lib/apt/lists/*
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq upx
-  - sudo apt-get install oracle-java8-installer
-  - sudo rm -f /usr/bin/java
-  - sudo ln -s /usr/lib/jvm/java-8-oracle/jre/bin/java /usr/bin/java
-
+- sudo rm -rf /var/lib/apt/lists/*
+- sudo apt-get update -qq
+- sudo apt-get install -qq upx
+- sudo apt-get install oracle-java8-installer
+- sudo rm -f /usr/bin/java
+- sudo ln -s /usr/lib/jvm/java-8-oracle/jre/bin/java /usr/bin/java
 script:
-  - ./gomake
+- bash -c 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
+- "./gomake"
+- "./gomake docker_push"
+env:
+  global:
+  - secure: MC6biP6eUXlAlkIWpdkZKZsI/dMYvpgsL3IlwaWZPbdFTTHbQn++PIvoP761kwi9PlEI98hnQ1xPbhwJPQcWBw0dh/bPXd0dy0iqPI3+K8Wei1BCKMBBMz4C1u0O+gf5OWnlHHD5mbZrgFeSH8pDC0tMMT/93VZcN4kneUmCpPd8WVgHcX9yV3XtGlYzFUHvDFdSXTWHVT4iEG/ND59syUodB5Z+UsyfrPcLJJ1IgMGEGzRqAXkmWaJasdxlAkATtGdamWvO6mwkEVp7FZC7zqZgDoGeLXpQj8ISl4JveSVe0KTOtLaGObrU75mso/MpFdNUpDolwIBo0PZD59j8ycU7dwjXgAHiLR+lrojl/DxQw0q0wz1DEr+9ZnmxUH/j34qqpJcflbguxOQ9gJp/9Jg5uvnkNmtMI0khdYtgdV7XeP4rFaDyFMMf1LYuEcHDZB5pRldCuO1Al7p4AzCUtGk0WhQvBqWIZuLxWtehVo/IXWk8y1Fa4QgccbK7DTP0zRQLSx0OmIGyhz0g9Tk04QruNcvj08KyO563aN1IAqvAjTvrLbPuSzR9/P+ut5QXfqLgc2w72L0eUU75mcoPbk0y1x9Iq96JlMJVzvzudpv6n6Fq5AGlLsDpPmy5CWyplaRhWuswClyD15TuWUTlZv4qSmfJElxC4/nabNMf4eg=
+  - secure: HcYTXQnkRO7PpSeaBNOnafqKQ6hDtFf6vRKu/F5x2I+FHOHYFbxzejMBzi+zyLxuWz/IIDcS9baXh2tmerSY+ygwVHzc0xFBav0jskPUEoGj/2A6MzPr6MVecngo1bGda6g9hLoPTGh5PvjLtcCUczOuTEyYTA80aY8UNUzdUXu729lmFkW31r9zbgESt4laomO91JhOszopq7FmcUprsMd1R9QmZwCe2225K0f8HP6nfo7UssKNE8BJx5zWSLWlBCgU0TdssXJC/KCfZviJ9xbIriqRYZw/oq3FO2NEWvtWnSkfS++B8nTJ0dyeqqzUePcC3pr4Gh1VqZuLmaCK8HXdIzsYQ45qTWGUtLlvMPF11wvadMqZMNpIxsbavftOh7U4dYPWZMemnqdhU0vydh88EPzad1nYejPt0DVzZAXNVPS5PtuOwCkLSh0n5UETddeaYCsxuceeJIKKOBzj+IdRbCNMFp7UoV2c4cN1RfEwuVWxXQ1jyfHaNI0E+TjpcjK/JCCV+nE3ljQXEf+1ZeRsWZ1bpHQS/lVDuZy/pO9syboNhNahL15SRGs/HYGlYlmpV8j/DaMdsowTiPWG4UR3V8M2i8s4YfGo5/0lF63Z2Zw+4dNBwA1Kyps6gLo23H1C7SMP8mu8h32xuDcW45ijFeJ4sFYsJBCDxT01B5A=

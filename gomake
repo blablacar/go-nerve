@@ -270,6 +270,25 @@ test() {
     echo_purple "Test duration : $((`date +%s`-${start}))s"
 }
 
+docker_push() {
+    commitHash=$(git rev-parse HEAD)
+    if [ $commitHash != "$(git rev-parse master)" ]; then
+        echo_red "Not on master"
+        return
+    fi
+    
+    echo_purple "Building container"
+    (cd ${work_path}; docker build -t ${docker_user}/${docker_app}:latest .)
+    echo_purple "Push latest"
+    docker push ${docker_user}/${docker_app}:latest
+
+    tag=$(git tag -l --points-at HEAD) || true
+    if [ "$tag" != "" ]; then
+        docker tag ${docker_user}/${docker_app}:latest ${docker_user}/${docker_app}:$tag
+        docker push ${docker_user}/${docker_app}:$tag
+    fi
+}
+
 #########################################
 #########################################
 
@@ -300,7 +319,7 @@ fi
 command_count=0
 for i in "${commands[@]}"; do
     case ${i} in
-        test|build|release|clean|quality|install|gomake_update) ${i}; ((++command_count));;
+        test|build|release|clean|quality|install|gomake_update|docker_push) ${i}; ((++command_count));;
         *)                                              echo_red "Unknown command '${i}'"; echo ${helper}; exit 1;;
     esac
 done
