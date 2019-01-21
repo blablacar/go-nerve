@@ -6,9 +6,6 @@ install:
 - sudo rm -rf /var/lib/apt/lists/*
 - sudo apt-get update -qq
 - sudo apt-get install -qq upx
-- sudo apt-get install oracle-java8-installer
-- sudo rm -f /usr/bin/java
-- sudo ln -s /usr/lib/jvm/java-8-oracle/jre/bin/java /usr/bin/java
 script:
 - bash -c 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
 - "./gomake"
