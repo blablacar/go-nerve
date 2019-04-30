@@ -150,6 +150,8 @@ func CheckerFromJson(data []byte, s *Service) (Checker, error) {
 		typedCheck = NewCheckAmqp()
 	case "exec":
 		typedCheck = NewCheckExec()
+	case "kubernetes":
+		typedCheck = NewCheckKubernetes()
 	default:
 		return nil, errs.WithF(fields, "Unsupported check type")
 	}

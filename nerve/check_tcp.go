@@ -1,6 +1,8 @@
 package nerve
 
 import (
+	"context"
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -34,12 +36,17 @@ func (x *CheckTcp) Init(s *Service) error {
 }
 
 func (x *CheckTcp) Check() error {
-	c := tcp.NewChecker(true)
-	defer c.Close()
-	if err := c.InitChecker(); err != nil {
-		return errs.WithEF(err, x.fields, "Checker init failed:")
-	}
-	err := c.CheckAddr(x.url, time.Duration(x.TimeoutInMilli)*time.Millisecond)
+	checker := tcp.NewChecker()
+	ctx, stopChecker := context.WithCancel(context.Background())
+	defer stopChecker()
+	go func() {
+		if err := checker.CheckingLoop(ctx); err != nil {
+			fmt.Println("checking loop stopped due to fatal error: ", err)
+		}
+	}()
+	<-checker.WaitReady()
+
+	err := checker.CheckAddr(x.url, time.Duration(x.TimeoutInMilli)*time.Millisecond)
 	switch err {
 	case tcp.ErrTimeout:
 		return errs.WithEF(err, x.fields, "Check failed (timeout)")
