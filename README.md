@@ -293,3 +293,18 @@ services:
           username: root
           password: 
 ```
+
+#### Kubernetes
+
+In cluster readiness probe.
+Connect to kube api from inside the cluster and monitor pod `ready` status condition
+
+```yaml
+...
+services: 
+  - ... 
+    checks:
+        - type: kubernetes
+          namespace: default
+          podName: test
+```

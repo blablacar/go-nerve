@@ -1,0 +1,11 @@
+os:
+  - linux
+  - osx
+language: go
+go:
+  - "master"
+  - "1.11.x"
+install:
+  - go get "github.com/pkg/errors"
+script: go test -v -bench=. -benchmem ./...
+

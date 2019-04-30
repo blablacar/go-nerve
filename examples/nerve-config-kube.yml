@@ -1,0 +1,6 @@
+
+services:
+  - checks:
+      - type: kubernetes
+        namespace: kube-system
+        podName: nerve-tests

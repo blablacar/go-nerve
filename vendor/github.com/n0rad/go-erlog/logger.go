@@ -2,9 +2,10 @@ package erlog
 
 import (
 	"fmt"
-	"github.com/n0rad/go-erlog/logs"
 	"os"
 	"strings"
+
+	"github.com/n0rad/go-erlog/logs"
 )
 
 type ErlogFactory struct {
@@ -90,44 +91,44 @@ func (l *ErlogLogger) Fatal(message ...string) {
 
 func (l *ErlogLogger) Tracef(format string, message ...interface{}) {
 	if logs.TRACE.IsEnableFor(l.Level) {
-		l.logS(logs.TRACE, fmt.Sprintf(format, message))
+		l.logS(logs.TRACE, fmt.Sprintf(format, message...))
 	}
 }
 
 func (l *ErlogLogger) Debugf(format string, message ...interface{}) {
 	if logs.DEBUG.IsEnableFor(l.Level) {
-		l.logS(logs.DEBUG, fmt.Sprintf(format, message))
+		l.logS(logs.DEBUG, fmt.Sprintf(format, message...))
 	}
 }
 
 func (l *ErlogLogger) Infof(format string, message ...interface{}) {
 	if logs.INFO.IsEnableFor(l.Level) {
-		l.logS(logs.INFO, fmt.Sprintf(format, message))
+		l.logS(logs.INFO, fmt.Sprintf(format, message...))
 	}
 }
 
 func (l *ErlogLogger) Warnf(format string, message ...interface{}) {
 	if logs.WARN.IsEnableFor(l.Level) {
-		l.logS(logs.WARN, fmt.Sprintf(format, message))
+		l.logS(logs.WARN, fmt.Sprintf(format, message...))
 	}
 }
 
 func (l *ErlogLogger) Errorf(format string, message ...interface{}) {
 	if logs.ERROR.IsEnableFor(l.Level) {
-		l.logS(logs.ERROR, fmt.Sprintf(format, message))
+		l.logS(logs.ERROR, fmt.Sprintf(format, message...))
 	}
 }
 
 func (l *ErlogLogger) Panicf(format string, message ...interface{}) {
 	if logs.PANIC.IsEnableFor(l.Level) {
-		l.logS(logs.PANIC, fmt.Sprintf(format, message))
+		l.logS(logs.PANIC, fmt.Sprintf(format, message...))
 	}
-	panic(fmt.Sprintf(format, message))
+	panic(fmt.Sprintf(format, message...))
 }
 
 func (l *ErlogLogger) Fatalf(format string, message ...interface{}) {
 	if logs.FATAL.IsEnableFor(l.Level) {
-		l.logS(logs.FATAL, fmt.Sprintf(format, message))
+		l.logS(logs.FATAL, fmt.Sprintf(format, message...))
 	}
 	os.Exit(1)
 }

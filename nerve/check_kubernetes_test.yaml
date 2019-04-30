@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nerve-tests
+  namespace: kube-system
+spec:
+  containers:
+  - image: ubuntu
+    name: ubuntu
+    stdin: true
+    tty: true
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 3454
+
+  - image: ubuntu
+    name: dummy
+    stdin: true
+    tty: true
