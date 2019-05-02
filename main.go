@@ -8,8 +8,12 @@ import (
 	"os/signal"
 	"runtime"
 	"strconv"
+	"strings"
 	"syscall"
+	"text/template"
 	"time"
+
+	"bytes"
 
 	"github.com/blablacar/go-nerve/nerve"
 	"github.com/ghodss/yaml"
@@ -23,14 +27,36 @@ import (
 var Version = "No Version Defined"
 var BuildTime = "1970-01-01_00:00:00_UTC"
 
+func envToMap() (map[string]string, error) {
+	envMap := make(map[string]string)
+	var err error
+
+	for _, v := range os.Environ() {
+		split_v := strings.SplitN(v, "=", 2)
+		envMap[split_v[0]] = split_v[1]
+	}
+	return envMap, err
+}
+
 func LoadConfig(configPath string) (*nerve.Nerve, error) {
+	envMap, err := envToMap()
+	if err != nil {
+		return nil, errs.WithE(err, "Failed to create environment var map to template configuration")
+	}
+
 	file, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("file", configPath), "Failed to read configuration file")
 	}
 
+	confTemplated := new(bytes.Buffer)
+	t := template.Must(template.New("tmpl").Parse(string(file)))
+	if err := t.Execute(confTemplated, envMap); err != nil {
+		return nil, errs.WithE(err, "Failed to parse configuration template")
+	}
+
 	conf := &nerve.Nerve{}
-	err = yaml.Unmarshal(file, conf)
+	err = yaml.Unmarshal(confTemplated.Bytes(), conf)
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("file", configPath), "Invalid configuration format")
 	}

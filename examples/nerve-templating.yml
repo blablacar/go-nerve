@@ -1,0 +1,6 @@
+services:
+  - port: 80
+    name: {{ .USER }}
+# nerve will assume it's localhost
+# nerve will add tcp check
+# nerve will add console report
