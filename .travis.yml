@@ -1,7 +1,7 @@
 language: go
 sudo: required
 go:
-- 1.11
+- 1.12
 install:
 - sudo rm -rf /var/lib/apt/lists/*
 - sudo apt-get update -qq

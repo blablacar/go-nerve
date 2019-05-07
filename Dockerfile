@@ -1,4 +1,4 @@
-FROM golang:1.11 as builder
+FROM golang:1.12 as builder
 
 RUN apt-get update && apt-get install -y \
     xz-utils \
@@ -9,15 +9,14 @@ RUN xz -d -c /usr/local/upx-3.94-amd64_linux.tar.xz | \
     tar -xOf - upx-3.94-amd64_linux/upx > /bin/upx && \
     chmod a+x /bin/upx
 
-WORKDIR $GOPATH/src/github.com/blablacar/go-nerve
+WORKDIR /app
 COPY . ./
-RUN ./gomake &&	cp ./dist/nerve-v0-linux-amd64/nerve /
-
-
+# RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor && cp go-nerve /nerve
+RUN ./gomake build && cp ./dist/nerve-v0-linux-amd64/nerve /
 
 FROM busybox
 
 COPY --from=builder /nerve /
-COPY ./examples/nerve-minimal.yml /nerve.yml
+COPY ./examples/nerve-full-templated.yml /nerve.yml
 
 CMD ["/nerve", "/nerve.yml"]

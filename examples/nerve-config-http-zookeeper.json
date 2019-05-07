@@ -1,0 +1,64 @@
+{
+    "services": [
+      {
+        "host": "127.0.0.1",
+        "port": 4242,
+        "preferIpv4": true,
+        "rise": 10,
+        "fall": 2,
+        "checkIntervalInMilli": 1000,
+        "checks": [
+          {
+            "type": "http",
+            "path": "/version",
+            "timeoutInMilli": 1000
+          }
+        ],
+        "reporterServiceName": "tot42",
+        "reporters": [
+          {
+            "type": "zookeeper",
+            "path": "/services/api/myapi",
+            "hosts": [
+              "127.0.0.1:2181"
+            ],
+            "exposeOnUnavailable": true
+          }
+        ],
+        "haproxyServerOptions": "backup",
+        "labels": {
+          "service": "superApi",
+          "host": "srv42"
+        }
+      },
+      {
+        "host": "127.0.0.1",
+        "excludeFromGlobalDisable": true,
+        "port": 3454,
+        "reporters": [
+          {
+            "type": "zookeeper",
+            "path": "/monitoring/api/myapi",
+            "hosts": [
+              "127.0.0.1:2181"
+            ],
+            "exposeOnUnavailable": true
+          }
+        ]
+      },
+      {
+        "host": "127.0.0.1",
+        "port": 3306,
+        "reporters": [
+          {
+            "type": "zookeeper",
+            "path": "/monitoring/sql/sql1",
+            "hosts": [
+              "127.0.0.1:2181"
+            ],
+            "exposeOnUnavailable": true
+          }
+        ]
+      }
+    ]
+  }

@@ -116,7 +116,7 @@ build() {
         echo_green "Building $e"
 
         binaryPath=$(targetBinaryPath ${e})
-        $(cd ${work_path} && GOOS="${e%-*}" GOARCH="${e#*-}" go build -ldflags "${ldflags}" -o ${target_name}/${binaryPath} ${build_packages})
+        $(cd ${work_path} && CGO_ENABLED=0 GOOS="${e%-*}" GOARCH="${e#*-}" go build -mod=vendor -ldflags "${ldflags}" -o ${target_name}/${binaryPath} ${build_packages})
 
         if [ "$upx" = true ]; then
             if [ "${e%-*}" != "darwin" ]; then
@@ -284,8 +284,8 @@ docker_push() {
 
     tag=$(git tag -l --points-at HEAD) || true
     if [ "$tag" != "" ]; then
-        docker tag ${docker_user}/${docker_app}:latest ${docker_user}/${docker_app}:$tag
-        docker push ${docker_user}/${docker_app}:$tag
+        docker tag ${docker_user}/${docker_app}:latest ${docker_user}/${docker_app}:${tag#v*}
+        docker push ${docker_user}/${docker_app}:${tag#v*}
     fi
 }
 
