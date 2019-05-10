@@ -49,14 +49,27 @@ func LoadConfig(configPath string) (*nerve.Nerve, error) {
 		return nil, errs.WithEF(err, data.WithField("file", configPath), "Failed to read configuration file")
 	}
 
-	confTemplated := new(bytes.Buffer)
-	t := template.Must(template.New("tmpl").Parse(string(file)))
-	if err := t.Execute(confTemplated, envMap); err != nil {
-		return nil, errs.WithE(err, "Failed to parse configuration template")
+	templatingBuffer := new(bytes.Buffer)
+	t, err := template.New("tmpl1").Parse(string(file))
+	if err != nil {
+		return nil, errs.WithEF(err, data.WithField("content", string(file)), "Failed to parse configuration as template")
+	}
+	if err := t.Execute(templatingBuffer, envMap); err != nil {
+		return nil, errs.WithE(err, "Failed to template configuration")
+	}
+
+	confTemplatedFirstPass := templatingBuffer.String()
+	templatingBuffer.Reset()
+	t2, err := template.New("tmpl2").Parse(confTemplatedFirstPass)
+	if err != nil {
+		return nil, errs.WithEF(err, data.WithField("content", string(file)), "Failed to parse configuration as template")
+	}
+	if err := t2.Execute(templatingBuffer, envMap); err != nil {
+		return nil, errs.WithE(err, "Failed to template configuration")
 	}
 
 	conf := &nerve.Nerve{}
-	err = yaml.Unmarshal(confTemplated.Bytes(), conf)
+	err = yaml.Unmarshal(templatingBuffer.Bytes(), conf)
 	if err != nil {
 		return nil, errs.WithEF(err, data.WithField("file", configPath), "Invalid configuration format")
 	}
