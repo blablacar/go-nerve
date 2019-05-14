@@ -8,8 +8,8 @@ install:
 - sudo apt-get install -qq upx
 script:
 - bash -c 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
-- "./gomake"
-- "./gomake docker_push"
+- env GO111MODULE=on ./gomake
+- env GO111MODULE=on ./gomake docker_push
 env:
   global:
   - secure: MC6biP6eUXlAlkIWpdkZKZsI/dMYvpgsL3IlwaWZPbdFTTHbQn++PIvoP761kwi9PlEI98hnQ1xPbhwJPQcWBw0dh/bPXd0dy0iqPI3+K8Wei1BCKMBBMz4C1u0O+gf5OWnlHHD5mbZrgFeSH8pDC0tMMT/93VZcN4kneUmCpPd8WVgHcX9yV3XtGlYzFUHvDFdSXTWHVT4iEG/ND59syUodB5Z+UsyfrPcLJJ1IgMGEGzRqAXkmWaJasdxlAkATtGdamWvO6mwkEVp7FZC7zqZgDoGeLXpQj8ISl4JveSVe0KTOtLaGObrU75mso/MpFdNUpDolwIBo0PZD59j8ycU7dwjXgAHiLR+lrojl/DxQw0q0wz1DEr+9ZnmxUH/j34qqpJcflbguxOQ9gJp/9Jg5uvnkNmtMI0khdYtgdV7XeP4rFaDyFMMf1LYuEcHDZB5pRldCuO1Al7p4AzCUtGk0WhQvBqWIZuLxWtehVo/IXWk8y1Fa4QgccbK7DTP0zRQLSx0OmIGyhz0g9Tk04QruNcvj08KyO563aN1IAqvAjTvrLbPuSzR9/P+ut5QXfqLgc2w72L0eUU75mcoPbk0y1x9Iq96JlMJVzvzudpv6n6Fq5AGlLsDpPmy5CWyplaRhWuswClyD15TuWUTlZv4qSmfJElxC4/nabNMf4eg=
