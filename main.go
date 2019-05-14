@@ -68,6 +68,13 @@ func LoadConfig(configPath string) (*nerve.Nerve, error) {
 		return nil, errs.WithE(err, "Failed to template configuration")
 	}
 
+	if err := os.MkdirAll("/run/nerve", os.ModePerm); err != nil {
+		logs.Warn("Failed to prepare /run/nerve directory")
+	}
+	if err := ioutil.WriteFile("/run/nerve/config.yaml", templatingBuffer.Bytes(), 0644); err != nil {
+		logs.Warn("Failed to write template configuration to /run/nerve/config.yaml")
+	}
+
 	conf := &nerve.Nerve{}
 	err = yaml.Unmarshal(templatingBuffer.Bytes(), conf)
 	if err != nil {
