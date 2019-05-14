@@ -11,10 +11,11 @@ import (
 )
 
 type Nerve struct {
-	LogLevel *logs.Level
-	ApiHost  string
-	ApiPort  int
-	Services []*Service
+	LogLevel            *logs.Level
+	ApiHost             string
+	ApiPort             int
+	Services            []*Service
+	TemplatedConfigPath string
 
 	nerveVersion         string
 	nerveBuildTime       string
@@ -43,7 +44,9 @@ func (n *Nerve) Init(version string, buildTime string, logLevelIsSet bool) error
 	if n.ApiPort == 0 {
 		n.ApiPort = 3454
 	}
-
+	if n.TemplatedConfigPath == "" {
+		n.TemplatedConfigPath = "/tmp/nerve-Config-templated.yaml"
+	}
 	if !logLevelIsSet && n.LogLevel != nil {
 		logs.SetLevel(*n.LogLevel)
 	}

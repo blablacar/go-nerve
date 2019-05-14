@@ -38,7 +38,7 @@ func envToMap() (map[string]string, error) {
 	return envMap, err
 }
 
-func LoadConfig(configPath string) (*nerve.Nerve, error) {
+func LoadConfig(configPath string) ([]byte, error) {
 	envMap, err := envToMap()
 	if err != nil {
 		return nil, errs.WithE(err, "Failed to create environment var map to template configuration")
@@ -68,20 +68,7 @@ func LoadConfig(configPath string) (*nerve.Nerve, error) {
 		return nil, errs.WithE(err, "Failed to template configuration")
 	}
 
-	if err := os.MkdirAll("/run/nerve", os.ModePerm); err != nil {
-		logs.Warn("Failed to prepare /run/nerve directory")
-	}
-	if err := ioutil.WriteFile("/run/nerve/config.yaml", templatingBuffer.Bytes(), 0644); err != nil {
-		logs.Warn("Failed to write template configuration to /run/nerve/config.yaml")
-	}
-
-	conf := &nerve.Nerve{}
-	err = yaml.Unmarshal(templatingBuffer.Bytes(), conf)
-	if err != nil {
-		return nil, errs.WithEF(err, data.WithField("file", configPath), "Invalid configuration format")
-	}
-
-	return conf, nil
+	return templatingBuffer.Bytes(), nil
 }
 
 func waitForSignal() {
@@ -134,13 +121,26 @@ func main() {
 			if len(args) != 1 {
 				logs.Fatal("Nerve require a configuration file as argument")
 			}
-			nerve, err := LoadConfig(args[0])
+			nerveConfig, err := LoadConfig(args[0])
 			if err != nil {
-				logs.WithE(err).Fatal("Cannot start, failed to load configuration")
+				logs.WithE(err).Fatal("Failed to load configuration")
+			}
+
+			nerve := &nerve.Nerve{}
+			err = yaml.Unmarshal(nerveConfig, nerve)
+			if err != nil {
+				logs.WithEF(err, data.WithField("content", string(nerveConfig))).Fatal("Invalid configuration format")
 			}
 
 			if err := nerve.Init(Version, BuildTime, logLevel != ""); err != nil {
 				logs.WithE(err).Fatal("Failed to init nerve")
+			}
+
+			if err := os.MkdirAll("/run/nerve", os.ModePerm); err != nil {
+				logs.Warn("Failed to prepare /run/nerve directory")
+			}
+			if err := ioutil.WriteFile(nerve.TemplatedConfigPath, nerveConfig, 0644); err != nil {
+				logs.WithField("path", nerve.TemplatedConfigPath).Warn("Failed to write template configuration")
 			}
 
 			startStatus := make(chan error)
