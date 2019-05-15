@@ -14,8 +14,8 @@ type ReporterZookeeper struct {
 	ReporterCommon
 	Path                     string
 	Hosts                    []string
-	ConnectionTimeoutInMilli int
-	RefreshIntervalInMilli   int
+	ConnectionTimeoutInMilli *int
+	RefreshIntervalInMilli   *int
 	ExposeOnUnavailable      bool
 
 	report      Report
@@ -27,9 +27,11 @@ type ReporterZookeeper struct {
 }
 
 func NewReporterZookeeper() *ReporterZookeeper {
+	refreshInterval := 5 * 60 * 1000
+	connectionTimeout := 2000
 	return &ReporterZookeeper{
-		RefreshIntervalInMilli:   5 * 60 * 1000, // 5min
-		ConnectionTimeoutInMilli: 2000,
+		RefreshIntervalInMilli:   &refreshInterval, // 5min
+		ConnectionTimeoutInMilli: &connectionTimeout,
 	}
 }
 
@@ -42,7 +44,7 @@ func (r *ReporterZookeeper) Init(s *Service) error {
 	r.fullPath = r.Path + "/" + s.Name + "_" + s.Host
 	r.currentNode = r.fullPath
 
-	conn, err := NewSharedZkConnection(r.Hosts, time.Duration(r.ConnectionTimeoutInMilli)*time.Millisecond)
+	conn, err := NewSharedZkConnection(r.Hosts, time.Duration(*r.ConnectionTimeoutInMilli)*time.Millisecond)
 	if err != nil {
 		return errs.WithEF(err, r.fields, "Failed to prepare connection to zookeeper")
 	}
@@ -113,7 +115,7 @@ func (r *ReporterZookeeper) refresher() {
 			logs.WithFields(r.fields).Debug("Stop refresher requested")
 			return
 		default:
-			time.Sleep(time.Duration(r.RefreshIntervalInMilli) * time.Millisecond)
+			time.Sleep(time.Duration(*r.RefreshIntervalInMilli) * time.Millisecond)
 		}
 
 		logs.WithFields(r.fields).Debug("Refreshing report")

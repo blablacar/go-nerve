@@ -22,28 +22,28 @@ type Service struct {
 	Checks                     []json.RawMessage
 	Reporters                  []json.RawMessage
 	ReporterServiceName        string
-	ReportReplayInMilli        int
+	ReportReplayInMilli        *int
 	HaproxyServerOptions       string
 	SetServiceAsDownOnShutdown *bool
 	Labels                     map[string]string
 	ExcludeFromGlobalDisable   bool
 
 	PreAvailableCommand            []string
-	PreAvailableMaxDurationInMilli int
+	PreAvailableMaxDurationInMilli *int
 
 	EnableCheckStableCommand            []string
-	EnableCheckStableMaxDurationInMilli int
-	EnableCheckStableIntervalInMilli    int
+	EnableCheckStableMaxDurationInMilli *int
+	EnableCheckStableIntervalInMilli    *int
 
-	EnableWarmupIntervalInMilli    int
-	EnableWarmupMaxDurationInMilli int
+	EnableWarmupIntervalInMilli    *int
+	EnableWarmupMaxDurationInMilli *int
 
 	DisableShutdownCommand               []string
-	DisableShutdownMaxDurationInMilli    int
+	DisableShutdownMaxDurationInMilli    *int
 	DisableGracefullyDoneCommand         []string
-	DisableGracefullyDoneIntervalInMilli int
-	DisableMaxDurationInMilli            int
-	DisableMinDurationInMilli            int
+	DisableGracefullyDoneIntervalInMilli *int
+	DisableMaxDurationInMilli            *int
+	DisableMinDurationInMilli            *int
 	NoMetrics                            bool
 
 	nerve                      *Nerve
@@ -85,46 +85,56 @@ func (s *Service) Init(n *Nerve) error {
 	if s.Weight == 0 {
 		s.Weight = 255
 	}
-	if s.ReportReplayInMilli == 0 {
-		s.ReportReplayInMilli = 1000
+	if *s.ReportReplayInMilli == 0 {
+		i := 1000
+		s.ReportReplayInMilli = &i
 	}
-	if s.EnableWarmupIntervalInMilli == 0 {
-		s.EnableWarmupIntervalInMilli = 2000
+	if *s.EnableWarmupIntervalInMilli == 0 {
+		i := 2000
+		s.EnableWarmupIntervalInMilli = &i
 	}
-	if s.EnableWarmupMaxDurationInMilli == 0 {
-		s.EnableWarmupMaxDurationInMilli = s.EnableWarmupIntervalInMilli * (postFullWeightMax + len(weights) + 7)
-	}
-
-	if s.EnableCheckStableMaxDurationInMilli == 0 {
-		s.EnableCheckStableMaxDurationInMilli = 2 * 1000
-	}
-
-	if s.EnableCheckStableIntervalInMilli == 0 {
-		s.EnableCheckStableIntervalInMilli = 1000
+	if *s.EnableWarmupMaxDurationInMilli == 0 {
+		i := *s.EnableWarmupIntervalInMilli * (postFullWeightMax + len(weights) + 7)
+		s.EnableWarmupMaxDurationInMilli = &i
 	}
 
-	if s.PreAvailableMaxDurationInMilli == 0 {
-		s.PreAvailableMaxDurationInMilli = 1000
+	if *s.EnableCheckStableMaxDurationInMilli == 0 {
+		i := 2 * 1000
+		s.EnableCheckStableMaxDurationInMilli = &i
 	}
 
-	if s.DisableShutdownMaxDurationInMilli == 0 {
-		s.DisableShutdownMaxDurationInMilli = 30000
+	if *s.EnableCheckStableIntervalInMilli == 0 {
+		i := 1000
+		s.EnableCheckStableIntervalInMilli = &i
 	}
 
-	if s.DisableGracefullyDoneIntervalInMilli == 0 {
-		s.DisableGracefullyDoneIntervalInMilli = 1000
+	if *s.PreAvailableMaxDurationInMilli == 0 {
+		i := 1000
+		s.PreAvailableMaxDurationInMilli = &i
 	}
-	if s.DisableMinDurationInMilli == 0 {
-		s.DisableMinDurationInMilli = 3000
+
+	if *s.DisableShutdownMaxDurationInMilli == 0 {
+		i := 30000
+		s.DisableShutdownMaxDurationInMilli = &i
 	}
-	if s.DisableMaxDurationInMilli == 0 {
-		s.DisableMaxDurationInMilli = 60 * 1000
+
+	if *s.DisableGracefullyDoneIntervalInMilli == 0 {
+		i := 1000
+		s.DisableGracefullyDoneIntervalInMilli = &i
+	}
+	if *s.DisableMinDurationInMilli == 0 {
+		i := 3000
+		s.DisableMinDurationInMilli = &i
+	}
+	if *s.DisableMaxDurationInMilli == 0 {
+		i := 60 * 1000
+		s.DisableMaxDurationInMilli = &i
 	}
 
 	s.fields = data.WithField("service", s.Host+":"+strconv.Itoa(s.Port))
 
-	minDuration := s.EnableWarmupIntervalInMilli * (postFullWeightMax + len(weights))
-	if s.EnableWarmupMaxDurationInMilli < minDuration {
+	minDuration := (*s.EnableWarmupIntervalInMilli) * (postFullWeightMax + len(weights))
+	if *s.EnableWarmupMaxDurationInMilli < minDuration {
 		return errs.WithF(s.fields.WithField("minValue", minDuration),
 			"EnableWarmupMaxDurationInMilli must be at least "+strconv.Itoa(postFullWeightMax+len(weights))+" times EnableWarmupIntervalInMilli")
 	}
@@ -195,7 +205,7 @@ func (s *Service) Start(stopper <-chan struct{}, stopWait *sync.WaitGroup) {
 				reporter.Destroy()
 			}
 			return
-		case <-time.After(time.Duration(s.ReportReplayInMilli) * time.Millisecond):
+		case <-time.After(time.Duration(*s.ReportReplayInMilli) * time.Millisecond):
 			s.reportAndTellIfAtLeastOneReported(false)
 		}
 	}
@@ -242,7 +252,7 @@ func (s *Service) runNotify() {
 		logs.WithF(s.fields).Info("Service is available")
 
 		if len(s.PreAvailableCommand) > 0 {
-			if err := ExecCommand(s.PreAvailableCommand, s.PreAvailableMaxDurationInMilli); err != nil {
+			if err := ExecCommand(s.PreAvailableCommand, *s.PreAvailableMaxDurationInMilli); err != nil {
 				s.nerve.execFailureCount.WithLabelValues(s.Name, "pre-available", s.Host, strconv.Itoa(s.Port)).Inc()
 				logs.WithEF(err, s.fields).Warn("Pre available command failed")
 			}
@@ -286,7 +296,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 	if len(s.EnableCheckStableCommand) > 0 {
 		go func() {
 			for {
-				if err := ExecCommand(s.EnableCheckStableCommand, s.EnableCheckStableMaxDurationInMilli); err != nil {
+				if err := ExecCommand(s.EnableCheckStableCommand, *s.EnableCheckStableMaxDurationInMilli); err != nil {
 					s.nerve.execFailureCount.WithLabelValues(s.Name, s.Host, strconv.Itoa(s.Port), "check-stable").Inc()
 					logs.WithEF(err, s.fields).Warn("Check stable command failed. Reset weight")
 					atomic.StoreInt32(&s.currentWeightIndex, 0)
@@ -298,7 +308,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 					return
 				case <-done:
 					return
-				case <-time.After(time.Duration(s.EnableCheckStableIntervalInMilli) * time.Millisecond):
+				case <-time.After(time.Duration(*s.EnableCheckStableIntervalInMilli) * time.Millisecond):
 				}
 			}
 		}()
@@ -321,7 +331,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 			return
 		}
 
-		if time.Now().After(start.Add(time.Duration(s.EnableWarmupMaxDurationInMilli) * time.Millisecond)) {
+		if time.Now().After(start.Add(time.Duration(*s.EnableWarmupMaxDurationInMilli) * time.Millisecond)) {
 			logs.WithF(s.fields).Warn("Warmup reach max duration. set Full Weight")
 			done <- struct{}{}
 			s.warmupMutex.Lock()
@@ -336,7 +346,7 @@ func (s *Service) Warmup(giveUp <-chan struct{}) {
 		case <-giveUp:
 			logs.WithF(s.fields).Debug("Warmup giveup requested")
 			return
-		case <-time.After(time.Duration(s.EnableWarmupIntervalInMilli) * time.Millisecond):
+		case <-time.After(time.Duration(*s.EnableWarmupIntervalInMilli) * time.Millisecond):
 		}
 	}
 
@@ -408,7 +418,7 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup, shutdown bool) {
 
 	if len(s.DisableShutdownCommand) > 0 && shutdown {
 		logs.WithF(s.fields).Debug("Run disableShutdown command")
-		if err := ExecCommand(s.DisableShutdownCommand, s.DisableShutdownMaxDurationInMilli); err != nil {
+		if err := ExecCommand(s.DisableShutdownCommand, *s.DisableShutdownMaxDurationInMilli); err != nil {
 			logs.WithEF(err, s.fields).Error("Shutdown result")
 			s.nerve.execFailureCount.WithLabelValues(s.Name, s.Host, strconv.Itoa(s.Port), "disable-shutdown").Inc()
 		}
@@ -417,7 +427,7 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup, shutdown bool) {
 	if len(s.DisableGracefullyDoneCommand) > 0 {
 		for {
 			var err error
-			if err = ExecCommand(s.DisableGracefullyDoneCommand, s.DisableGracefullyDoneIntervalInMilli); err == nil {
+			if err = ExecCommand(s.DisableGracefullyDoneCommand, *s.DisableGracefullyDoneIntervalInMilli); err == nil {
 				logs.WithF(s.fields).Debug("Gracefull check succeed")
 				break
 			}
@@ -426,15 +436,15 @@ func (s *Service) Disable(doneWaiter *sync.WaitGroup, shutdown bool) {
 			logs.WithEF(err, s.fields).Debug("Gracefull check command fail")
 
 			select {
-			case <-time.After(start.Add(time.Duration(s.DisableMaxDurationInMilli) * time.Millisecond).Sub(time.Now())):
+			case <-time.After(start.Add(time.Duration(*s.DisableMaxDurationInMilli) * time.Millisecond).Sub(time.Now())):
 				logs.WithEF(err, s.fields).Warn("Disable max duration reached")
 				return
-			case <-time.After(time.Duration(s.DisableGracefullyDoneIntervalInMilli) * time.Millisecond):
+			case <-time.After(time.Duration(*s.DisableGracefullyDoneIntervalInMilli) * time.Millisecond):
 			}
 		}
 	}
 
-	time.Sleep(start.Add(time.Duration(s.DisableMinDurationInMilli) * time.Millisecond).Sub(time.Now()))
+	time.Sleep(start.Add(time.Duration(*s.DisableMinDurationInMilli) * time.Millisecond).Sub(time.Now()))
 }
 
 func (s *Service) Enable(force bool) {

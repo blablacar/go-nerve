@@ -136,9 +136,6 @@ func main() {
 				logs.WithE(err).Fatal("Failed to init nerve")
 			}
 
-			if err := os.MkdirAll("/run/nerve", os.ModePerm); err != nil {
-				logs.Warn("Failed to prepare /run/nerve directory")
-			}
 			if err := ioutil.WriteFile(nerve.TemplatedConfigPath, nerveConfig, 0644); err != nil {
 				logs.WithField("path", nerve.TemplatedConfigPath).Warn("Failed to write template configuration")
 			}

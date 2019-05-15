@@ -45,7 +45,7 @@ func (n *Nerve) Init(version string, buildTime string, logLevelIsSet bool) error
 		n.ApiPort = 3454
 	}
 	if n.TemplatedConfigPath == "" {
-		n.TemplatedConfigPath = "/tmp/nerve-Config-templated.yaml"
+		n.TemplatedConfigPath = "/tmp/nerve-config-templated.yaml"
 	}
 	if !logLevelIsSet && n.LogLevel != nil {
 		logs.SetLevel(*n.LogLevel)
