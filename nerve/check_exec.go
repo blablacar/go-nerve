@@ -8,7 +8,7 @@ import (
 
 type CheckExec struct {
 	CheckCommon
-	Command []string `yaml:"command,omitempty"`
+	Command []string `json:"command,omitempty"`
 }
 
 func NewCheckExec() *CheckExec {

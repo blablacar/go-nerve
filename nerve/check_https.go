@@ -13,7 +13,7 @@ import (
 
 type CheckHttps struct {
 	CheckCommon
-	Path string `yaml:"path,omitempty"`
+	Path string `json:"path,omitempty"`
 
 	url    string
 	client http.Client

@@ -25,13 +25,13 @@ type Checker interface {
 }
 
 type CheckCommon struct {
-	Type                 string `yaml:"type,omitempty"`
-	Host                 string `yaml:"host,omitempty"`
-	Port                 *int   `yaml:"port,omitempty"`
-	TimeoutInMilli       *int   `yaml:"timeoutInMilli,omitempty"`
-	Rise                 *int   `yaml:"rise,omitempty"`
-	Fall                 *int   `yaml:"fall,omitempty"`
-	CheckIntervalInMilli *int   `yaml:"checkIntervalInMilli,omitempty"`
+	Type                 string `json:"type,omitempty"`
+	Host                 string `json:"host,omitempty"`
+	Port                 *int   `json:"port,omitempty"`
+	TimeoutInMilli       *int   `json:"timeoutInMilli,omitempty"`
+	Rise                 *int   `json:"rise,omitempty"`
+	Fall                 *int   `json:"fall,omitempty"`
+	CheckIntervalInMilli *int   `json:"checkIntervalInMilli,omitempty"`
 
 	fields         data.Fields
 	stableStatus   *error

@@ -14,7 +14,7 @@ import (
 type CheckTcp struct {
 	CheckCommon
 
-	url string `yaml:"url,omitempty"`
+	url string `json:"url,omitempty"`
 }
 
 func NewCheckTcp() *CheckTcp {

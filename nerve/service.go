@@ -14,37 +14,37 @@ import (
 )
 
 type Service struct {
-	Name                       string            `yaml:"name,omitempty"`
-	Port                       int               `yaml:"port,omitempty"`
-	Host                       string            `yaml:"host,omitempty"`
-	PreferIpv4                 bool              `yaml:"preferIpv4,omitempty"`
-	Weight                     uint8             `yaml:"weight,omitempty"`
-	Checks                     []json.RawMessage `yaml:"checks,omitempty"`
-	Reporters                  []json.RawMessage `yaml:"reporters,omitempty"`
-	ReporterServiceName        string            `yaml:"reporterServiceName,omitempty"`
-	ReportReplayInMilli        *int              `yaml:"reportReplayInMilli,omitempty"`
-	HaproxyServerOptions       string            `yaml:"haproxyServerOptions,omitempty"`
-	SetServiceAsDownOnShutdown *bool             `yaml:"setServiceAsDownOnShutdown,omitempty"`
-	Labels                     map[string]string `yaml:"labels,omitempty"`
-	ExcludeFromGlobalDisable   bool              `yaml:"excludeFromGlobalDisable,omitempty"`
+	Name                       string            `json:"name,omitempty"`
+	Port                       int               `json:"port,omitempty"`
+	Host                       string            `json:"host,omitempty"`
+	PreferIpv4                 bool              `json:"preferIpv4,omitempty"`
+	Weight                     uint8             `json:"weight,omitempty"`
+	Checks                     []json.RawMessage `json:"checks,omitempty"`
+	Reporters                  []json.RawMessage `json:"reporters,omitempty"`
+	ReporterServiceName        string            `json:"reporterServiceName,omitempty"`
+	ReportReplayInMilli        *int              `json:"reportReplayInMilli,omitempty"`
+	HaproxyServerOptions       string            `json:"haproxyServerOptions,omitempty"`
+	SetServiceAsDownOnShutdown *bool             `json:"setServiceAsDownOnShutdown,omitempty"`
+	Labels                     map[string]string `json:"labels,omitempty"`
+	ExcludeFromGlobalDisable   bool              `json:"excludeFromGlobalDisable,omitempty"`
 
-	PreAvailableCommand            []string `yaml:"preAvailableCommand,omitempty"`
-	PreAvailableMaxDurationInMilli *int     `yaml:"preAvailableMaxDurationInMilli,omitempty"`
+	PreAvailableCommand            []string `json:"preAvailableCommand,omitempty"`
+	PreAvailableMaxDurationInMilli *int     `json:"preAvailableMaxDurationInMilli,omitempty"`
 
-	EnableCheckStableCommand            []string `yaml:"enableCheckStableCommand,omitempty"`
-	EnableCheckStableMaxDurationInMilli *int     `yaml:"enableCheckStableMaxDurationInMilli,omitempty"`
-	EnableCheckStableIntervalInMilli    *int     `yaml:"enableCheckStableIntervalInMilli,omitempty"`
+	EnableCheckStableCommand            []string `json:"enableCheckStableCommand,omitempty"`
+	EnableCheckStableMaxDurationInMilli *int     `json:"enableCheckStableMaxDurationInMilli,omitempty"`
+	EnableCheckStableIntervalInMilli    *int     `json:"enableCheckStableIntervalInMilli,omitempty"`
 
-	EnableWarmupIntervalInMilli    *int `yaml:"enableWarmupIntervalInMilli,omitempty"`
-	EnableWarmupMaxDurationInMilli *int `yaml:"enableWarmupMaxDurationInMilli,omitempty"`
+	EnableWarmupIntervalInMilli    *int `json:"enableWarmupIntervalInMilli,omitempty"`
+	EnableWarmupMaxDurationInMilli *int `json:"enableWarmupMaxDurationInMilli,omitempty"`
 
-	DisableShutdownCommand               []string `yaml:"disableShutdownCommand,omitempty"`
-	DisableShutdownMaxDurationInMilli    *int     `yaml:"disableShutdownMaxDurationInMilli,omitempty"`
-	DisableGracefullyDoneCommand         []string `yaml:"disableGracefullyDoneCommand,omitempty"`
-	DisableGracefullyDoneIntervalInMilli *int     `yaml:"disableGracefullyDoneIntervalInMilli,omitempty"`
-	DisableMaxDurationInMilli            *int     `yaml:"disableMaxDurationInMilli,omitempty"`
-	DisableMinDurationInMilli            *int     `yaml:"disableMinDurationInMilli,omitempty"`
-	NoMetrics                            bool     `yaml:"noMetrics,omitempty"`
+	DisableShutdownCommand               []string `json:"disableShutdownCommand,omitempty"`
+	DisableShutdownMaxDurationInMilli    *int     `json:"disableShutdownMaxDurationInMilli,omitempty"`
+	DisableGracefullyDoneCommand         []string `json:"disableGracefullyDoneCommand,omitempty"`
+	DisableGracefullyDoneIntervalInMilli *int     `json:"disableGracefullyDoneIntervalInMilli,omitempty"`
+	DisableMaxDurationInMilli            *int     `json:"disableMaxDurationInMilli,omitempty"`
+	DisableMinDurationInMilli            *int     `json:"disableMinDurationInMilli,omitempty"`
+	NoMetrics                            bool     `json:"noMetrics,omitempty"`
 
 	nerve                      *Nerve
 	forceEnable                bool

@@ -11,11 +11,11 @@ import (
 )
 
 type Nerve struct {
-	LogLevel            *logs.Level `yaml:"logLevel,omitempty"`
-	ApiHost             string      `yaml:"apiHost,omitempty"`
-	ApiPort             int         `yaml:"apiPort,omitempty"`
-	Services            []*Service  `yaml:"services,omitempty"`
-	TemplatedConfigPath string      `yaml:"templatedConfigPath,omitempty"`
+	LogLevel            *logs.Level `json:"logLevel,omitempty"`
+	ApiHost             string      `json:"apiHost,omitempty"`
+	ApiPort             int         `json:"apiPort,omitempty"`
+	Services            []*Service  `json:"services,omitempty"`
+	TemplatedConfigPath string      `json:"templatedConfigPath,omitempty"`
 
 	nerveVersion         string
 	nerveBuildTime       string

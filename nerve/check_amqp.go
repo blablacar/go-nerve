@@ -14,11 +14,11 @@ const checkMessage = "nerve"
 
 type CheckAmqp struct {
 	CheckCommon
-	Datasource string `yaml:"datasource,omitempty"`
-	Vhost      string `yaml:"vhost,omitempty"`
-	Queue      string `yaml:"queue,omitempty"`
-	Username   string `yaml:"username,omitempty"`
-	Password   string `yaml:"password,omitempty"`
+	Datasource string `json:"datasource,omitempty"`
+	Vhost      string `json:"vhost,omitempty"`
+	Queue      string `json:"queue,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Password   string `json:"password,omitempty"`
 
 	templatedDatasource string
 }

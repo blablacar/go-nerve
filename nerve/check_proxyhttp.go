@@ -16,12 +16,12 @@ import (
 
 type CheckProxyHttp struct {
 	CheckCommon
-	ProxyHost            string   `yaml:"proxyHost,omitempty"`
-	ProxyPort            int      `yaml:"proxyPort,omitempty"`
-	ProxyUsername        string   `yaml:"proxyUsername,omitempty"`
-	ProxyPassword        string   `yaml:"proxyPassword,omitempty"`
-	Urls                 []string `yaml:"urls,omitempty"`
-	FailOnAnyUnreachable bool     `yaml:"failOnAnyUnreachable,omitempty"`
+	ProxyHost            string   `json:"proxyHost,omitempty"`
+	ProxyPort            int      `json:"proxyPort,omitempty"`
+	ProxyUsername        string   `json:"proxyUsername,omitempty"`
+	ProxyPassword        string   `json:"proxyPassword,omitempty"`
+	Urls                 []string `json:"urls,omitempty"`
+	FailOnAnyUnreachable bool     `json:"failOnAnyUnreachable,omitempty"`
 
 	client http.Client
 }

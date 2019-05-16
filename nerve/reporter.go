@@ -16,7 +16,7 @@ type Reporter interface {
 }
 
 type ReporterCommon struct {
-	Type string `yaml:"type,omitempty"`
+	Type string `json:"type,omitempty"`
 
 	fields data.Fields
 }

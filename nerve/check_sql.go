@@ -14,11 +14,11 @@ import (
 
 type CheckSql struct {
 	CheckCommon
-	Username   string `yaml:"username,omitempty"`
-	Password   string `yaml:"password,omitempty"`
-	Request    string `yaml:"request,omitempty"`
-	Datasource string `yaml:"datasource,omitempty"`
-	Driver     string `yaml:"driver,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Password   string `json:"password,omitempty"`
+	Request    string `json:"request,omitempty"`
+	Datasource string `json:"datasource,omitempty"`
+	Driver     string `json:"driver,omitempty"`
 
 	templatedDatasource string
 }
