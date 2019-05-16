@@ -16,12 +16,12 @@ import (
 
 type CheckProxyHttp struct {
 	CheckCommon
-	ProxyHost            string
-	ProxyPort            int
-	ProxyUsername        string
-	ProxyPassword        string
-	Urls                 []string
-	FailOnAnyUnreachable bool
+	ProxyHost            string   `yaml:"proxyHost,omitempty"`
+	ProxyPort            int      `yaml:"proxyPort,omitempty"`
+	ProxyUsername        string   `yaml:"proxyUsername,omitempty"`
+	ProxyPassword        string   `yaml:"proxyPassword,omitempty"`
+	Urls                 []string `yaml:"urls,omitempty"`
+	FailOnAnyUnreachable bool     `yaml:"failOnAnyUnreachable,omitempty"`
 
 	client http.Client
 }
@@ -62,7 +62,7 @@ func (x *CheckProxyHttp) Init(s *Service) error {
 			Proxy:           http.ProxyURL(proxyUrl),
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
-		Timeout: time.Duration(x.TimeoutInMilli) * time.Millisecond,
+		Timeout: time.Duration(*x.TimeoutInMilli) * time.Millisecond,
 	}
 
 	return nil

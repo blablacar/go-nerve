@@ -14,7 +14,7 @@ import (
 type CheckTcp struct {
 	CheckCommon
 
-	url string
+	url string `yaml:"url,omitempty"`
 }
 
 func NewCheckTcp() *CheckTcp {
@@ -30,7 +30,7 @@ func (x *CheckTcp) Init(s *Service) error {
 		return err
 	}
 
-	x.url = x.Host + ":" + strconv.Itoa(x.Port)
+	x.url = x.Host + ":" + strconv.Itoa(*x.Port)
 	x.fields = x.fields.WithField("url", x.url)
 	return nil
 }
@@ -46,7 +46,7 @@ func (x *CheckTcp) Check() error {
 	}()
 	<-checker.WaitReady()
 
-	err := checker.CheckAddr(x.url, time.Duration(x.TimeoutInMilli)*time.Millisecond)
+	err := checker.CheckAddr(x.url, time.Duration(*x.TimeoutInMilli)*time.Millisecond)
 	switch err {
 	case tcp.ErrTimeout:
 		return errs.WithEF(err, x.fields, "Check failed (timeout)")

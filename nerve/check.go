@@ -25,13 +25,13 @@ type Checker interface {
 }
 
 type CheckCommon struct {
-	Type                 string
-	Host                 string
-	Port                 int
-	TimeoutInMilli       int
-	Rise                 int
-	Fall                 int
-	CheckIntervalInMilli int
+	Type                 string `yaml:"type,omitempty"`
+	Host                 string `yaml:"host,omitempty"`
+	Port                 *int   `yaml:"port,omitempty"`
+	TimeoutInMilli       *int   `yaml:"timeoutInMilli,omitempty"`
+	Rise                 *int   `yaml:"rise,omitempty"`
+	Fall                 *int   `yaml:"fall,omitempty"`
+	CheckIntervalInMilli *int   `yaml:"checkIntervalInMilli,omitempty"`
 
 	fields         data.Fields
 	stableStatus   *error
@@ -45,20 +45,24 @@ func (c *CheckCommon) GetFields() data.Fields {
 
 func (c *CheckCommon) CommonInit(s *Service) error {
 	c.service = s
-	if c.TimeoutInMilli == 0 {
-		c.TimeoutInMilli = 1000
+	if c.TimeoutInMilli == nil || *c.TimeoutInMilli == 0 {
+		i := 1000
+		c.TimeoutInMilli = &i
 	}
-	if c.Rise == 0 {
-		c.Rise = 3
+	if c.Rise == nil || *c.Rise == 0 {
+		i := 3
+		c.Rise = &i
 	}
-	if c.Fall == 0 {
-		c.Fall = 2
+	if c.Fall == nil || *c.Fall == 0 {
+		i := 2
+		c.Fall = &i
 	}
-	if c.CheckIntervalInMilli == 0 {
-		c.CheckIntervalInMilli = 1000
+	if c.CheckIntervalInMilli == nil || *c.CheckIntervalInMilli == 0 {
+		i := 1000
+		c.CheckIntervalInMilli = &i
 	}
-	if c.Port == 0 {
-		c.Port = s.Port
+	if c.Port == nil || *c.Port == 0 {
+		c.Port = &s.Port
 	}
 	if c.Host == "" {
 		c.Host = s.Host
@@ -78,7 +82,7 @@ func (c *CheckCommon) saveStatus(status error) {
 	var tmp []error
 	tmp = append(tmp, status)
 	tmp = append(tmp, c.latestStatuses...)
-	if len(tmp) > max(c.Rise, c.Fall) {
+	if len(tmp) > max(*c.Rise, *c.Fall) {
 		c.latestStatuses = tmp[:len(tmp)-1]
 	} else {
 		c.latestStatuses = tmp
@@ -106,14 +110,14 @@ func (c *CheckCommon) CommonRun(checker Checker, statusChange chan<- Check, stop
 			logs.WithEF(status, c.fields).Debug("Failed check")
 		}
 		if status != nil && !c.service.NoMetrics {
-			c.service.nerve.checkerFailureCount.WithLabelValues(c.service.Name, c.Host, strconv.Itoa(c.Port), c.Type).Inc()
+			c.service.nerve.checkerFailureCount.WithLabelValues(c.service.Name, c.Host, strconv.Itoa(*c.Port), c.Type).Inc()
 		}
 		c.saveStatus(status)
 
 		current := c.stableStatus
 		latest := c.latestStatuses
-		if (latest[0] == nil && sameLastStatusCount(latest) >= c.Rise && (current == nil || *current != nil)) ||
-			(latest[0] != nil && sameLastStatusCount(latest) >= c.Fall && (current == nil || *current == nil)) {
+		if (latest[0] == nil && sameLastStatusCount(latest) >= *c.Rise && (current == nil || *current != nil)) ||
+			(latest[0] != nil && sameLastStatusCount(latest) >= *c.Fall && (current == nil || *current == nil)) {
 			c.stableStatus = &status
 			statusChange <- Check{checker, *c.stableStatus}
 		}
@@ -122,7 +126,7 @@ func (c *CheckCommon) CommonRun(checker Checker, statusChange chan<- Check, stop
 		case <-stop:
 			logs.WithFields(c.fields).Debug("Stopping check")
 			return
-		case <-time.After(time.Duration(c.CheckIntervalInMilli) * time.Millisecond):
+		case <-time.After(time.Duration(*c.CheckIntervalInMilli) * time.Millisecond):
 		}
 	}
 }

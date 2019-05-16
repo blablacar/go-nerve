@@ -12,11 +12,11 @@ import (
 
 type ReporterZookeeper struct {
 	ReporterCommon
-	Path                     string
-	Hosts                    []string
-	ConnectionTimeoutInMilli *int
-	RefreshIntervalInMilli   *int
-	ExposeOnUnavailable      bool
+	Path                     string   `yaml:"path,omitempty"`
+	Hosts                    []string `yaml:"hosts,omitempty"`
+	ConnectionTimeoutInMilli *int     `yaml:"connectionTimeoutInMilli,omitempty"`
+	RefreshIntervalInMilli   *int     `yaml:"refreshIntervalInMilli,omitempty"`
+	ExposeOnUnavailable      bool     `yaml:"exposeOnUnavailable,omitempty"`
 
 	report      Report
 	reportMutex sync.Mutex

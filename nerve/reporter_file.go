@@ -9,8 +9,8 @@ import (
 
 type ReporterFile struct {
 	ReporterCommon
-	Path   string
-	Append bool
+	Path   string `yaml:"path,omitempty"`
+	Append bool   `yaml:"append,omitempty"`
 }
 
 func NewReporterFile() *ReporterFile {

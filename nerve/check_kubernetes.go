@@ -14,8 +14,8 @@ import (
 
 type CheckKubernetes struct {
 	CheckCommon
-	Namespace string
-	PodName   string
+	Namespace string `yaml:"namespace,omitempty"`
+	PodName   string `yaml:"podName,omitempty"`
 
 	clientset *kubernetes.Clientset
 }

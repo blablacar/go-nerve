@@ -12,7 +12,7 @@ import (
 
 type CheckHttp struct {
 	CheckCommon
-	Path string
+	Path string `yaml:"namespace,omitempty"`
 
 	url    string
 	client http.Client
@@ -34,13 +34,13 @@ func (x *CheckHttp) Init(s *Service) error {
 	}
 
 	x.client = http.Client{
-		Timeout: time.Duration(x.TimeoutInMilli) * time.Millisecond,
+		Timeout: time.Duration(*x.TimeoutInMilli) * time.Millisecond,
 	}
 	if len(x.Path) == 0 || x.Path[0] != '/' {
 		x.Path = "/" + x.Path
 	}
 
-	x.url = "http://" + x.Host + ":" + strconv.Itoa(x.Port) + x.Path
+	x.url = "http://" + x.Host + ":" + strconv.Itoa(*x.Port) + x.Path
 	x.fields = x.fields.WithField("url", x.url).WithField("type", x.Type)
 	return nil
 }

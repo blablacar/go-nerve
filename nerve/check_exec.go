@@ -8,7 +8,7 @@ import (
 
 type CheckExec struct {
 	CheckCommon
-	Command []string
+	Command []string `yaml:"command,omitempty"`
 }
 
 func NewCheckExec() *CheckExec {
@@ -32,7 +32,7 @@ func (x *CheckExec) Init(s *Service) error {
 }
 
 func (x *CheckExec) Check() error {
-	if err := ExecCommand(x.Command, x.TimeoutInMilli); err != nil {
+	if err := ExecCommand(x.Command, *x.TimeoutInMilli); err != nil {
 		return errs.WithEF(err, x.fields, "Check command failed")
 	}
 	return nil

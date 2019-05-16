@@ -14,18 +14,19 @@ import (
 
 type CheckSql struct {
 	CheckCommon
-	Username   string
-	Password   string
-	Request    string
-	Datasource string
-	Driver     string
+	Username   string `yaml:"username,omitempty"`
+	Password   string `yaml:"password,omitempty"`
+	Request    string `yaml:"request,omitempty"`
+	Datasource string `yaml:"datasource,omitempty"`
+	Driver     string `yaml:"driver,omitempty"`
 
 	templatedDatasource string
 }
 
 func NewCheckSql() *CheckSql {
+	i := 3306
 	return &CheckSql{
-		CheckCommon: CheckCommon{Port: 3306},
+		CheckCommon: CheckCommon{Port: &i},
 		Username:    "root",
 		Password:    "",
 		Request:     "SELECT 1",

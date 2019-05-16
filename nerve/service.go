@@ -14,37 +14,37 @@ import (
 )
 
 type Service struct {
-	Name                       string
-	Port                       int
-	Host                       string
-	PreferIpv4                 bool
-	Weight                     uint8
-	Checks                     []json.RawMessage
-	Reporters                  []json.RawMessage
-	ReporterServiceName        string
-	ReportReplayInMilli        *int
-	HaproxyServerOptions       string
-	SetServiceAsDownOnShutdown *bool
-	Labels                     map[string]string
-	ExcludeFromGlobalDisable   bool
+	Name                       string            `yaml:"name,omitempty"`
+	Port                       int               `yaml:"port,omitempty"`
+	Host                       string            `yaml:"host,omitempty"`
+	PreferIpv4                 bool              `yaml:"preferIpv4,omitempty"`
+	Weight                     uint8             `yaml:"weight,omitempty"`
+	Checks                     []json.RawMessage `yaml:"checks,omitempty"`
+	Reporters                  []json.RawMessage `yaml:"reporters,omitempty"`
+	ReporterServiceName        string            `yaml:"reporterServiceName,omitempty"`
+	ReportReplayInMilli        *int              `yaml:"reportReplayInMilli,omitempty"`
+	HaproxyServerOptions       string            `yaml:"haproxyServerOptions,omitempty"`
+	SetServiceAsDownOnShutdown *bool             `yaml:"setServiceAsDownOnShutdown,omitempty"`
+	Labels                     map[string]string `yaml:"labels,omitempty"`
+	ExcludeFromGlobalDisable   bool              `yaml:"excludeFromGlobalDisable,omitempty"`
 
-	PreAvailableCommand            []string
-	PreAvailableMaxDurationInMilli *int
+	PreAvailableCommand            []string `yaml:"preAvailableCommand,omitempty"`
+	PreAvailableMaxDurationInMilli *int     `yaml:"preAvailableMaxDurationInMilli,omitempty"`
 
-	EnableCheckStableCommand            []string
-	EnableCheckStableMaxDurationInMilli *int
-	EnableCheckStableIntervalInMilli    *int
+	EnableCheckStableCommand            []string `yaml:"enableCheckStableCommand,omitempty"`
+	EnableCheckStableMaxDurationInMilli *int     `yaml:"enableCheckStableMaxDurationInMilli,omitempty"`
+	EnableCheckStableIntervalInMilli    *int     `yaml:"enableCheckStableIntervalInMilli,omitempty"`
 
-	EnableWarmupIntervalInMilli    *int
-	EnableWarmupMaxDurationInMilli *int
+	EnableWarmupIntervalInMilli    *int `yaml:"enableWarmupIntervalInMilli,omitempty"`
+	EnableWarmupMaxDurationInMilli *int `yaml:"enableWarmupMaxDurationInMilli,omitempty"`
 
-	DisableShutdownCommand               []string
-	DisableShutdownMaxDurationInMilli    *int
-	DisableGracefullyDoneCommand         []string
-	DisableGracefullyDoneIntervalInMilli *int
-	DisableMaxDurationInMilli            *int
-	DisableMinDurationInMilli            *int
-	NoMetrics                            bool
+	DisableShutdownCommand               []string `yaml:"disableShutdownCommand,omitempty"`
+	DisableShutdownMaxDurationInMilli    *int     `yaml:"disableShutdownMaxDurationInMilli,omitempty"`
+	DisableGracefullyDoneCommand         []string `yaml:"disableGracefullyDoneCommand,omitempty"`
+	DisableGracefullyDoneIntervalInMilli *int     `yaml:"disableGracefullyDoneIntervalInMilli,omitempty"`
+	DisableMaxDurationInMilli            *int     `yaml:"disableMaxDurationInMilli,omitempty"`
+	DisableMinDurationInMilli            *int     `yaml:"disableMinDurationInMilli,omitempty"`
+	NoMetrics                            bool     `yaml:"noMetrics,omitempty"`
 
 	nerve                      *Nerve
 	forceEnable                bool
@@ -85,48 +85,48 @@ func (s *Service) Init(n *Nerve) error {
 	if s.Weight == 0 {
 		s.Weight = 255
 	}
-	if *s.ReportReplayInMilli == 0 {
+	if s.ReportReplayInMilli == nil || *s.ReportReplayInMilli == 0 {
 		i := 1000
 		s.ReportReplayInMilli = &i
 	}
-	if *s.EnableWarmupIntervalInMilli == 0 {
+	if s.EnableWarmupIntervalInMilli == nil || *s.EnableWarmupIntervalInMilli == 0 {
 		i := 2000
 		s.EnableWarmupIntervalInMilli = &i
 	}
-	if *s.EnableWarmupMaxDurationInMilli == 0 {
+	if s.EnableWarmupMaxDurationInMilli == nil || *s.EnableWarmupMaxDurationInMilli == 0 {
 		i := *s.EnableWarmupIntervalInMilli * (postFullWeightMax + len(weights) + 7)
 		s.EnableWarmupMaxDurationInMilli = &i
 	}
 
-	if *s.EnableCheckStableMaxDurationInMilli == 0 {
+	if s.EnableCheckStableMaxDurationInMilli == nil || *s.EnableCheckStableMaxDurationInMilli == 0 {
 		i := 2 * 1000
 		s.EnableCheckStableMaxDurationInMilli = &i
 	}
 
-	if *s.EnableCheckStableIntervalInMilli == 0 {
+	if s.EnableCheckStableIntervalInMilli == nil || *s.EnableCheckStableIntervalInMilli == 0 {
 		i := 1000
 		s.EnableCheckStableIntervalInMilli = &i
 	}
 
-	if *s.PreAvailableMaxDurationInMilli == 0 {
+	if s.PreAvailableMaxDurationInMilli == nil || *s.PreAvailableMaxDurationInMilli == 0 {
 		i := 1000
 		s.PreAvailableMaxDurationInMilli = &i
 	}
 
-	if *s.DisableShutdownMaxDurationInMilli == 0 {
+	if s.DisableShutdownMaxDurationInMilli == nil || *s.DisableShutdownMaxDurationInMilli == 0 {
 		i := 30000
 		s.DisableShutdownMaxDurationInMilli = &i
 	}
 
-	if *s.DisableGracefullyDoneIntervalInMilli == 0 {
+	if s.DisableGracefullyDoneIntervalInMilli == nil || *s.DisableGracefullyDoneIntervalInMilli == 0 {
 		i := 1000
 		s.DisableGracefullyDoneIntervalInMilli = &i
 	}
-	if *s.DisableMinDurationInMilli == 0 {
+	if s.DisableMinDurationInMilli == nil || *s.DisableMinDurationInMilli == 0 {
 		i := 3000
 		s.DisableMinDurationInMilli = &i
 	}
-	if *s.DisableMaxDurationInMilli == 0 {
+	if s.DisableMaxDurationInMilli == nil || *s.DisableMaxDurationInMilli == 0 {
 		i := 60 * 1000
 		s.DisableMaxDurationInMilli = &i
 	}

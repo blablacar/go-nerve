@@ -13,9 +13,9 @@ import (
 
 type CheckHttps struct {
 	CheckCommon
-	Path string
-	url  string
+	Path string `yaml:"path,omitempty"`
 
+	url    string
 	client http.Client
 }
 
@@ -39,14 +39,14 @@ func (x *CheckHttps) Init(s *Service) error {
 	}
 
 	x.client = http.Client{
-		Timeout:   time.Duration(x.TimeoutInMilli) * time.Millisecond,
+		Timeout:   time.Duration(*x.TimeoutInMilli) * time.Millisecond,
 		Transport: tr,
 	}
 	if len(x.Path) == 0 || x.Path[0] != '/' {
 		x.Path = "/" + x.Path
 	}
 
-	x.url = "https://" + x.Host + ":" + strconv.Itoa(x.Port) + x.Path
+	x.url = "https://" + x.Host + ":" + strconv.Itoa(*x.Port) + x.Path
 	x.fields = x.fields.WithField("url", x.url).WithField("type", x.Type)
 	return nil
 }
