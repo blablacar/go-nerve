@@ -127,9 +127,10 @@ func (r *ReporterZookeeper) refresher() {
 
 func (r *ReporterZookeeper) mkdirStaticPath(acl []zk.ACL) error {
 	paths := strings.Split(r.Path, "/")
-	full := ""
+	full := "/"
 	for i, path := range paths {
-		if i > 0 {
+		logs.WithField("path", full).Debug("Processing path")
+		if i > 1 {
 			full += "/"
 		}
 		full += path
